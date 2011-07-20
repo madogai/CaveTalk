@@ -68,7 +68,11 @@
 				}
 			}
 
-			client.Connect();
+			try {
+				client.Connect();
+			} catch (SocketIOException e) {
+				throw new WebException("Cavetubeに接続できません。", e);
+			}
 		}
 
 		public void Close() {

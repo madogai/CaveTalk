@@ -104,11 +104,15 @@
 		}
 
 		private String GetSessionId(Uri uri) {
-			using (var wc = new WebClient()) {
-				var handshakeUrl = String.Format("http://{0}:{1}/{2}/{3}", uri.Host, uri.Port, nameSpace, protocolVersion);
-				var response = wc.DownloadString(handshakeUrl);
-				var sessionId = Regex.Split(response, ":")[0];
-				return sessionId;
+			try {
+				using (var wc = new WebClient()) {
+					var handshakeUrl = String.Format("http://{0}:{1}/{2}/{3}", uri.Host, uri.Port, nameSpace, protocolVersion);
+					var response = wc.DownloadString(handshakeUrl);
+					var sessionId = Regex.Split(response, ":")[0];
+					return sessionId;
+				}
+			} catch (WebException e) {
+				throw new SocketIOException("SessionIdを取得できません。", e);
 			}
 		}
 
@@ -133,21 +137,21 @@
 			Error,
 			Noop,
 		}
+	}
 
-		[Serializable]
-		public sealed class SocketIOException : Exception {
+	[Serializable]
+	public sealed class SocketIOException : Exception {
 
-			public SocketIOException()
-				: base() {
-			}
+		public SocketIOException()
+			: base() {
+		}
 
-			public SocketIOException(String message)
-				: base(message) {
-			}
+		public SocketIOException(String message)
+			: base(message) {
+		}
 
-			public SocketIOException(String message, Exception innerException)
-				: base(message, innerException) {
-			}
+		public SocketIOException(String message, Exception innerException)
+			: base(message, innerException) {
 		}
 	}
 }

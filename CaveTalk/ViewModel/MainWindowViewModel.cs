@@ -8,6 +8,7 @@
 	using System.Windows.Input;
 	using CaveTalk.Utils;
 	using FNF.Utility;
+	using System.Net;
 
 	public sealed class MainWindowViewModel : ViewModelBase {
 		private CavetubeClient cavetubeClient;
@@ -129,7 +130,11 @@
 			}
 
 			this.LiveUrl = roomId;
-			this.cavetubeClient.Connect(roomId);
+			try {
+				this.cavetubeClient.Connect(roomId);
+			} catch (WebException) {
+				MessageBox.Show("Cavetubeに接続できませんでした。");
+			}
 		}
 
 		private void ConnectBouyomi() {
