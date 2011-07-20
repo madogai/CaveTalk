@@ -44,7 +44,7 @@
             </Grid>
         </Border>
         <Grid>
-            <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column">
+            <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=Number}" Header="No" Width="40" />
                     <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" Width="80" />
