@@ -1,23 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Windows;
-using CaveTalk.ViewModel;
+﻿namespace CaveTalk {
 
-namespace CaveTalk {
+	using System;
+	using System.Windows;
+	using CaveTalk.ViewModel;
+	using NLog;
+
 	/// <summary>
 	/// App.xaml の相互作用ロジック
 	/// </summary>
 	public partial class App : Application {
-		protected override void OnStartup(StartupEventArgs e) {
-			base.OnStartup(e);
+		private Logger logger = LogManager.GetLogger("App");
 
-			var window = new MainWindow {
-				DataContext = new MainWindowViewModel(),
-			};
-			window.Show();
+		protected override void OnStartup(StartupEventArgs e) {
+			try {
+				base.OnStartup(e);
+
+				var window = new MainWindow {
+					DataContext = new MainWindowViewModel(),
+				};
+				window.Show();
+			} catch(Exception ex) {
+				logger.Error(ex.ToString());
+				throw;
+			}
 		}
 	}
 }
