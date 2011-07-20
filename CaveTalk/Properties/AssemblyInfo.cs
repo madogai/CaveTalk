@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("CaveTalk")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("CaveTalk")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2011")]
+[assembly: AssemblyCopyright("Copyright © まどがい")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
