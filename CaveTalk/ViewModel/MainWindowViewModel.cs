@@ -22,6 +22,24 @@
 			}
 		}
 
+		private Int32 listener;
+		public Int32 Listener {
+			get { return this.listener; }
+			set {
+				this.listener = value;
+				base.OnPropertyChanged("Listener");
+			}
+		}
+
+		private Int32 pageView;
+		public Int32 PageView {
+			get { return this.pageView; }
+			set {
+				this.pageView = value;
+				base.OnPropertyChanged("PageView");
+			}
+		}
+
 		public Boolean bouyomiStatus;
 		public Boolean BouyomiStatus {
 			get { return this.bouyomiStatus;  }
@@ -41,7 +59,9 @@
 			this.MessageList = new SafeObservable<Message>();
 
 			this.cavetubeClient = new CavetubeClient();
-			this.cavetubeClient.OnMessage += (sender, message) => {
+			this.cavetubeClient.OnMessage += (sender, summary, message) => {
+				this.Listener = summary.Listener;
+				this.PageView = summary.PageView;
 				this.MessageList.Insert(0, message);
 				try {
 					if (this.BouyomiStatus) {
@@ -52,7 +72,9 @@
 					MessageBox.Show("棒読みちゃんに接続できませんでした。");
 				}
 			};
-			this.cavetubeClient.OnConnect += messages => {
+			this.cavetubeClient.OnConnect += (summary, messages) => {
+				this.Listener = summary.Listener;
+				this.PageView = summary.PageView;
 				foreach(var message in messages) {
 					this.MessageList.Insert(0, message);
 				}

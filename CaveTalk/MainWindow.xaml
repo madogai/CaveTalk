@@ -28,6 +28,22 @@
                         </rb:RibbonToggleButton>
                     </StackPanel>
                 </rb:RibbonGroup>
+                <rb:RibbonGroup>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Row="0" Grid.Column="0">視聴人数：</Label>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Path=Listener}" VerticalAlignment="Center" Padding="0,0,3,0" HorizontalAlignment="Right" />
+                        <Label Grid.Row="1" Grid.Column="0">PV：</Label>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Path=PageView}" VerticalAlignment="Center" Padding="0,0,3,0" HorizontalAlignment="Right" />
+                    </Grid>
+                </rb:RibbonGroup>
             </rb:RibbonTab>
         </rb:Ribbon>
         <Border Padding="5" DockPanel.Dock="Top">
@@ -49,7 +65,7 @@
                     <DataGridTextColumn Binding="{Binding Path=Number}" Header="No" Width="40" />
                     <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" Width="80" />
                     <DataGridTextColumn Binding="{Binding Path=Comment}" Header="Comment" Width="*" />
-                    <DataGridTextColumn Binding="{Binding Path=Time, StringFormat=HH:mm:ss}" Header="Time" Width="100" />
+                    <DataGridTextColumn Binding="{Binding Path=Time, StringFormat=HH:mm:ss}" Header="Time" Width="80" />
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>

@@ -13,8 +13,8 @@
 		private const String socketBase = "http://ws.cavelis.net:3000/socket.io/1/";
 		private const String restBase = "http://gae.cavelis.net/viewedit/getcomment?stream_name={0}&comment_num=1";
 
-		public event Action<Object, Message> OnMessage;
-		public event Action<IEnumerable<Message>> OnConnect;
+		public event Action<Object, Summary, Message> OnMessage;
+		public event Action<Summary, IEnumerable<Message>> OnConnect;
 
 		private String roomId;
 		private SocketIOClient client;
@@ -40,6 +40,11 @@
 					return;
 				}
 
+				var summary = new Summary {
+					Listener = (Int32)json.listener,
+					PageView = (Int32)json.viewer,
+				};
+
 				var post = new Message {
 					Number = (Int32)json.comment_num,
 					Name = json.name,
@@ -47,16 +52,20 @@
 					Time = JavaScriptTime.ToDateTime(json.time, "Tokyo Standard Time"),
 				};
 
-				this.OnMessage(sender, post);
+				this.OnMessage(sender, summary, post);
 			};
 		}
 
 		public void Connect(String roomId) {
 			this.roomId = roomId;
 
-			var oldMessages = this.GetAllMessage(roomId);
-			if (this.OnConnect != null) {
-				this.OnConnect(oldMessages);
+			var jsonString = this.GetCavetubeInfomation(roomId);
+			if (String.IsNullOrEmpty(jsonString) == false) {
+				var summary = this.ParseSummary(jsonString);
+				var messages = this.ParseMessage(jsonString);
+				if (this.OnConnect != null) {
+					this.OnConnect(summary, messages);
+				}
 			}
 
 			client.Connect();
@@ -81,7 +90,7 @@
 			this.Dispose();
 		}
 
-		private IEnumerable<Message> GetAllMessage(String roomId) {
+		private String GetCavetubeInfomation(String roomId) {
 			try {
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
@@ -91,27 +100,46 @@
 					if (json.ret == false) {
 						throw new WebException();
 					}
-
-					var commentCount = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
-					var messages = Enumerable.Range(1, commentCount).Where(num => {
-						var attr = String.Format("num_{0}", num);
-						return json.IsDefined(attr);
-					}).Select(num => {
-						var attr = String.Format("num_{0}", num);
-						var comment = json[attr];
-						return new Message {
-							Number = num,
-							Name = comment.IsDefined("name") ? comment.name : String.Empty,
-							Comment = comment.message,
-							Time = comment.IsDefined("time") ? JavaScriptTime.ToDateTime(json.time, "Tokyo Standard Time") : DateTime.Now,
-						};
-					});
-					return messages;
+					return jsonString;
 				}
 			} catch (WebException) {
-				return new List<Message>();
+				return String.Empty;
 			}
 		}
+
+		private Summary ParseSummary(String jsonString) {
+			var json = DynamicJson.Parse(jsonString);
+			return new Summary {
+				Listener = (Int32)json.listener,
+				PageView = (Int32)json.viewer,
+			};
+		}
+
+		private IEnumerable<Message> ParseMessage(String jsonString) {
+			var json = DynamicJson.Parse(jsonString);
+			var commentCount = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
+			var messages = Enumerable.Range(1, commentCount).Where(num => {
+				var attr = String.Format("num_{0}", num);
+				return json.IsDefined(attr);
+			}).Select(num => {
+				var attr = String.Format("num_{0}", num);
+				var comment = json[attr];
+				return new Message {
+					Number = num,
+					Name = comment.name,
+					Comment = comment.message,
+					Time = JavaScriptTime.ToDateTime(comment.time, "Tokyo Standard Time"),
+				};
+			});
+			return messages;
+		}
+	}
+
+	public sealed class Summary {
+
+		public Int32 Listener { get; set; }
+
+		public Int32 PageView { get; set; }
 	}
 
 	public sealed class Message {
