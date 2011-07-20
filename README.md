@@ -5,7 +5,8 @@ License
 -------
 
 Copyright 2011, まどがい  
-[MIT-style License.](http://www.opensource.org/licenses/mit-license.php)
+MIT-style License.  
+<http://www.opensource.org/licenses/mit-license.php>
 
 Description
 -----------
@@ -35,5 +36,5 @@ Advertisement
 
 作者は以下のサイトを運営しています。よければご覧ください。
 
-大会運営ツール ToNaMeT
-[http://www.tonamet.com]
+大会運営ツール ToNaMeT  
+<http://www.tonamet.com>
