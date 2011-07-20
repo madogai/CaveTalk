@@ -1,0 +1,57 @@
+﻿<rb:RibbonWindow x:Class="CaveTalk.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:rb="http://schemas.microsoft.com/winfx/2006/xaml/presentation/ribbon"
+        Title="CaveTalk" Height="350" Width="525" Icon="/CaveTalk;component/Images/cavelis.ico">
+    <DockPanel>
+        <rb:Ribbon DockPanel.Dock="Top">
+            <rb:Ribbon.ApplicationMenu>
+                <rb:RibbonApplicationMenu Label="ファイル">
+                    <rb:RibbonApplicationMenuItem Header="CaveTalkについて(_V)" Command="{Binding Path=AboutBoxCommand}" ImageSource="/CaveTalk;component/Images/info.png"></rb:RibbonApplicationMenuItem>
+                    <rb:RibbonApplicationMenuItem Header="終了(_X)" Command="Close" ImageSource="/CaveTalk;component/Images/close.png" />
+                </rb:RibbonApplicationMenu>
+            </rb:Ribbon.ApplicationMenu>
+            <rb:RibbonTab Header="ホーム">
+                <rb:RibbonGroup Header="棒読み">
+                    <StackPanel>
+                        <rb:RibbonToggleButton Label="接続" IsChecked="{Binding Path=BouyomiStatus}" Command="{Binding Path=SwitchBouyomiCommand}" CheckedBackground="{x:Null}" CheckedBorderBrush="{x:Null}">
+                            <rb:RibbonToggleButton.Style>
+                                <Style TargetType="rb:RibbonToggleButton">
+                                    <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/flag_red.png" />
+                                    <Style.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/flag_green.png" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </rb:RibbonToggleButton.Style>
+                        </rb:RibbonToggleButton>
+                    </StackPanel>
+                </rb:RibbonGroup>
+            </rb:RibbonTab>
+        </rb:Ribbon>
+        <Border Padding="5" DockPanel.Dock="Top">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="80" />
+                </Grid.ColumnDefinitions>
+                <Label>放送URL</Label>
+                <ComboBox Grid.Column="1" IsEditable="True" Text="{Binding Path=LiveUrl}" />
+                <Button Grid.Column="3" Content="接続" Command="{Binding Path=ConnectCavetubeCommand}" CommandParameter="{Binding Path=LiveUrl}" />
+            </Grid>
+        </Border>
+        <Grid>
+            <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Path=Number}" Header="No" Width="40" />
+                    <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" Width="80" />
+                    <DataGridTextColumn Binding="{Binding Path=Comment}" Header="Comment" Width="*" />
+                    <DataGridTextColumn Binding="{Binding Path=Time, StringFormat=HH:mm:ss}" Header="Time" Width="100" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </DockPanel>
+</rb:RibbonWindow>

@@ -1,0 +1,19 @@
+﻿<Window x:Class="CaveTalk.AboutBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CaveTalkのバージョン情報" Height="150" Width="300" ShowInTaskbar="False" WindowStyle="ToolWindow" WindowStartupLocation="CenterOwner">
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label>製品名：</Label>
+            <TextBlock Text="{Binding Path=FileVersionInfo.ProductName}" VerticalAlignment="Center" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label>製品バージョン番号：</Label>
+            <TextBlock Text="{Binding Path=FileVersionInfo.ProductVersion}" VerticalAlignment="Center" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label>著作権情報：</Label>
+            <TextBlock Text="{Binding Path=FileVersionInfo.LegalCopyright}" VerticalAlignment="Center" />
+        </StackPanel>
+    </StackPanel>
+</Window>
