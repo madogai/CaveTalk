@@ -121,7 +121,9 @@
 				return;
 			}
 
-			this.cavetubeClient.Close();
+			if (this.cavetubeClient.IsConnect) {
+				this.cavetubeClient.Close();
+			}
 			this.MessageList.Clear();
 
 			var roomId = this.ParseUrl(url);

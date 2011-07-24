@@ -8,6 +8,9 @@
 	using CaveTalk.Utils;
 	using Codeplex.Data;
 	using SocketIO;
+	using Microsoft.CSharp.RuntimeBinder;
+	using NLog;
+	using System.Xml;
 
 	public sealed class CavetubeClient : IDisposable {
 		private const String socketBase = "http://ws.cavelis.net:3000/socket.io/1/";
@@ -16,6 +19,11 @@
 		public event Action<Object, Summary, Message> OnMessage;
 		public event Action<Summary, IEnumerable<Message>> OnConnect;
 
+		public Boolean IsConnect {
+			get { return this.client.IsConnect; }
+		}
+
+		private Logger logger = LogManager.GetLogger("CavetubeClient");
 		private String roomId;
 		private SocketIOClient client;
 
@@ -35,24 +43,34 @@
 					return;
 				}
 
-				var json = DynamicJson.Parse(message);
-				if (json.mode != "post") {
-					return;
+				try {
+					var json = DynamicJson.Parse(message);
+					if (json.ret == false) {
+						return;
+					}
+
+					if (json.mode != "post") {
+						return;
+					}
+
+					var summary = new Summary {
+						Listener = (Int32)json.listener,
+						PageView = (Int32)json.viewer,
+					};
+
+					var post = new Message {
+						Number = (Int32)json.comment_num,
+						Name = json.name,
+						Comment = json.message,
+						Time = JavaScriptTime.ToDateTime(json.time, "Tokyo Standard Time"),
+					};
+
+					this.OnMessage(sender, summary, post);
+				} catch(XmlException) {
+					logger.Warn("メッセージのParseに失敗しました。");
+				} catch(RuntimeBinderException) {
+					logger.Warn("Json内にプロパティが見つかりませんでした。");
 				}
-
-				var summary = new Summary {
-					Listener = (Int32)json.listener,
-					PageView = (Int32)json.viewer,
-				};
-
-				var post = new Message {
-					Number = (Int32)json.comment_num,
-					Name = json.name,
-					Comment = json.message,
-					Time = JavaScriptTime.ToDateTime(json.time, "Tokyo Standard Time"),
-				};
-
-				this.OnMessage(sender, summary, post);
 			};
 		}
 

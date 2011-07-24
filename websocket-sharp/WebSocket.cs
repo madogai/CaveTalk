@@ -146,7 +146,9 @@ namespace WebSocketSharp {
 
 		public void Connect() {
 			if (readyState == WsState.OPEN) {
+#if DEBUG
 				Console.WriteLine("WS: Info @Connect: Connection is already established.");
+#endif
 				return;
 			}
 
