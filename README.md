@@ -1,4 +1,4 @@
-CaveTalk(壁トーーーク)
+CaveTalk(壁トーーク)
 ======================
 
 License
@@ -19,7 +19,7 @@ System requirements
 
 以下の環境が必要です。
 
-* [.Net Framework 4](http://www.microsoft.com/downloads/ja-jp/details.aspx?FamilyID=9cfb2d51-5ff4-4491-b0e5-b386f32c0992)
+* [.NET Framework 4](http://www.microsoft.com/downloads/ja-jp/details.aspx?FamilyID=9cfb2d51-5ff4-4491-b0e5-b386f32c0992)
 * [棒読みちゃん](http://chi.usamimi.info/Program/Application/BouyomiChan/)
 
 Usage
