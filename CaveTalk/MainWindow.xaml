@@ -3,6 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:rb="http://schemas.microsoft.com/winfx/2006/xaml/presentation/ribbon"
         Title="CaveTalk" Height="350" Width="525" Icon="/CaveTalk;component/Images/cavelis.ico">
+    <rb:RibbonWindow.Resources>
+        <!-- 小規模アプリケーションなのでリソース定義は省いて直接指定してます。 -->
+    </rb:RibbonWindow.Resources>
     <DockPanel>
         <rb:Ribbon DockPanel.Dock="Top">
             <rb:Ribbon.ApplicationMenu>
@@ -14,13 +17,15 @@
             <rb:RibbonTab Header="ホーム">
                 <rb:RibbonGroup Header="棒読み">
                     <StackPanel>
-                        <rb:RibbonToggleButton Label="接続" IsChecked="{Binding Path=BouyomiStatus}" Command="{Binding Path=SwitchBouyomiCommand}" CheckedBackground="{x:Null}" CheckedBorderBrush="{x:Null}">
+                        <rb:RibbonToggleButton IsChecked="{Binding Path=BouyomiStatus}" Command="{Binding Path=SwitchBouyomiCommand}" CheckedBackground="{x:Null}" CheckedBorderBrush="{x:Null}">
                             <rb:RibbonToggleButton.Style>
                                 <Style TargetType="rb:RibbonToggleButton">
                                     <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/flag_red.png" />
+                                    <Setter Property="Label" Value="切断中" />
                                     <Style.Triggers>
                                         <Trigger Property="IsChecked" Value="True">
                                             <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/flag_green.png" />
+                                            <Setter Property="Label" Value="接続中" />
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -28,20 +33,23 @@
                         </rb:RibbonToggleButton>
                     </StackPanel>
                 </rb:RibbonGroup>
-                <rb:RibbonGroup>
+                <rb:RibbonGroup Header="CaveTube">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition />
                             <RowDefinition />
+                            <RowDefinition />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                            <ColumnDefinition />
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="30" />
                         </Grid.ColumnDefinitions>
-                        <Label Grid.Row="0" Grid.Column="0">視聴人数：</Label>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Path=Listener}" VerticalAlignment="Center" Padding="0,0,3,0" HorizontalAlignment="Right" />
-                        <Label Grid.Row="1" Grid.Column="0">PV：</Label>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Path=PageView}" VerticalAlignment="Center" Padding="0,0,3,0" HorizontalAlignment="Right" />
+                        <Label Grid.Row="0" Grid.Column="0" Padding="3">接続状態：</Label>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Path=ConnectingStatus}" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="3" />
+                        <Label Grid.Row="1" Grid.Column="0" Padding="3">視聴人数：</Label>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Path=Listener}" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="3" />
+                        <Label Grid.Row="2" Grid.Column="0" Padding="3">PV：</Label>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Path=PageView}" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="3" />
                     </Grid>
                 </rb:RibbonGroup>
             </rb:RibbonTab>

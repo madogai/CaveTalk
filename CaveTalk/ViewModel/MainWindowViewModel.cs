@@ -14,6 +14,13 @@
 		private CavetubeClient cavetubeClient;
 		private BouyomiChanClient bouyomiClient;
 
+		public String ConnectingStatus {
+			get {
+				// 面倒なのでコンバータを使わず、直接変換します。
+				return this.cavetubeClient.IsConnect ? "ON" : "OFF";
+			}
+		}
+
 		private String liveUrl;
 		public String LiveUrl {
 			get { return this.liveUrl; }
@@ -43,7 +50,7 @@
 
 		public Boolean bouyomiStatus;
 		public Boolean BouyomiStatus {
-			get { return this.bouyomiStatus;  }
+			get { return this.bouyomiStatus; }
 			set {
 				this.bouyomiStatus = value;
 				base.OnPropertyChanged("BouyomiStatus");
@@ -61,7 +68,8 @@
 
 			this.cavetubeClient = new CavetubeClient();
 			this.cavetubeClient.OnMessage += (sender, summary, message) => {
-				this.Listener = summary.Listener;
+				// コメント取得時のリスナー数がずれてるっぽいので一時的に封印
+				// this.Listener = summary.Listener;
 				this.PageView = summary.PageView;
 				this.MessageList.Insert(0, message);
 				try {
@@ -73,12 +81,21 @@
 					MessageBox.Show("棒読みちゃんに接続できませんでした。");
 				}
 			};
+			this.cavetubeClient.OnUpdateMember += (sender, count) => {
+				this.Listener = count;
+			};
 			this.cavetubeClient.OnConnect += (summary, messages) => {
+				base.OnPropertyChanged("ConnectingStatus");
 				this.Listener = summary.Listener;
 				this.PageView = summary.PageView;
-				foreach(var message in messages) {
+				foreach (var message in messages) {
 					this.MessageList.Insert(0, message);
 				}
+			};
+			this.cavetubeClient.OnClose += (obj, e) => {
+				base.OnPropertyChanged("ConnectingStatus");
+				this.Listener = 0;
+				this.PageView = 0;
 			};
 
 			this.SwitchBouyomiCommand = new RelayCommand(param => {
@@ -147,7 +164,7 @@
 				var count = this.bouyomiClient.TalkTaskCount;
 				this.BouyomiStatus = true;
 			} catch (RemotingException) {
-				MessageBox.Show("棒読みちゃんに接続できませんでした。");
+				MessageBox.Show("棒読みちゃんに接続できませんでした。\n後から棒読みちゃんを起動する場合は、リボンの棒読みアイコンを押してください。");
 			}
 		}
 

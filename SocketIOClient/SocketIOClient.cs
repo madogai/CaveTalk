@@ -5,30 +5,64 @@
 	using System.Text.RegularExpressions;
 	using WebSocketSharp;
 
-	public sealed class SocketIOClient : IDisposable {
+	public class SocketIOClient : ISocketIOClient {
 		private const String nameSpace = "socket.io";
 		private const String protocolVersion = "1";
+
+		private static ITransport CreateWebSocketClient(Uri sessionUrl, String sessionId) {
+			var webSocketUrl = String.Format("ws://{0}:{1}/{2}/{3}/websocket/{4}", sessionUrl.Host, sessionUrl.Port, nameSpace, protocolVersion, sessionId);
+			return new WebSocket(webSocketUrl);
+		}
+
+		private static String GetSessionId(Uri uri) {
+			try {
+				using (var wc = new WebClient()) {
+					var handshakeUrl = String.Format("http://{0}:{1}/{2}/{3}", uri.Host, uri.Port, nameSpace, protocolVersion);
+					var response = wc.DownloadString(handshakeUrl);
+					var sessionId = Regex.Split(response, ":")[0];
+					return sessionId;
+				}
+			} catch (WebException e) {
+				throw new SocketIOException("SessionIdを取得できません。", e);
+			}
+		}
 
 		public event Action<Object, EventArgs> OnOpen;
 		public event Action<Object, String> OnMessage;
 		public event Action<Object, String> OnError;
 		public event Action<Object, EventArgs> OnClose;
 
+		// 可能ならばclientの作成はコンストラクタのみにとどめたいのですが、
+		// 今のところ再接続を行うためにclientのインスタンスを再度生成しないといけないのでクラス変数を用意します。
+		private Uri socketIOUri;
+		private Func<Uri, String, ITransport> clientBuilder;
+
 		public Boolean IsConnect {
 			get {
 				if (this.client == null) {
 					return false;
 				}
-				return this.client.ReadyState == WsState.OPEN;
+				return this.client.IsConnect;
 			}
 		}
 
-		private WebSocket client = null;
-		private readonly Uri socketIOUri;
+		private ITransport client = null;
 
-		public SocketIOClient(Uri socketIOUri) {
+		public SocketIOClient(Uri socketIOUri)
+			: this(socketIOUri, CreateWebSocketClient) {
+		}
+
+		public SocketIOClient(Uri socketIOUri, Func<Uri, String, ITransport> clientBuilder)
+			: this(socketIOUri, clientBuilder, GetSessionId(socketIOUri)) {
+		}
+
+		private SocketIOClient(Uri socketIOUri, Func<Uri, String, ITransport> clientBuilder, String sessionId) {
 			this.socketIOUri = socketIOUri;
-			this.client = this.CreateWebSocketClient();
+			this.clientBuilder = clientBuilder;
+
+			var client = clientBuilder(socketIOUri, sessionId);
+			client = this.SetupClientEvent(client);
+			this.client = client;
 		}
 
 		public void Connect() {
@@ -41,7 +75,12 @@
 			}
 			this.client.Send("0::");
 			this.client.Close();
-			this.client = this.CreateWebSocketClient();
+
+			// ここで再接続しないと、ハンドシェイク後にエラーが返って再接続できません。
+			var sessionId = GetSessionId(socketIOUri);
+			var client = clientBuilder(socketIOUri, sessionId);
+			client = this.SetupClientEvent(client);
+			this.client = client;
 		}
 
 		public void Dispose() {
@@ -60,33 +99,7 @@
 			this.client.Send(packet);
 		}
 
-		private String GetSessionId(Uri uri) {
-			try {
-				using (var wc = new WebClient()) {
-					var handshakeUrl = String.Format("http://{0}:{1}/{2}/{3}", uri.Host, uri.Port, nameSpace, protocolVersion);
-					var response = wc.DownloadString(handshakeUrl);
-					var sessionId = Regex.Split(response, ":")[0];
-					return sessionId;
-				}
-			} catch (WebException e) {
-				throw new SocketIOException("SessionIdを取得できません。", e);
-			}
-		}
-
-		private String EncodePacket(String message) {
-			var id = String.Empty;
-			var endpoint = String.Empty;
-			return String.Format("3:{0}:{1}:{2}", id, endpoint, message);
-		}
-
-		~SocketIOClient() {
-			this.Dispose();
-		}
-
-		private WebSocket CreateWebSocketClient() {
-			var sessionId = this.GetSessionId(this.socketIOUri);
-			var url = String.Format("ws://{0}:{1}/{2}/{3}/websocket/{4}", this.socketIOUri.Host, this.socketIOUri.Port, nameSpace, protocolVersion, sessionId);
-			var client = new WebSocket(url);
+		private ITransport SetupClientEvent(ITransport client) {
 			client.OnOpen += (sender, message) => {
 				if (this.OnOpen != null) {
 					this.OnOpen(sender, message);
@@ -143,6 +156,16 @@
 				}
 			};
 			return client;
+		}
+
+		private String EncodePacket(String message) {
+			var id = String.Empty;
+			var endpoint = String.Empty;
+			return String.Format("3:{0}:{1}:{2}", id, endpoint, message);
+		}
+
+		~SocketIOClient() {
+			this.Dispose();
 		}
 
 		private enum Status {
