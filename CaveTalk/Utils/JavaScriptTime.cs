@@ -1,4 +1,4 @@
-﻿namespace CaveTalk.Utils {
+﻿namespace CaveTube.CaveTalk.Utils {
 
 	using System;
 using System.Collections.Generic;

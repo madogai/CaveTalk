@@ -1,4 +1,4 @@
-﻿<Window x:Class="CaveTalk.AboutBox"
+﻿<Window x:Class="CaveTube.CaveTalk.AboutBox"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="CaveTalkのバージョン情報" Height="150" Width="300" ShowInTaskbar="False" WindowStyle="ToolWindow" WindowStartupLocation="CenterOwner">

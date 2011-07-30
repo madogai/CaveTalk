@@ -1,8 +1,8 @@
-﻿namespace CaveTalk.Lib.Test {
+﻿namespace CaveTube.CaveTalk.Lib.Test {
 
 	using System;
-	using CaveTalk;
-	using CaveTalk.Utils;
+	using CaveTube.CaveTalk;
+	using CaveTube.CaveTalk.Utils;
 	using Codeplex.Data;
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
 	using SocketIO;

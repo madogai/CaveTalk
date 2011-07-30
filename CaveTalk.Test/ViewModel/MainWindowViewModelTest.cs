@@ -1,8 +1,8 @@
-﻿using CaveTalk.ViewModel;
+﻿using CaveTube.CaveTalk.ViewModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
-namespace CaveTalk.Test {
+namespace CaveTube.CaveTalk.Test {
 
 
 	[TestClass()]

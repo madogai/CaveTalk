@@ -1,10 +1,10 @@
-﻿namespace CaveTalk.Test.Utils {
+﻿namespace CaveTube.CaveTalk.Test.Utils {
 	using System;
 	using System.Text;
 	using System.Collections.Generic;
 	using System.Linq;
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
-	using CaveTalk.Utils;
+	using CaveTube.CaveTalk.Utils;
 
 	[TestClass]
 	public class JavaScriptTimeTest {

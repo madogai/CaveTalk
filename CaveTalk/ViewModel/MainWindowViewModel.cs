@@ -1,4 +1,4 @@
-﻿namespace CaveTalk.ViewModel {
+﻿namespace CaveTube.CaveTalk.ViewModel {
 
 	using System;
 	using System.Collections.Generic;
@@ -6,7 +6,7 @@
 	using System.Text.RegularExpressions;
 	using System.Windows;
 	using System.Windows.Input;
-	using CaveTalk.Utils;
+	using CaveTube.CaveTalk.Utils;
 	using FNF.Utility;
 	using System.Net;
 

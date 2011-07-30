@@ -9,7 +9,7 @@
     <ProjectGuid>{BA91B1BA-AAEC-4D7F-9876-3EC6A0DAA6D0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CaveTalk.Test</RootNamespace>
+    <RootNamespace>Cavetube.CaveTalk.Test</RootNamespace>
     <AssemblyName>CaveTalk.Test</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

@@ -1,8 +1,8 @@
-﻿namespace CaveTalk {
+﻿namespace CaveTube.CaveTalk {
 
 	using System;
 	using System.Windows;
-	using CaveTalk.ViewModel;
+	using CaveTube.CaveTalk.ViewModel;
 	using NLog;
 
 	/// <summary>

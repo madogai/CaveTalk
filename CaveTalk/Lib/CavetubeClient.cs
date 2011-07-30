@@ -1,11 +1,11 @@
-﻿namespace CaveTalk {
+﻿namespace CaveTube.CaveTalk {
 
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Net;
 	using System.Text;
-	using CaveTalk.Utils;
+	using CaveTube.CaveTalk.Utils;
 	using Codeplex.Data;
 	using SocketIO;
 	using Microsoft.CSharp.RuntimeBinder;

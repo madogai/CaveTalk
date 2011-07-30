@@ -1,7 +1,7 @@
-﻿namespace CaveTalk {
+﻿namespace CaveTube.CaveTalk {
 
 	using System.Windows;
-	using CaveTalk.ViewModel;
+	using CaveTube.CaveTalk.ViewModel;
 	using Microsoft.Windows.Controls.Ribbon;
 
 	/// <summary>
