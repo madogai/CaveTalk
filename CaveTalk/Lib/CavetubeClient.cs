@@ -65,6 +65,7 @@
 			};
 
 			client.OnMessage += (sender, message) => {
+				logger.Debug(message);
 				try {
 					var json = DynamicJson.Parse(message);
 					if (json.IsDefined("ret") && json.ret == false) {

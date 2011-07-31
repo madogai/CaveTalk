@@ -4,6 +4,7 @@
 	using System.Net;
 	using System.Text.RegularExpressions;
 	using WebSocketSharp;
+	using System.Diagnostics;
 
 	public class SocketIOClient : ISocketIOClient {
 		private const String nameSpace = "socket.io";
@@ -100,25 +101,27 @@
 		}
 
 		private ITransport SetupClientEvent(ITransport client) {
-			client.OnOpen += (sender, message) => {
+			client.OnOpen += (sender, e) => {
 				if (this.OnOpen != null) {
-					this.OnOpen(sender, message);
+					this.OnOpen(sender, e);
 				}
 			};
 
-			client.OnClose += (sender, message) => {
+			client.OnClose += (sender, e) => {
 				if (this.OnClose != null) {
-					this.OnClose(sender, message);
+					this.OnClose(sender, e);
 				}
 			};
 
 			client.OnError += (sender, message) => {
+				Debug.WriteLine(message);
 				if (this.OnError != null) {
 					this.OnError(sender, message);
 				}
 			};
 
 			client.OnMessage += (sender, message) => {
+				Debug.WriteLine(message);
 				try {
 					var status = (Status)Int32.Parse(message.Substring(0, 1));
 					switch (status) {

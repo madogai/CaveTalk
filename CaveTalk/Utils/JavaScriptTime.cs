@@ -1,7 +1,7 @@
 ﻿namespace CaveTube.CaveTalk.Utils {
 
 	using System;
-using System.Collections.Generic;
+	using System.Collections.Generic;
 
 	public sealed class JavaScriptTime {
 		private readonly static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -34,6 +34,7 @@ using System.Collections.Generic;
 	}
 
 	public enum TimeZoneKind {
-		Utc, Japan,
+		Utc,
+		Japan,
 	}
 }
