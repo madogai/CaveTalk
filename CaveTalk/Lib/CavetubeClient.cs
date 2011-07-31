@@ -11,14 +11,12 @@
 	using Microsoft.CSharp.RuntimeBinder;
 	using NLog;
 	using System.Xml;
+	using System.Collections.Specialized;
 
 	public sealed class CavetubeClient : IDisposable {
-		private const String socketBase = "http://ws.cavelis.net:3000/socket.io/1/";
-		private const String restBase = "http://gae.cavelis.net/viewedit/getcomment?stream_name={0}&comment_num=1";
-
 		public event Action<Object, Summary, Message> OnMessage;
 		public event Action<Object, Int32> OnUpdateMember;
-		public event Action<Summary, IEnumerable<Message>> OnConnect;
+		public event Action<Object, Summary, IEnumerable<Message>> OnConnect;
 		public event Action<Object, EventArgs> OnClose;
 
 		public Boolean IsConnect {
@@ -30,7 +28,7 @@
 		private ISocketIOClient client;
 
 		public CavetubeClient()
-			: this(new Uri(socketBase)) {
+			: this(new Uri("http://ws.cavelis.net:3000/socket.io/1/")) {
 		}
 
 		public CavetubeClient(Uri uri)
@@ -54,7 +52,7 @@
 				};
 				var tuple = getInfomation(this.roomId);
 				if (this.OnConnect != null) {
-					this.OnConnect(tuple.Item1, tuple.Item2);
+					this.OnConnect(sender, tuple.Item1, tuple.Item2);
 				}
 
 				var msg = DynamicJson.Serialize(new {
@@ -129,6 +127,27 @@
 			}
 		}
 
+		public void PostComment(String name, String message) {
+			if (String.IsNullOrWhiteSpace(message)) {
+				return;
+			}
+
+			try {
+				using (var client = new WebClient()) {
+					var data = new NameValueCollection {
+						{"stream_name", this.roomId},
+						{"name", name},
+						{"message", message},
+					};
+
+					var uri = new Uri("http://gae.cavelis.net/viewedit/postcomment");
+					client.UploadValuesAsync(uri, data);
+				}
+			} catch (WebException e) {
+				logger.Error("コメントの投稿に失敗しました。", e);
+			}
+		}
+
 		public void Close() {
 			if (this.client == null) {
 				return;
@@ -152,7 +171,7 @@
 			try {
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
-					var url = String.Format(restBase, roomId);
+					var url = String.Format("http://gae.cavelis.net/viewedit/getcomment?stream_name={0}&comment_num=1", roomId);
 					var jsonString = client.DownloadString(url);
 					var json = DynamicJson.Parse(jsonString);
 					if (json.ret == false) {

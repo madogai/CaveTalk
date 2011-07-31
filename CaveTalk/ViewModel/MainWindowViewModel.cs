@@ -9,15 +9,16 @@
 	using CaveTube.CaveTalk.Utils;
 	using FNF.Utility;
 	using System.Net;
+	using System.Windows.Data;
+	using System.Collections.Specialized;
 
 	public sealed class MainWindowViewModel : ViewModelBase {
 		private CavetubeClient cavetubeClient;
 		private BouyomiChanClient bouyomiClient;
 
-		public String ConnectingStatus {
+		public Boolean ConnectingStatus {
 			get {
-				// 面倒なのでコンバータを使わず、直接変換します。
-				return this.cavetubeClient.IsConnect ? "ON" : "OFF";
+				return this.cavetubeClient.IsConnect;
 			}
 		}
 
@@ -57,9 +58,28 @@
 			}
 		}
 
+		private String postName;
+		public String PostName {
+			get { return this.postName; }
+			set {
+				this.postName = value;
+				base.OnPropertyChanged("PostName");
+			}
+		}
+
+		private String postMessage;
+		public String PostMessage {
+			get { return this.postMessage; }
+			set {
+				this.postMessage = value;
+				base.OnPropertyChanged("PostMessage");
+			}
+		}
+
 		public IList<Message> MessageList { get; private set; }
 
 		public ICommand ConnectCavetubeCommand { get; private set; }
+		public ICommand PostCommentCommand { get; private set; }
 		public ICommand SwitchBouyomiCommand { get; private set; }
 		public ICommand AboutBoxCommand { get; private set; }
 
@@ -67,46 +87,14 @@
 			this.MessageList = new SafeObservable<Message>();
 
 			this.cavetubeClient = new CavetubeClient();
-			this.cavetubeClient.OnMessage += (sender, summary, message) => {
-				// コメント取得時のリスナー数がずれてるっぽいので一時的に封印
-				// this.Listener = summary.Listener;
-				this.PageView = summary.PageView;
-				this.MessageList.Insert(0, message);
-				try {
-					if (this.BouyomiStatus) {
-						this.bouyomiClient.AddTalkTask(message.Comment);
-					}
-				} catch (RemotingException) {
-					this.BouyomiStatus = false;
-					MessageBox.Show("棒読みちゃんに接続できませんでした。");
-				}
-			};
-			this.cavetubeClient.OnUpdateMember += (sender, count) => {
-				this.Listener = count;
-			};
-			this.cavetubeClient.OnConnect += (summary, messages) => {
-				base.OnPropertyChanged("ConnectingStatus");
-				this.Listener = summary.Listener;
-				this.PageView = summary.PageView;
-				foreach (var message in messages) {
-					this.MessageList.Insert(0, message);
-				}
-			};
-			this.cavetubeClient.OnClose += (obj, e) => {
-				base.OnPropertyChanged("ConnectingStatus");
-				this.Listener = 0;
-				this.PageView = 0;
-			};
+			this.cavetubeClient.OnMessage += (sender, summary, message) => this.AddMessage(summary, message);
+			this.cavetubeClient.OnUpdateMember += (sender, count) => this.UpdateListenerCount(count);
+			this.cavetubeClient.OnConnect += (sender, summary, messages) => this.AddMessage(summary, messages);
+			this.cavetubeClient.OnClose += (sender, e) => this.ResetStatus();
 
-			this.SwitchBouyomiCommand = new RelayCommand(param => {
-				// CommandはClickなので、このイベントが走る時点で既にCheckedは切り替わっています。
-				if (this.BouyomiStatus) {
-					this.ConnectBouyomi();
-				} else {
-					this.DisconnectBouyomi();
-				}
-			});
+			this.SwitchBouyomiCommand = new RelayCommand(SwitchBouyomi);
 			this.ConnectCavetubeCommand = new RelayCommand(ConnectCavetube);
+			this.PostCommentCommand = new RelayCommand(PostComment);
 			this.AboutBoxCommand = new RelayCommand(ShowVersion);
 
 			this.ConnectBouyomi();
@@ -122,28 +110,47 @@
 			}
 		}
 
-		private String ParseUrl(String url) {
-			var pattern = @"(http://gae.cavelis.net/[a-z]+/)?([0-9A-Z]{32})";
-			var match = Regex.Match(url, pattern);
-			if (match.Success) {
-				return match.Groups[2].Value;
-			} else {
-				return String.Empty;
+		private void UpdateListenerCount(Int32 count) {
+			this.Listener = count;
+		}
+
+		private void AddMessage(Summary summary, Message message) {
+			// コメント取得時のリスナー数がずれてるっぽいので一時的に封印
+			// this.Listener = summary.Listener;
+			this.PageView = summary.PageView;
+			this.MessageList.Insert(0, message);
+			try {
+				if (this.BouyomiStatus) {
+					this.bouyomiClient.AddTalkTask(message.Comment);
+				}
+			} catch (RemotingException) {
+				this.BouyomiStatus = false;
+				MessageBox.Show("棒読みちゃんに接続できませんでした。");
 			}
 		}
 
-		private void ConnectCavetube(object param) {
-			var url = param as String;
-			if (url == null) {
-				return;
+		private void AddMessage(Summary summary, IEnumerable<Message> messages) {
+			base.OnPropertyChanged("ConnectingStatus");
+			this.Listener = summary.Listener;
+			this.PageView = summary.PageView;
+			foreach (var message in messages) {
+				this.MessageList.Insert(0, message);
 			}
+		}
 
+		private void ResetStatus() {
+			base.OnPropertyChanged("ConnectingStatus");
+			this.Listener = 0;
+			this.PageView = 0;
+		}
+
+		private void ConnectCavetube(Object param) {
 			if (this.cavetubeClient.IsConnect) {
 				this.cavetubeClient.Close();
 			}
 			this.MessageList.Clear();
 
-			var roomId = this.ParseUrl(url);
+			var roomId = this.ParseUrl(this.LiveUrl);
 			if (String.IsNullOrEmpty(roomId)) {
 				return;
 			}
@@ -153,6 +160,24 @@
 				this.cavetubeClient.Connect(roomId);
 			} catch (WebException) {
 				MessageBox.Show("Cavetubeに接続できませんでした。");
+			}
+		}
+
+		private void PostComment(Object param) {
+			if (this.cavetubeClient.IsConnect == false) {
+				return;
+			}
+
+			this.cavetubeClient.PostComment(this.PostName, this.PostMessage);
+			this.PostMessage = String.Empty;
+		}
+
+		private void SwitchBouyomi(Object param) {
+			// CommandはClick時に実行されるので、このイベントが走る時点で既にCheckedは切り替わっています。
+			if (this.BouyomiStatus) {
+				this.ConnectBouyomi();
+			} else {
+				this.DisconnectBouyomi();
 			}
 		}
 
@@ -175,8 +200,38 @@
 			}
 		}
 
-		private void ShowVersion(object param) {
+		private void ShowVersion(Object param) {
 			new AboutBox().ShowDialog();
 		}
+
+		private String ParseUrl(String url) {
+			var pattern = @"(http://gae.cavelis.net/[a-z]+/)?([0-9A-Z]{32})";
+			var match = Regex.Match(url, pattern);
+			if (match.Success) {
+				return match.Groups[2].Value;
+			} else {
+				return String.Empty;
+			}
+		}
+	}
+
+	public sealed class ConnectingStatusConverter : IValueConverter {
+
+		#region IValueConverter メンバー
+
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+			if (value is Boolean == false) {
+				return String.Empty;
+			}
+
+			var isConnect = (Boolean)value;
+			return isConnect ? "ON" : "OFF";
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+			throw new NotImplementedException();
+		}
+
+		#endregion
 	}
 }
