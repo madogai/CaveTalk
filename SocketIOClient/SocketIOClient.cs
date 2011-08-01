@@ -103,20 +103,20 @@
 		private ITransport SetupClientEvent(ITransport client) {
 			client.OnOpen += (sender, e) => {
 				if (this.OnOpen != null) {
-					this.OnOpen(sender, e);
+					this.OnOpen(this, e);
 				}
 			};
 
 			client.OnClose += (sender, e) => {
 				if (this.OnClose != null) {
-					this.OnClose(sender, e);
+					this.OnClose(this, e);
 				}
 			};
 
 			client.OnError += (sender, message) => {
 				Debug.WriteLine(message);
 				if (this.OnError != null) {
-					this.OnError(sender, message);
+					this.OnError(this, message);
 				}
 			};
 
@@ -135,12 +135,12 @@
 						case Status.Message:
 							if (this.OnMessage != null) {
 								message = Regex.Replace(message, @"^3:[^:]*?:[^:]*?:", String.Empty);
-								this.OnMessage(sender, message);
+								this.OnMessage(this, message);
 							}
 							break;
 						case Status.JSONMessage:
 							if (this.OnMessage != null) {
-								this.OnMessage(sender, message);
+								this.OnMessage(this, message);
 							}
 							break;
 						case Status.Event:

@@ -28,16 +28,8 @@
 				actMessage = message;
 			});
 
-			var expSummary = new Summary {
-				Listener = 1,
-				PageView = 1,
-			};
-			var expMessage = new Message {
-				Number = 1,
-				Name = "hoge",
-				Comment = "comment",
-				Time = new DateTime(2000, 1, 1),
-			};
+			var expSummary = new Summary(1, 1);
+			var expMessage = new Message(1, "hoge", "comment", new DateTime(2000, 1, 1), false, false);
 
 			// act
 			var client = (MoqSocketIO)this.target.client;
@@ -50,6 +42,8 @@
 				name = expMessage.Name,
 				message = expMessage.Comment,
 				time = JavaScriptTime.ToDouble(expMessage.Time, TimeZoneKind.Japan),
+				auth = false,
+				is_ban = false,
 			});
 
 			// assert

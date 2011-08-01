@@ -11,10 +11,13 @@
 	using System.Net;
 	using System.Windows.Data;
 	using System.Collections.Specialized;
+	using System.Windows.Media;
 
 	public sealed class MainWindowViewModel : ViewModelBase {
 		private CavetubeClient cavetubeClient;
 		private BouyomiChanClient bouyomiClient;
+
+		public IList<Message> MessageList { get; private set; }
 
 		public Boolean ConnectingStatus {
 			get {
@@ -76,8 +79,6 @@
 			}
 		}
 
-		public IList<Message> MessageList { get; private set; }
-
 		public ICommand ConnectCavetubeCommand { get; private set; }
 		public ICommand PostCommentCommand { get; private set; }
 		public ICommand SwitchBouyomiCommand { get; private set; }
@@ -118,6 +119,11 @@
 			// コメント取得時のリスナー数がずれてるっぽいので一時的に封印
 			// this.Listener = summary.Listener;
 			this.PageView = summary.PageView;
+
+			if (message.IsBan) {
+				return;
+			}
+
 			this.MessageList.Insert(0, message);
 			try {
 				if (this.BouyomiStatus) {
@@ -134,7 +140,9 @@
 			this.Listener = summary.Listener;
 			this.PageView = summary.PageView;
 			foreach (var message in messages) {
-				this.MessageList.Insert(0, message);
+				if (message.IsBan == false) {
+					this.MessageList.Insert(0, message);
+				}
 			}
 		}
 
@@ -226,6 +234,26 @@
 
 			var isConnect = (Boolean)value;
 			return isConnect ? "ON" : "OFF";
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+			throw new NotImplementedException();
+		}
+
+		#endregion
+	}
+
+	public sealed class NameColorConverter : IValueConverter {
+
+		#region IValueConverter メンバー
+
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+			if (value is Boolean == false) {
+				return Brushes.Black;
+			}
+
+			var isAuth = (Boolean)value;
+			return isAuth ? Brushes.DarkGreen : Brushes.Black;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {

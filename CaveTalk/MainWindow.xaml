@@ -8,6 +8,7 @@
         Title="CaveTalk" Height="350" Width="525" Icon="/CaveTalk;component/Images/cavelis.ico">
     <rb:RibbonWindow.Resources>
         <local:ConnectingStatusConverter x:Key="ConnectingStatusConverter" />
+        <local:NameColorConverter x:Key="NameColorConverter" />
     </rb:RibbonWindow.Resources>
     <DockPanel>
         <rb:Ribbon DockPanel.Dock="Top">
@@ -101,7 +102,7 @@
             <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=Number}" Header="No" Width="40" />
-                    <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" Width="80" />
+                    <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" Width="80" Foreground="{Binding Path=Auth, Converter={StaticResource ResourceKey=NameColorConverter}}" />
                     <DataGridTextColumn Binding="{Binding Path=Comment}" Header="Comment" Width="*" />
                     <DataGridTextColumn Binding="{Binding Path=Time, StringFormat=HH:mm:ss}" Header="Time" Width="80" />
                 </DataGrid.Columns>

@@ -2,16 +2,16 @@
 
 	using System;
 	using System.Collections.Generic;
+	using System.Collections.Specialized;
 	using System.Linq;
 	using System.Net;
 	using System.Text;
+	using System.Xml;
 	using CaveTube.CaveTalk.Utils;
 	using Codeplex.Data;
-	using SocketIO;
 	using Microsoft.CSharp.RuntimeBinder;
 	using NLog;
-	using System.Xml;
-	using System.Collections.Specialized;
+	using SocketIO;
 
 	public sealed class CavetubeClient : IDisposable {
 		public event Action<Object, Summary, Message> OnMessage;
@@ -41,7 +41,7 @@
 				Func<String, Tuple<Summary, IEnumerable<Message>>> getInfomation = roomId => {
 					var jsonString = this.GetCavetubeInfomation(roomId);
 					if (String.IsNullOrEmpty(jsonString) == false) {
-						var summary = this.ParseSummary(jsonString);
+						var summary = new Summary(jsonString);
 						var messages = this.ParseMessage(jsonString);
 						return Tuple.Create(summary, messages);
 					} else {
@@ -52,14 +52,14 @@
 				};
 				var tuple = getInfomation(this.roomId);
 				if (this.OnConnect != null) {
-					this.OnConnect(sender, tuple.Item1, tuple.Item2);
+					this.OnConnect(this, tuple.Item1, tuple.Item2);
 				}
 
-				var msg = DynamicJson.Serialize(new {
+				var message = DynamicJson.Serialize(new {
 					mode = "join",
 					room = this.roomId,
 				});
-				client.Send(msg);
+				client.Send(message);
 			};
 
 			client.OnMessage += (sender, message) => {
@@ -77,28 +77,27 @@
 					String mode = json.mode;
 					switch (mode) {
 						case "post":
-							var summary = new Summary {
-								Listener = (Int32)json.listener,
-								PageView = (Int32)json.viewer,
-							};
+							var listener = (Int32)json.listener;
+							var pageView = (Int32)json.viewer;
+							var summary = new Summary(listener, pageView);
 
-							var post = new Message {
-								Number = (Int32)json.comment_num,
-								Name = json.name,
-								Comment = json.message,
-								Time = JavaScriptTime.ToDateTime(json.time, TimeZoneKind.Japan),
-							};
+							var number = (Int32)json.comment_num;
+							var time = JavaScriptTime.ToDateTime(json.time, TimeZoneKind.Japan);
+							var post = new Message(number, json.name, json.message, time, json.auth, json.is_ban);
+
 							if (this.OnMessage != null) {
-								this.OnMessage(sender, summary, post);
+								this.OnMessage(this, summary, post);
 							}
 							break;
 						case "join":
 						case "leave":
+							if (this.OnUpdateMember == null) {
+								break;
+							}
+
+							var ipCount = (Int32)json.ipcount;
 							if (this.OnUpdateMember != null) {
-								var listener = (Int32)json.ipcount;
-								if (this.OnUpdateMember != null) {
-									this.OnUpdateMember(sender, listener);
-								}
+								this.OnUpdateMember(this, ipCount);
 							}
 							break;
 						default:
@@ -110,9 +109,9 @@
 					logger.Warn("Json内にプロパティが見つかりませんでした。");
 				}
 			};
-			client.OnClose += (obj, e) => {
+			client.OnClose += (sender, e) => {
 				if (this.OnClose != null) {
-					this.OnClose(obj, e);
+					this.OnClose(this, e);
 				}
 			};
 			this.client = client;
@@ -184,14 +183,6 @@
 			}
 		}
 
-		private Summary ParseSummary(String jsonString) {
-			var json = DynamicJson.Parse(jsonString);
-			return new Summary {
-				Listener = (Int32)json.listener,
-				PageView = (Int32)json.viewer,
-			};
-		}
-
 		private IEnumerable<Message> ParseMessage(String jsonString) {
 			var json = DynamicJson.Parse(jsonString);
 			var commentCount = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
@@ -201,12 +192,10 @@
 			}).Select(num => {
 				var attr = String.Format("num_{0}", num);
 				var comment = json[attr];
-				return new Message {
-					Number = num,
-					Name = comment.name,
-					Comment = comment.message,
-					Time = JavaScriptTime.ToDateTime(comment.time, TimeZoneKind.Japan),
-				};
+
+				var time = JavaScriptTime.ToDateTime(comment.time, TimeZoneKind.Japan);
+				var message = new Message(num, comment.name, comment.message, time, comment.auth, comment.is_ban);
+				return message;
 			});
 			return messages;
 		}
@@ -214,9 +203,23 @@
 
 	public sealed class Summary {
 
-		public Int32 Listener { get; set; }
+		public Int32 Listener { get; private set; }
 
-		public Int32 PageView { get; set; }
+		public Int32 PageView { get; private set; }
+
+		public Summary() {
+		}
+
+		public Summary(Int32 listener, Int32 pageView) {
+			this.Listener = listener;
+			this.PageView = pageView;
+		}
+
+		public Summary(String jsonString) {
+			var json = DynamicJson.Parse(jsonString);
+			this.Listener = (Int32)json.listener;
+			this.PageView = (Int32)json.viewer;
+		}
 
 		public override bool Equals(object obj) {
 			var other = obj as Summary;
@@ -236,13 +239,26 @@
 
 	public sealed class Message {
 
-		public Int32 Number { get; set; }
+		public Int32 Number { get; private set; }
 
-		public String Name { get; set; }
+		public String Name { get; private set; }
 
-		public String Comment { get; set; }
+		public String Comment { get; private set; }
 
-		public DateTime Time { get; set; }
+		public DateTime Time { get; private set; }
+
+		public Boolean Auth { get; private set; }
+
+		public Boolean IsBan { get; private set; }
+
+		public Message(Int32 number, String name, String comment, DateTime time, Boolean auth, Boolean isBan) {
+			this.Number = number;
+			this.Name = name;
+			this.Comment = comment;
+			this.Time = time;
+			this.Auth = auth;
+			this.IsBan = isBan;
+		}
 
 		public override bool Equals(object obj) {
 			var other = obj as Message;
@@ -254,12 +270,14 @@
 			var isNameSame = this.Name == other.Name;
 			var isCommentSame = this.Comment == other.Comment;
 			var isTimeSame = this.Time == other.Time;
+			var isAuthSame = this.Auth == other.Auth;
+			var isIsBanSame = this.IsBan == other.IsBan;
 
-			return isNumberSame && isNameSame && isCommentSame && isTimeSame;
+			return isNumberSame && isNameSame && isCommentSame && isTimeSame && isAuthSame && isIsBanSame;
 		}
 
 		public override int GetHashCode() {
-			return this.Number.GetHashCode() ^ this.Name.GetHashCode() ^ this.Comment.GetHashCode() ^ this.Time.GetHashCode();
+			return this.Number.GetHashCode() ^ this.Name.GetHashCode() ^ this.Comment.GetHashCode() ^ this.Time.GetHashCode() ^ this.Auth.GetHashCode() ^ this.IsBan.GetHashCode();
 		}
 	}
 }
