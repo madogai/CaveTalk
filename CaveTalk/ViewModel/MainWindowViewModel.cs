@@ -296,7 +296,7 @@
 		/// </summary>
 		/// <param name="count"></param>
 		private void UpdateListenerCount(Int32 count) {
-
+			this.Listener = count;
 		}
 
 		/// <summary>
