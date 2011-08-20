@@ -2,14 +2,11 @@
 
 	using System;
 	using System.Linq;
-	using CaveTube.CaveTalk;
+	using CaveTube.CaveTalk.CaveTubeClient;
 	using CaveTube.CaveTalk.Utils;
 	using Codeplex.Data;
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
 	using SocketIO;
-	using System.Collections.Generic;
-	using System.Diagnostics.CodeAnalysis;
-	using CaveTube.CaveTalk.CaveTubeClient;
 
 	[TestClass()]
 	public class CavetubeClientTest {
@@ -35,7 +32,7 @@
 			var expSummary = new Summary(DynamicJson.Serialize(new {
 				room = "room",
 				listener = 1,
-				viewer = 1 
+				viewer = 1
 			}));
 			var expMessage = new Message(1, "hoge", "comment", new DateTime(2000, 1, 1), false, false);
 
@@ -249,7 +246,6 @@
 			Assert.AreEqual(message1, actual.ElementAt(0));
 			Assert.AreEqual(message2, actual.ElementAt(1));
 			Assert.AreEqual(message3, actual.ElementAt(2));
-
 		}
 
 		private sealed class MoqSocketIO : ISocketIOClient {
@@ -260,7 +256,7 @@
 			public event Action<object, EventArgs> OnOpen;
 			public event Action<object, string> OnMessage;
 			public event Action<object, string> OnError;
-			public event Action<object, EventArgs> OnClose;
+			public event Action<object, SocketIO.Reason> OnClose;
 
 			public string SessionId {
 				get { return "1234567890";  }

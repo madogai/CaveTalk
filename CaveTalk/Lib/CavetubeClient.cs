@@ -22,7 +22,7 @@
 		public event Action<Summary, Message> OnMessage;
 		public event Action<Int32> OnUpdateMember;
 		public event Action<EventArgs> OnConnect;
-		public event Action<EventArgs> OnClose;
+		public event Action<Reason> OnClose;
 		public event Action<Summary, IEnumerable<Message>> OnJoin;
 		public event Action<String> OnLeave;
 		public event Action<LiveNotification> OnNotifyLive;
@@ -67,9 +67,9 @@
 				}
 			};
 
-			client.OnClose += (sender, e) => {
+			client.OnClose += (sender, reason) => {
 				if (this.OnClose != null) {
-					this.OnClose(e);
+					this.OnClose(new Reason(reason));
 				}
 			};
 			this.client = client;
@@ -485,6 +485,11 @@
 
 		public override Int32 GetHashCode() {
 			return this.Author.GetHashCode() ^ this.Title.GetHashCode() ^ this.RoomId.GetHashCode();
+		}
+	}
+
+	public class Reason : SocketIO.Reason {
+		public Reason(SocketIO.Reason parent) : base(parent.IsTimeout) {
 		}
 	}
 }

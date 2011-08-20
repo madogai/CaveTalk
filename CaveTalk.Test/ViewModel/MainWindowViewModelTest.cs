@@ -16,7 +16,6 @@ namespace CaveTube.CaveTalk.Test {
 			var info = new LiveNotification("hoge", "全宇宙アップルパイ会議", "");
 
 			// act
-			target.NotifyLive(info);
 
 			// assert
 		}

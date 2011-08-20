@@ -1,10 +1,12 @@
 ﻿namespace SocketIO {
 
 	using System;
+	using System.Linq;
 	using System.Net;
 	using System.Text.RegularExpressions;
 	using WebSocketSharp;
 	using System.Diagnostics;
+	using System.Threading;
 
 	public class SocketIOClient : ISocketIOClient {
 		private const String nameSpace = "socket.io";
@@ -15,24 +17,10 @@
 			return new WebSocket(webSocketUrl);
 		}
 
-		private static String GetSessionId(Uri uri) {
-			try {
-				using (var wc = new WebClient()) {
-					var handshakeUrl = String.Format("http://{0}:{1}/{2}/{3}", uri.Host, uri.Port, nameSpace, protocolVersion);
-					var response = wc.DownloadString(handshakeUrl);
-					var infos = Regex.Split(response, ":");
-					var sessionId = infos[0];
-					return sessionId;
-				}
-			} catch (WebException e) {
-				throw new SocketIOException("SessionIdを取得できません。", e);
-			}
-		}
-
 		public event Action<Object, EventArgs> OnOpen;
 		public event Action<Object, String> OnMessage;
 		public event Action<Object, String> OnError;
-		public event Action<Object, EventArgs> OnClose;
+		public event Action<Object, Reason> OnClose;
 
 		// 可能ならばclientの作成はコンストラクタのみにとどめたいのですが、
 		// 今のところ再接続を行うためにclientのインスタンスを再度生成しないといけないのでクラス変数を用意します。
@@ -50,27 +38,32 @@
 		public String SessionId { get; private set; }
 
 		private ITransport client = null;
+		private Int32 timeout;
 
 		public SocketIOClient(Uri socketIOUri)
 			: this(socketIOUri, CreateWebSocketClient) {
 		}
 
-		public SocketIOClient(Uri socketIOUri, Func<Uri, String, ITransport> clientBuilder)
-			: this(socketIOUri, clientBuilder, GetSessionId(socketIOUri)) {
-		}
-
-		private SocketIOClient(Uri socketIOUri, Func<Uri, String, ITransport> clientBuilder, String sessionId) {
+		private SocketIOClient(Uri socketIOUri, Func<Uri, String, ITransport> clientBuilder) {
 			this.socketIOUri = socketIOUri;
 			this.clientBuilder = clientBuilder;
-			this.SessionId = sessionId;
+		}
 
-			var client = clientBuilder(socketIOUri, sessionId);
-			client = this.SetupClientEvent(client);
-			this.client = client;
+		~SocketIOClient() {
+			this.Dispose();
 		}
 
 		public void Connect() {
-			this.client.Connect();
+			var handshakeInfo = this.GetHandshakeInfo(this.socketIOUri);
+			var client = clientBuilder(this.socketIOUri, handshakeInfo.SessionId);
+			this.client = client;
+
+			client = this.SetupClientEvent(client);
+
+			this.SessionId = handshakeInfo.SessionId;
+			this.timeout = handshakeInfo.Timeout;
+
+			client.Connect();
 		}
 
 		public void Close() {
@@ -79,12 +72,6 @@
 			}
 			this.client.Send("0");
 			this.client.Close();
-
-			// ここで再接続しないと、ハンドシェイク後にエラーが返って再接続できません。
-			var sessionId = GetSessionId(socketIOUri);
-			var client = clientBuilder(socketIOUri, sessionId);
-			client = this.SetupClientEvent(client);
-			this.client = client;
 		}
 
 		public void Dispose() {
@@ -104,15 +91,31 @@
 		}
 
 		private ITransport SetupClientEvent(ITransport client) {
+			var stopwatch = new Stopwatch();
+			var timer = new Timer(state => {
+				var sw = (Stopwatch)state;
+				if (sw.ElapsedMilliseconds > this.timeout) {
+					stopwatch.Stop();
+					client.Close();
+				}
+			}, stopwatch, Timeout.Infinite, Timeout.Infinite);
+
 			client.OnOpen += (sender, e) => {
+				stopwatch.Restart();
+				timer.Change(this.timeout, this.timeout);
 				if (this.OnOpen != null) {
 					this.OnOpen(this, e);
 				}
 			};
 
 			client.OnClose += (sender, e) => {
+				var isTimeout = stopwatch.ElapsedMilliseconds > this.timeout;
+
+				stopwatch.Reset();
+				timer.Change(Timeout.Infinite, Timeout.Infinite);
 				if (this.OnClose != null) {
-					this.OnClose(this, e);
+					var reason = new Reason(isTimeout);
+					this.OnClose(this, reason);
 				}
 			};
 
@@ -133,6 +136,7 @@
 						case Status.Connect:
 							break;
 						case Status.Heartbeat:
+							stopwatch.Restart();
 							client.Send("2::");
 							break;
 						case Status.Message:
@@ -170,11 +174,29 @@
 			return String.Format("3:{0}:{1}:{2}", id, endpoint, message);
 		}
 
-		~SocketIOClient() {
-			this.Dispose();
+		private HandshakeInfo GetHandshakeInfo(Uri uri) {
+			try {
+				using (var wc = new WebClient()) {
+					var handshakeUrl = String.Format("http://{0}:{1}/{2}/{3}", uri.Host, uri.Port, nameSpace, protocolVersion);
+					var response = wc.DownloadString(handshakeUrl);
+					var infos = Regex.Split(response, ":");
+					var sessionId = infos.ElementAtOrDefault(0);
+					var heartbeatText = infos.ElementAtOrDefault(1);
+					var heartbeat = String.IsNullOrEmpty(heartbeatText) == false ? (Int32.Parse(heartbeatText) * 1000) : 0;
+					var timoutText = infos.ElementAtOrDefault(2);
+					var timeout = String.IsNullOrEmpty(timoutText) == false ? (Int32.Parse(timoutText) * 1000) : (25 * 1000);
+					return new HandshakeInfo {
+						SessionId = sessionId,
+						Heartbeat = heartbeat,
+						Timeout = timeout,
+					};
+				}
+			} catch (WebException e) {
+				throw new SocketIOException("SessionIdを取得できません。", e);
+			}
 		}
 
-		private sealed class Handshake {
+		private sealed class HandshakeInfo {
 			public String SessionId { get; set; }
 			public Int32 Heartbeat { get; set; }
 			public Int32 Timeout { get; set; }

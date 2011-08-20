@@ -243,7 +243,6 @@
 						this.OnMessage(message);
 					}));
 				}
-
 			};
 			this.cavetubeClient.OnUpdateMember += this.UpdateListenerCount;
 			this.cavetubeClient.OnJoin += (summary, messages) => {
@@ -261,6 +260,14 @@
 				uiDispatcher.BeginInvoke(new Action(() => {
 					this.OnNotifyLive(liveInfo);
 				}));
+			};
+			this.cavetubeClient.OnClose += (e) => {
+				if (e.IsTimeout) {
+					this.cavetubeClient.Connect();
+					if (this.RoomJoinStatus) {
+						this.JoinRoom(this.cavetubeClient.JoinedRoomId);
+					}
+				}
 			};
 
 			this.cavetubeClient.Connect();
@@ -374,13 +381,6 @@
 				base.OnPropertyChanged("RoomJoinStatus");
 				this.ResetStatus();
 			}
-		}
-
-		private void NotifyLive(LiveNotification live) {
-			var balloon = new NotifyBalloon();
-			balloon.DataContext = live;
-
-			new TaskbarIcon().ShowCustomBalloon(balloon, PopupAnimation.Slide, 3000);
 		}
 
 		/// <summary>

@@ -13,7 +13,7 @@
 				return new MoqTransport();
 			};
 
-			this.target = new SocketIOClient_Accessor(new Uri("http://www.google.com"), clientBuilder, "");
+			this.target = new SocketIOClient_Accessor(new Uri("http://www.google.com"), clientBuilder);
 		}
 
 		[TestMethod]
