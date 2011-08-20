@@ -4,6 +4,7 @@
 	using System.Windows;
 	using CaveTube.CaveTalk.ViewModel;
 	using NLog;
+	using CaveTube.CaveTalk.View;
 
 	/// <summary>
 	/// App.xaml の相互作用ロジック
@@ -18,6 +19,7 @@
 				var window = new MainWindow {
 					DataContext = new MainWindowViewModel(),
 				};
+
 				window.Show();
 			} catch(Exception ex) {
 				logger.Error(ex.ToString());

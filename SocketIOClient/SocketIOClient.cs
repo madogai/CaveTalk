@@ -20,7 +20,8 @@
 				using (var wc = new WebClient()) {
 					var handshakeUrl = String.Format("http://{0}:{1}/{2}/{3}", uri.Host, uri.Port, nameSpace, protocolVersion);
 					var response = wc.DownloadString(handshakeUrl);
-					var sessionId = Regex.Split(response, ":")[0];
+					var infos = Regex.Split(response, ":");
+					var sessionId = infos[0];
 					return sessionId;
 				}
 			} catch (WebException e) {
@@ -46,6 +47,7 @@
 				return this.client.IsConnect;
 			}
 		}
+		public String SessionId { get; private set; }
 
 		private ITransport client = null;
 
@@ -60,6 +62,7 @@
 		private SocketIOClient(Uri socketIOUri, Func<Uri, String, ITransport> clientBuilder, String sessionId) {
 			this.socketIOUri = socketIOUri;
 			this.clientBuilder = clientBuilder;
+			this.SessionId = sessionId;
 
 			var client = clientBuilder(socketIOUri, sessionId);
 			client = this.SetupClientEvent(client);
@@ -74,7 +77,7 @@
 			if (this.client == null) {
 				return;
 			}
-			this.client.Send("0::");
+			this.client.Send("0");
 			this.client.Close();
 
 			// ここで再接続しないと、ハンドシェイク後にエラーが返って再接続できません。
@@ -169,6 +172,12 @@
 
 		~SocketIOClient() {
 			this.Dispose();
+		}
+
+		private sealed class Handshake {
+			public String SessionId { get; set; }
+			public Int32 Heartbeat { get; set; }
+			public Int32 Timeout { get; set; }
 		}
 
 		private enum Status {

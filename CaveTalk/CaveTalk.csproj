@@ -57,11 +57,18 @@
     <Reference Include="DynamicJson">
       <HintPath>..\..\CaveBouyomi\CaveBouyomi\bin\Debug\DynamicJson.dll</HintPath>
     </Reference>
+    <Reference Include="Hardcodet.Wpf.TaskbarNotification">
+      <HintPath>bin\Release\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.2.0.0.2000\lib\net40\NLog.dll</HintPath>
     </Reference>
+    <Reference Include="ParallelExtensionsExtras">
+      <HintPath>bin\Release\ParallelExtensionsExtras.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
@@ -86,20 +93,47 @@
     </ApplicationDefinition>
     <Compile Include="Behavior\KeydownBehavior.cs" />
     <Compile Include="Behavior\PlaceholderBehavior.cs" />
+    <Compile Include="Control\NotifyBalloon.xaml.cs">
+      <DependentUpon>NotifyBalloon.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Control\RibbonTextBlock.cs" />
+    <Compile Include="Control\MessageBalloon.xaml.cs">
+      <DependentUpon>MessageBalloon.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\LoginBox.xaml.cs">
+      <DependentUpon>LoginBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utils\JavaScriptTime.cs" />
     <Compile Include="Utils\RelayCommand.cs" />
     <Compile Include="Utils\SafeObservableCollection.cs" />
+    <Compile Include="ViewModel\LoginBoxViewModel.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
-    <Compile Include="ViewModel\ViewModelBase.cs" />
-    <Page Include="AboutBox.xaml">
+    <Compile Include="Utils\ViewModelBase.cs" />
+    <Page Include="Control\NotifyBalloon.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Control\MessageBalloon.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="MainWindow.xaml">
+    <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="AboutBox.xaml.cs">
+    <Page Include="View\AboutBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\LoginBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="View\AboutBox.xaml.cs">
       <DependentUpon>AboutBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="App.xaml.cs">
@@ -108,7 +142,7 @@
     </Compile>
     <Compile Include="Lib\BouyomiChanClient.cs" />
     <Compile Include="Lib\CavetubeClient.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="View\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
@@ -131,6 +165,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="App.config" />
     <None Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -156,7 +191,7 @@
     <Resource Include="Images\flag_red.png" />
     <Resource Include="Images\floppy_disk.png" />
     <Resource Include="Images\folder.png" />
-    <Resource Include="Images\FolderOpen_32x32_72.png" />
+    <Resource Include="Images\folder_open.png" />
     <Resource Include="Images\help.png" />
     <Resource Include="Images\history.png" />
     <Resource Include="Images\info.png" />
@@ -193,6 +228,24 @@
       <ProductName>Windows インストーラー 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\document.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\cavetube.png" />
+    <Resource Include="Images\cavetube_disable.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\connect_creating.png" />
+    <Resource Include="Images\connect_established.png" />
+    <Resource Include="Images\connect_no.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\notify.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\notify_no.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

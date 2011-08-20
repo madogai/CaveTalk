@@ -1,22 +1,14 @@
-﻿namespace CaveTube.CaveTalk {
+﻿namespace CaveTube.CaveTalk.View {
+
 	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Text;
-	using System.Windows;
-	using System.Windows.Controls;
-	using System.Windows.Data;
-	using System.Windows.Documents;
-	using System.Windows.Input;
-	using System.Windows.Media;
-	using System.Windows.Media.Imaging;
-	using System.Windows.Shapes;
 	using System.Diagnostics;
+	using System.Windows;
 
 	/// <summary>
 	/// Version.xaml の相互作用ロジック
 	/// </summary>
 	public partial class AboutBox : Window {
+
 		public AboutBox() {
 			InitializeComponent();
 			this.DataContext = this;

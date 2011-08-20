@@ -8,6 +8,22 @@ Copyright 2011, まどがい
 MIT-style License.  
 <http://www.opensource.org/licenses/mit-license.php>
 
+
+ParallelExtensionsExtras
+Author: Microsoft Corporation
+
+Apache License, Version 2.0
+<http://www.apache.org/licenses/>
+
+
+Connect Icon
+Author: David Vignoni
+<http://www.icon-king.com/>
+
+LGPL License Version 3
+<http://www.gnu.org/copyleft/lesser.html>
+
+
 Description
 -----------
 

@@ -7,9 +7,9 @@
 	using System.Windows.Input;
 	using System.Windows.Interactivity;
 
-	public class ExecuteCommandOnCtrlAndEnterKeyDownBehavior : Behavior<TextBox> {
+	public abstract class ExecCommandKeyDownBehavior<T> : Behavior<T> where T : Control {
 
-		public string Command {
+		public String Command {
 			get {
 				return (String)GetValue(CommandProperty);
 			}
@@ -19,7 +19,17 @@
 		}
 
 		public static readonly DependencyProperty CommandProperty =
-			DependencyProperty.Register("Command", typeof(String), typeof(ExecuteCommandOnCtrlAndEnterKeyDownBehavior));
+			DependencyProperty.Register("Command", typeof(String), typeof(ExecCommandKeyDownBehavior<T>));
+
+		public OptionKey CommandOption {
+			get { return (OptionKey)GetValue(CommandOptionProperty); }
+			set { SetValue(CommandOptionProperty, value); }
+		}
+
+		public static readonly DependencyProperty CommandOptionProperty =
+			DependencyProperty.Register("CommandOption", typeof(OptionKey), typeof(ExecCommandKeyDownBehavior<T>), new UIPropertyMetadata(OptionKey.None));
+
+
 
 		protected override void OnAttached() {
 			base.OnAttached();
@@ -32,10 +42,8 @@
 		}
 
 		public void OnKeyDown(Object sender, KeyEventArgs e) {
-			var isEneter = new[] { Key.Return, Key.Enter }.Contains(e.Key);
-			var isPressCtrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-
-			if ((isEneter && isPressCtrl) == false) {
+			var isFireEvent = this.IsFire(e);
+			if (isFireEvent == false) {
 				return;
 			}
 
@@ -47,5 +55,32 @@
 				command.Execute(this.AssociatedObject);
 			}
 		}
+
+		protected abstract Boolean IsFire(KeyEventArgs e);
+	}
+
+	public sealed class ExecCommandOnEnterKeyDownBehavior : ExecCommandKeyDownBehavior<ComboBox> {
+
+		protected override Boolean IsFire(KeyEventArgs e) {
+			var isEneter = new[] { Key.Return, Key.Enter }.Contains(e.Key);
+			return isEneter;
+		}
+	}
+
+	public sealed class ExecCommandOnCtrlAndEnterKeyDownBehavior : ExecCommandKeyDownBehavior<TextBox> {
+
+		protected override Boolean IsFire(KeyEventArgs e) {
+			var isEneter = new[] { Key.Return, Key.Enter }.Contains(e.Key);
+			var isPressCtrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+			return isEneter && isPressCtrl;
+		}
+	}
+
+	[Flags]
+	public enum OptionKey {
+		None,
+		Ctrl,
+		Shift,
+		Alt,
 	}
 }

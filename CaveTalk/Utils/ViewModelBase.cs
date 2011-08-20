@@ -1,4 +1,4 @@
-﻿namespace CaveTube.CaveTalk.ViewModel {
+﻿namespace CaveTube.CaveTalk.Utils {
 
 	using System;
 	using System.ComponentModel;

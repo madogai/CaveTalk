@@ -32,5 +32,17 @@
 			// assert
 			Assert.AreEqual(946652400000, act);
 		}
+
+		[TestMethod]
+		public void ToDouble_小数点以下切り捨て() {
+			// arrange
+			var date = new DateTime(2000, 1, 1, 0, 0, 0, 999);
+
+			// act
+			var act = JavaScriptTime.ToDouble(date, TimeZoneKind.Japan);
+
+			// assert
+			Assert.AreEqual(946652400000, act);
+		}
 	}
 }

@@ -8,6 +8,7 @@
 		event Action<Object, EventArgs> OnClose;
 
 		Boolean IsConnect { get; }
+		String SessionId { get;  }
 
 		void Connect();
 

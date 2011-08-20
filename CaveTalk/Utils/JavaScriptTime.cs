@@ -15,6 +15,7 @@
 		}
 
 		public static Double ToDouble(DateTime dateTime, TimeZoneKind timezoneKind) {
+			dateTime = dateTime.AddMilliseconds(-1 * dateTime.Millisecond);
 			var timezoneInfo = TimeZoneInfo.FindSystemTimeZoneById(TimeZoneKindDictionary[timezoneKind]);
 			var target = dateTime.AddTicks(-1 * timezoneInfo.BaseUtcOffset.Ticks);
 			var timespan = new TimeSpan(target.Ticks - UnixEpoch.Ticks);

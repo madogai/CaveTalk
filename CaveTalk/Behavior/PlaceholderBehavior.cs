@@ -6,7 +6,7 @@
 	using System.Windows.Interactivity;
 	using System.Windows.Media;
 
-	public sealed class TextBoxPlaceholderBehavior : Behavior<TextBox> {
+	public abstract class PlaceHolderBehaviorBase<T> : Behavior<T> where T : Control {
 
 		public String Placeholder {
 			get { return (String)GetValue(PlaceholderProperty); }
@@ -14,7 +14,11 @@
 		}
 
 		public static readonly DependencyProperty PlaceholderProperty =
-			DependencyProperty.Register("Placeholder", typeof(String), typeof(TextBoxPlaceholderBehavior));
+			DependencyProperty.Register("Placeholder", typeof(String), typeof(PlaceHolderBehaviorBase<T>));
+
+		protected abstract String GetContent(T control);
+
+		protected Brush defaultBackground;
 
 		protected override void OnAttached() {
 			base.OnAttached();
@@ -31,40 +35,45 @@
 		}
 
 		private void OnInitialized(Object sender, EventArgs e) {
-			var textBox = sender as TextBox;
-			if (textBox == null) {
+			var control = sender as T;
+			if (control == null) {
 				return;
 			}
-			textBox.Background = CreateVisualBrush(this.Placeholder);
+
+			this.defaultBackground = control.Background;
+			control.Background = this.CreateVisualBrush(this.Placeholder);
 		}
 
 		private void OnGotFocus(Object sender, RoutedEventArgs e) {
-			var textBox = sender as TextBox;
-			if (textBox == null) {
+			var control = sender as T;
+			if (control == null) {
 				return;
 			}
-			textBox.Background = new SolidColorBrush(Colors.Transparent);
+			control.Background = this.defaultBackground;
 		}
 
 		private void OnLostFocus(Object sender, EventArgs e) {
-			var textBox = sender as TextBox;
-			if (textBox == null) {
+			var control = sender as T;
+			if (control == null) {
 				return;
 			}
-			if (String.IsNullOrEmpty(textBox.Text) == false) {
+			var content = this.GetContent(control);
+			if (String.IsNullOrEmpty(content) == false) {
 				return;
 			}
-			textBox.Background = CreateVisualBrush(this.Placeholder);
+			control.Background = this.CreateVisualBrush(this.Placeholder);
 		}
 
 		private VisualBrush CreateVisualBrush(string placeHolder) {
-			var visual = new Label() {
+			var visual = new Label {
 				Content = placeHolder,
 				Padding = new Thickness(5, 1, 1, 1),
 				Foreground = new SolidColorBrush(Colors.LightGray),
+				Background = this.defaultBackground,
 				HorizontalAlignment = HorizontalAlignment.Left,
 				VerticalAlignment = VerticalAlignment.Center,
 			};
+
 			return new VisualBrush(visual) {
 				Stretch = Stretch.None,
 				TileMode = TileMode.None,
@@ -74,71 +83,36 @@
 		}
 	}
 
-	public sealed class ComboBoxPlaceholderBehavior : Behavior<ComboBox> {
-
-		public String Placeholder {
-			get { return (String)GetValue(PlaceholderProperty); }
-			set { SetValue(PlaceholderProperty, value); }
-		}
-
-		public static readonly DependencyProperty PlaceholderProperty =
-			DependencyProperty.Register("Placeholder", typeof(String), typeof(ComboBoxPlaceholderBehavior));
-
+	public sealed class TextBoxPlaceholderBehavior : PlaceHolderBehaviorBase<TextBox> {
 		protected override void OnAttached() {
 			base.OnAttached();
-			this.AssociatedObject.Initialized += this.OnInitialized;
-			this.AssociatedObject.GotFocus += this.OnGotFocus;
-			this.AssociatedObject.LostFocus += this.OnLostFocus;
+			this.AssociatedObject.TextChanged += OnTextChanged;
 		}
 
 		protected override void OnDetaching() {
 			base.OnDetaching();
-			this.AssociatedObject.Initialized -= this.OnInitialized;
-			this.AssociatedObject.GotFocus -= this.OnGotFocus;
-			this.AssociatedObject.LostFocus -= this.OnLostFocus;
+			this.AssociatedObject.TextChanged -= OnTextChanged;
 		}
 
-		private void OnInitialized(Object sender, EventArgs e) {
-			var comboBox = sender as ComboBox;
-			if (comboBox == null) {
+		private void OnTextChanged(object sender, TextChangedEventArgs e) {
+			var control = sender as TextBox;
+			if (control == null) {
 				return;
 			}
-			comboBox.Background = CreateVisualBrush(this.Placeholder);
+
+			if (control.IsFocused == false) {
+				control.Background = this.defaultBackground;
+			}
 		}
 
-		private void OnGotFocus(Object sender, RoutedEventArgs e) {
-			var comboBox = sender as ComboBox;
-			if (comboBox == null) {
-				return;
-			}
-			comboBox.Background = new SolidColorBrush(Colors.Transparent);
+		protected override string GetContent(TextBox control) {
+			return control.Text;
 		}
+	}
 
-		private void OnLostFocus(Object sender, EventArgs e) {
-			var comboBox = sender as ComboBox;
-			if (comboBox == null) {
-				return;
-			}
-			if (String.IsNullOrEmpty(comboBox.Text) == false) {
-				return;
-			}
-			comboBox.Background = CreateVisualBrush(this.Placeholder);
-		}
-
-		private VisualBrush CreateVisualBrush(string placeHolder) {
-			var visual = new Label() {
-				Content = placeHolder,
-				Padding = new Thickness(5, 1, 1, 1),
-				Foreground = new SolidColorBrush(Colors.LightGray),
-				HorizontalAlignment = HorizontalAlignment.Left,
-				VerticalAlignment = VerticalAlignment.Center,
-			};
-			return new VisualBrush(visual) {
-				Stretch = Stretch.None,
-				TileMode = TileMode.None,
-				AlignmentX = AlignmentX.Left,
-				AlignmentY = AlignmentY.Center,
-			};
+	public sealed class ComboBoxPlaceholderBehavior : PlaceHolderBehaviorBase<ComboBox> {
+		protected override string GetContent(ComboBox control) {
+			return control.Text;
 		}
 	}
 }

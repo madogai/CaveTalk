@@ -15,15 +15,15 @@ HTTP通信とWebSocket通信をつかったかべつべのコメント読み上�
 ## HTTPリクエスト
 コメントを1番目から全部取得するには
 
-	http://gae.cavelis.net/viewedit/getcomment?stream_name=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&comment_num=1
+	http://gae.cavelis.net/viewedit/getcomment2?stream_name=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&comment_num=1
 
 コメントの10番目のみ取得するには
 
-	http://gae.cavelis.net/viewedit/getcomment?stream_name=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&comment_num=10&single=true
+	http://gae.cavelis.net/viewedit/getcomment2?stream_name=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&comment_num=10&single=true
 
 コメントの11番目以降を取得するには
 
-	http://gae.cavelis.net/viewedit/getcomment?stream_name=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&comment_num=11&single=false
+	http://gae.cavelis.net/viewedit/getcomment2?stream_name=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&comment_num=11&single=false
 
 ※リクエストはGETでもPOSTでもOK
 
@@ -39,6 +39,26 @@ HTTP通信とWebSocket通信をつかったかべつべのコメント読み上�
 		viewer : 25,		//ページビュー
 		comment_num : 125,		//最新のコメント数
 
+		comments: [
+			{
+				comment_num : 1,			//コメントの番号
+				message : "これが1コメ目",		//生のコメント内容
+				html : "<div>これが1コメ目</div>",	//HTML化されたコメント内容
+				name : "hoge",				//★コメント投稿者の名前
+				time : 19190721,			//★コメント投稿の日付 (単位はUnixTime 日本時間に直すにはタイムゾーン補正も必要)
+				is_ban : false,			//★コメントがBANされているかどうか
+				auth : true,				//★コメントが認証コメント(緑コテ状態)かどうか
+			},
+			{
+				comment_num : 2,			//コメント番号
+				message : "これが2コメ目",		//生のコメント内容
+				html : "<div>これが2コメ目</div>",	//HTML化されたコメント内容
+				name : "hoge",				//★コメント投稿者の名前
+				time : 19190722,			//★コメント投稿の日付 (単位はUnixTime 日本時間に直すにはタイムゾーン補正も必要)
+				is_ban : false,			//★コメントがBANされているかどうか
+				auth : true,				//★コメントが認証コメント(緑コテ状態)かどうか
+			}
+		]
 		num_1.comment_num : 1,			//コメントの番号
 		num_1.message : "これが1コメ目",		//生のコメント内容
 		num_1.html : "<div>これが1コメ目</div>",	//HTML化されたコメント内容
@@ -65,8 +85,8 @@ httpによるコメント取得はサーバー側でロングポーリング(新
 
 ## WebSocketでの通信
 * コメントのサーバーはnode.jsというHTTPアプリケーションサーバーをつかって、WebSocketライブラリとしてsocket.ioを使っています。
-	* node.jsのバージョン 0.4.7
-	* socket.ioのバージョン 0.7.7
+	* node.jsのバージョン 0.4.10
+	* socket.ioのバージョン 0.7.8
 * アドレスとポートは以下の通りです
 	* ws.cavelis.net:3000
 
@@ -218,6 +238,10 @@ POSTリクエストURL
 ブラウザから認証済みのcookie情報を取得した内容で、  さらにそのブラウザのSessionがKeepAliveな状態でコメントデータをそのブラウザから送信しないと、緑コテにならないです。  
 この仕様だと、ブラウザごとにCookieのとり方などが変わってきたりなど、とても面倒だとおもうので、またhogeさんと相談して、簡単そうな実装方法を吟味する必要がありそうです。
 
+⇒◆認証コテでコメントを書くには、apikeyを使うように変更しました。  
+keyの取得の仕方については、  
+http://gae.cavelis.net/api/key.txt をご覧ください。
+
 参考:コテの種類
 
 * 緑コテ
@@ -243,6 +267,13 @@ POSTリクエストURL
 こんな情報が欲しい!!と要望言ってくれれば、反映させます。
 
 文責：かべりす
+
+## ログ出力
+開発者向けにnode.jsのログを公開ディレクトリに出力するようにしました  
+ブラウザで下記のURLにアクセスすればログを確認できます。  
+http://ws.cavelis.net:3000/console.txt  
+http://ws.cavelis.net:3000/log4.txt  
+websocketのエラー内容の確認などに使ってみてください。
 
 ## 更新履歴
 2011/07/31
