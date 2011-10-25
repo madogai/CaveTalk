@@ -1,15 +1,13 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Text;
-	using System.Windows.Input;
-	using CaveTube.CaveTalk.Utils;
 	using System.Configuration;
-	using NLog;
-	using System.Threading.Tasks;
 	using System.Threading;
+	using System.Threading.Tasks;
+	using System.Windows.Input;
+	using CaveTube.CaveTalk.Properties;
 	using CaveTube.CaveTalk.CaveTubeClient;
+	using CaveTube.CaveTalk.Utils;
+	using NLog;
 
 	public sealed class LoginBoxViewModel : ViewModelBase {
 		private Logger logger = LogManager.GetCurrentClassLogger();
@@ -82,10 +80,10 @@
 						this.ErrorMessage = "ログインに失敗しました。";
 						return;
 					}
-					CaveTalk.Properties.Settings.Default.ApiKey = apiKey;
-					CaveTalk.Properties.Settings.Default.UserId = this.UserId;
-					CaveTalk.Properties.Settings.Default.Password = this.Password;
-					CaveTalk.Properties.Settings.Default.Save();
+					Settings.Default.ApiKey = apiKey;
+					Settings.Default.UserId = this.UserId;
+					Settings.Default.Password = this.Password;
+					Settings.Default.Save();
 
 				} catch (ArgumentException e) {
 					var message = "ログインに失敗しました。";

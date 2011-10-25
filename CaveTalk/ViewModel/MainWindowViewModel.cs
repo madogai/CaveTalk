@@ -3,29 +3,26 @@
 	using System;
 	using System.Collections.Generic;
 	using System.Configuration;
-	using System.Net;
-	using System.Runtime.Remoting;
-	using System.Text.RegularExpressions;
 	using System.Linq;
+	using System.Net;
+	using System.Text.RegularExpressions;
 	using System.Windows;
-	using System.Windows.Data;
 	using System.Windows.Input;
-	using CaveTube.CaveTalk.Utils;
-	using FNF.Utility;
-	using NLog;
 	using System.Windows.Threading;
-	using System.Threading.Tasks;
-	using Hardcodet.Wpf.TaskbarNotification;
-	using CaveTube.CaveTalk.Control;
-	using System.Windows.Controls.Primitives;
 	using CaveTube.CaveTalk.CaveTubeClient;
+	using CaveTube.CaveTalk.Lib;
+	using CaveTube.CaveTalk.Properties;
+	using CaveTube.CaveTalk.Utils;
 	using CaveTube.CaveTalk.View;
+	using NLog;
+	using System.IO;
+	using Microsoft.Win32;
 
 	public sealed class MainWindowViewModel : ViewModelBase {
 		private Logger logger = LogManager.GetCurrentClassLogger();
 
 		private CavetubeClient cavetubeClient;
-		private BouyomiChanClient bouyomiClient;
+		private IReadingApplicationClient readingClient;
 		private Dispatcher uiDispatcher;
 
 		public event Action<LiveNotification> OnNotifyLive;
@@ -66,23 +63,13 @@
 			}
 		}
 
-		private Int32 pageView;
+		public Boolean readingApplicationStatus;
 
-		public Int32 PageView {
-			get { return this.pageView; }
+		public Boolean ReadingApplicationStatus {
+			get { return this.readingApplicationStatus; }
 			set {
-				this.pageView = value;
-				base.OnPropertyChanged("PageView");
-			}
-		}
-
-		public Boolean bouyomiStatus;
-
-		public Boolean BouyomiStatus {
-			get { return this.bouyomiStatus; }
-			set {
-				this.bouyomiStatus = value;
-				base.OnPropertyChanged("BouyomiStatus");
+				this.readingApplicationStatus = value;
+				base.OnPropertyChanged("ReadingApplicationStatus");
 			}
 		}
 
@@ -121,19 +108,6 @@
 			set {
 				this.postMessage = value;
 				base.OnPropertyChanged("PostMessage");
-			}
-		}
-
-		public Boolean notifyStatus;
-
-		public Boolean NotifyStatus {
-			get { return this.notifyStatus; }
-			set {
-				this.notifyStatus = value;
-				base.OnPropertyChanged("NotifyStatus");
-
-				CaveTalk.Properties.Settings.Default.Notify = value;
-				CaveTalk.Properties.Settings.Default.Save();
 			}
 		}
 
@@ -177,14 +151,14 @@
 		public ICommand SwitchAccountCommand { get; private set; }
 
 		/// <summary>
-		/// 棒読みちゃんに接続します。
+		/// 読み上げソフトに接続します。
 		/// </summary>
-		public ICommand ConnectBouyomiCommand { get; private set; }
+		public ICommand ConnectReadingApplicationCommand { get; private set; }
 
 		/// <summary>
-		/// 棒読みちゃんから切断します。
+		/// 読み上げソフトのコネクションを切断します。
 		/// </summary>
-		public ICommand DisconnectBouyomiCommand { get; private set; }
+		public ICommand DisconnectReadingApplicationCommand { get; private set; }
 
 		/// <summary>
 		/// 通知を有効にします。
@@ -201,17 +175,25 @@
 		/// </summary>
 		public ICommand AboutBoxCommand { get; private set; }
 
+		/// <summary>
+		/// オプション画面を表示します。
+		/// </summary>
+		public ICommand SettingWindowCommand { get; private set; }
+
 		#endregion
 
+		/// <summary>
+		/// コンストラクタ
+		/// </summary>
 		public MainWindowViewModel() {
 			this.MessageList = new SafeObservable<Message>();
 			this.uiDispatcher = Dispatcher.CurrentDispatcher;
 
-			#region Command
+			#region Commandの登録
 
-			this.ConnectBouyomiCommand = new RelayCommand(p => this.ConnectBouyomi());
-			this.DisconnectBouyomiCommand = new RelayCommand(p => this.DisconnectBouyomi());
-			this.JoinRoomCommand = new RelayCommand(p => JoinRoom(this.LiveUrl));
+			this.ConnectReadingApplicationCommand = new RelayCommand(p => this.ConnectReadingApplication());
+			this.DisconnectReadingApplicationCommand = new RelayCommand(p => this.DisconnectReadingApplication());
+			this.JoinRoomCommand = new RelayCommand(p => this.JoinRoom(this.LiveUrl));
 			this.LeaveRoomCommand = new RelayCommand(p => this.LeaveRoom());
 			this.LoginCommand = new RelayCommand(p => this.LoginCavetube());
 			this.LogoutCommand = new RelayCommand(p => this.LogoutCavetube());
@@ -223,17 +205,14 @@
 				var apiKey = CaveTalk.Properties.Settings.Default.ApiKey ?? String.Empty;
 				this.PostComment(this.PostName, this.PostMessage, apiKey);
 			});
-			this.CopyCommentCommand = new RelayCommand(p => {
-				var text = this.MessageList[this.MessageIndex].Comment;
-				Clipboard.SetText(text);
-			});
-			this.EnableNotifyCommand = new RelayCommand(p => this.NotifyStatus = true);
-			this.DisableNotifyCommand = new RelayCommand(p => this.NotifyStatus = false);
 			this.AboutBoxCommand = new RelayCommand(p => this.ShowVersion());
+			this.SettingWindowCommand = new RelayCommand(p => this.ShowOption());
 
 			#endregion
 
-			this.cavetubeClient = new CavetubeClient();
+			#region CavetubeClientの接続
+
+			this.cavetubeClient = new CavetubeClient(new Uri(ConfigurationManager.AppSettings["comment_server"]), new Uri(ConfigurationManager.AppSettings["web_server"]));
 			this.cavetubeClient.OnMessage += (summary, mes) => {
 				var message = new Message(mes);
 				this.AddMessage(summary, message);
@@ -254,7 +233,7 @@
 				}));
 			};
 			this.cavetubeClient.OnNotifyLive += liveInfo => {
-				if (this.OnNotifyLive == null || this.NotifyStatus == false) {
+				if (this.OnNotifyLive == null || (NotifyPopupStateEnum)Settings.Default.NotifyState == NotifyPopupStateEnum.False) {
 					return;
 				}
 				uiDispatcher.BeginInvoke(new Action(() => {
@@ -272,9 +251,24 @@
 
 			this.cavetubeClient.Connect();
 
-			this.NotifyStatus = CaveTalk.Properties.Settings.Default.Notify;
+			#endregion
+
 			this.PostName = CaveTalk.Properties.Settings.Default.UserId;
-			this.ConnectBouyomi();
+
+			#region 読み上げソフト
+
+			this.ConnectReadingApplication();
+
+			#endregion
+
+			SystemEvents.PowerModeChanged += OnPowerModeChanged;
+		}
+
+		/// <summary>
+		/// デストラクタ
+		/// </summary>
+		~MainWindowViewModel() {
+			SystemEvents.PowerModeChanged -= OnPowerModeChanged;
 		}
 
 		/// <summary>
@@ -286,8 +280,8 @@
 				this.cavetubeClient.Dispose();
 			}
 
-			if (this.bouyomiClient != null) {
-				this.bouyomiClient.Dispose();
+			if (this.readingClient != null) {
+				this.readingClient.Dispose();
 			}
 		}
 
@@ -305,23 +299,18 @@
 		/// <param name="summary"></param>
 		/// <param name="message"></param>
 		private void AddMessage(Summary summary, Message message) {
-			// コメント取得時のリスナー数がずれてるっぽいので一時的に封印
-			// this.Listener = summary.Listener;
-			this.PageView = summary.PageView;
-
 			if (message.IsBan) {
 				return;
 			}
 
 			this.MessageList.Insert(0, message);
 
-			try {
-				if (this.BouyomiStatus) {
-					this.bouyomiClient.AddTalkTask(message.Comment);
+			if (this.ReadingApplicationStatus) {
+				var isAdded = this.readingClient.Add(message.Comment);
+				if (isAdded == false) {
+					MessageBox.Show("読み上げに失敗しました。");
+					this.ReadingApplicationStatus = false;
 				}
-			} catch (RemotingException) {
-				this.BouyomiStatus = false;
-				MessageBox.Show("棒読みちゃんに接続できませんでした。");
 			}
 		}
 
@@ -332,8 +321,6 @@
 		/// <param name="messages"></param>
 		private void AddMessage(Summary summary, IEnumerable<Message> messages) {
 			base.OnPropertyChanged("ConnectingStatus");
-			this.Listener = summary.Listener;
-			this.PageView = summary.PageView;
 			foreach (var message in messages) {
 				if (message.IsBan == false) {
 					this.MessageList.Insert(0, message);
@@ -347,7 +334,6 @@
 		private void ResetStatus() {
 			base.OnPropertyChanged("ConnectingStatus");
 			this.Listener = 0;
-			this.PageView = 0;
 			this.MessageList.Clear();
 		}
 
@@ -357,6 +343,8 @@
 		/// <param name="liveUrl"></param>
 		private void JoinRoom(String liveUrl) {
 			Mouse.OverrideCursor = Cursors.Wait;
+
+			this.LeaveRoom();
 
 			var roomId = this.ParseUrl(liveUrl);
 			if (String.IsNullOrEmpty(roomId)) {
@@ -398,30 +386,43 @@
 			this.PostMessage = String.Empty;
 		}
 
-		#region 棒読みちゃん
+		#region 読み上げソフト
 
 		/// <summary>
-		/// 棒読みちゃんに接続します。
+		/// 読み上げソフトに接続します。
 		/// </summary>
-		private void ConnectBouyomi() {
-			this.DisconnectBouyomi();
+		private void ConnectReadingApplication() {
+			this.DisconnectReadingApplication();
 
-			try {
-				this.bouyomiClient = new BouyomiChanClient();
-				var count = this.bouyomiClient.TalkTaskCount;
-				this.BouyomiStatus = true;
-			} catch (RemotingException) {
-				MessageBox.Show("棒読みちゃんに接続できませんでした。\n後から棒読みちゃんを起動する場合は、リボンの棒読みアイコンを押してください。");
+			switch ((ReadingApplicationEnum)Settings.Default.ReadingApplication) {
+				case ReadingApplicationEnum.Softalk:
+					try {
+						this.readingClient = new SofTalkClient(Settings.Default.SofTalkPath);
+						this.ReadingApplicationStatus = true;
+					} catch (FileNotFoundException) {
+						MessageBox.Show("SofTalkに接続できませんでした。\nオプションからSofTalkの正しいパスを指定してください。");
+						this.ReadingApplicationStatus = false;
+					}
+					break;
+				default:
+					this.readingClient = new BouyomiClientWrapper();
+					if (this.readingClient.IsConnect) {
+						this.ReadingApplicationStatus = true;
+					} else {
+						MessageBox.Show("棒読みちゃんに接続できませんでした。\n後から棒読みちゃんを起動する場合は、リボンの棒読みアイコンを押してください。");
+						this.ReadingApplicationStatus = false;
+					}
+					break;
 			}
 		}
 
 		/// <summary>
-		/// 棒読みちゃんから切断します。
+		/// 読み上げソフトから切断します。
 		/// </summary>
-		private void DisconnectBouyomi() {
-			if (this.bouyomiClient != null) {
-				this.bouyomiClient.Dispose();
-				this.BouyomiStatus = false;
+		private void DisconnectReadingApplication() {
+			if (this.readingClient != null) {
+				this.readingClient.Dispose();
+				this.ReadingApplicationStatus = false;
 			}
 		}
 
@@ -470,17 +471,51 @@
 
 		#endregion
 
+		#region バージョン情報
+
 		private void ShowVersion() {
 			new AboutBox().ShowDialog();
 		}
 
+		#endregion
+
+		#region オプション
+
+		private void ShowOption() {
+			var option = new OptionWindow();
+			var viewModel = new OptionWindowViewModel();
+			viewModel.OnClose += () => option.Close();
+			option.DataContext = viewModel;
+			option.ShowDialog();
+
+			this.ConnectReadingApplication();
+		}
+
+		#endregion
+
 		private String ParseUrl(String url) {
-			var pattern = @"(http://gae.cavelis.net/[a-z]+/)?([0-9A-Z]{32})";
+			var pattern = String.Format(@"({0}(?:\:\d{{1,5}})?/[a-z]+/)?([0-9A-Z]{{32}})", ConfigurationManager.AppSettings["web_server"]);
 			var match = Regex.Match(url, pattern);
 			if (match.Success) {
 				return match.Groups[2].Value;
 			} else {
 				return String.Empty;
+			}
+		}
+
+		/// <summary>
+		/// 電源状態の変更時にコメントサーバへの接続/切断を行います。
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void OnPowerModeChanged(Object sender, PowerModeChangedEventArgs e) {
+			switch (e.Mode) {
+				case PowerModes.Resume:
+					this.cavetubeClient.Connect();
+					break;
+				case PowerModes.Suspend:
+					this.cavetubeClient.Close();
+					break;
 			}
 		}
 	}
@@ -500,26 +535,5 @@
 				}
 			});
 		}
-	}
-
-	public sealed class ConnectingStatusConverter : IValueConverter {
-		#region IValueConverter メンバー
-
-		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
-			if (value is Boolean == false) {
-				return String.Empty;
-			}
-
-			var isConnect = (Boolean)value;
-			var text = isConnect ? "ON" : "OFF";
-
-			return text;
-		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
-			throw new NotImplementedException();
-		}
-
-		#endregion IValueConverter メンバー
 	}
 }

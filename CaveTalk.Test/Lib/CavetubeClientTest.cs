@@ -10,12 +10,12 @@
 
 	[TestClass()]
 	public class CavetubeClientTest {
-		private CavetubeClient_Accessor target = new CavetubeClient_Accessor();
+		private CavetubeClient_Accessor target = new CavetubeClient_Accessor(new Uri("http://ws.cavelis.net:3000/socket.io/1/"), new Uri("http://localhost:8888"));
 
 		[TestInitialize()]
 		public void MyTestInitialize() {
 			var socketIOClient = new MoqSocketIO();
-			this.target = new CavetubeClient_Accessor(socketIOClient);
+			this.target = new CavetubeClient_Accessor(socketIOClient, new Uri("http://localhost:8888"));
 		}
 
 		[TestMethod]

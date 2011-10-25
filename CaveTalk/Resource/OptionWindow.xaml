@@ -1,0 +1,14 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vm="clr-namespace:CaveTube.CaveTalk.ViewModel"
+                    xmlns:vw="clr-namespace:CaveTube.CaveTalk.View"
+                    >
+
+    <DataTemplate DataType="{x:Type vm:CommentOptionViewModel}">
+        <vw:CommentOptionControl />
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:NotifyOptionViewModel}">
+        <vw:NotifyOptoinControl />
+    </DataTemplate>
+</ResourceDictionary>

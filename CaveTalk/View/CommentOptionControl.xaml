@@ -1,0 +1,110 @@
+﻿<UserControl x:Class="CaveTube.CaveTalk.View.CommentOptionControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:extToolkit="http://schemas.microsoft.com/winfx/2006/xaml/presentation/toolkit/extended"
+             xmlns:cv="clr-namespace:CaveTube.CaveTalk.Converter" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="400" Padding="5">
+    <UserControl.Resources>
+        <cv:EnumBooleanConverter x:Key="enumBooleanConverter" />
+    </UserControl.Resources>
+    <StackPanel>
+        <GroupBox Header="読み上げソフト">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,3">
+                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=ReadingApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Bouyomi}">棒読みちゃん</RadioButton>
+                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=ReadingApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Softalk}">SofTalk</RadioButton>
+                </StackPanel>
+                <Grid>
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <Style.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Grid.Column" Value="0" />
+                                    <Setter Property="VerticalAlignment" Value="Center" />
+                                </Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Grid.Column" Value="1" />
+                                    <Setter Property="Orientation" Value="Horizontal" />
+                                    <Setter Property="Margin" Value="3" />
+                                    <Style.Resources>
+                                        <Style TargetType="RadioButton">
+                                            <Setter Property="Margin" Value="0, 0, 5, 0" />
+                                        </Style>
+                                    </Style.Resources>
+                                </Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Margin" Value="3" />
+                                </Style>
+                            </Style.Resources>
+                        </Style>
+                    </Grid.Style>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0">SofTalkの実行ファイル</TextBlock>
+                    <Grid Grid.Row="0" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="20" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Path=SoftalkFilePath}" />
+                        <Button Grid.Column="1" Content="..." Command="{Binding Path=FindSoftalkExeCommand}" />
+                    </Grid>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+        <GroupBox Header="ポップアップ">
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Style.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Grid.Column" Value="0" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Grid.Column" Value="1" />
+                                <Setter Property="Orientation" Value="Horizontal" />
+                                <Setter Property="Margin" Value="3" />
+                                <Style.Resources>
+                                    <Style TargetType="RadioButton">
+                                        <Setter Property="Margin" Value="0, 0, 5, 0" />
+                                    </Style>
+                                </Style.Resources>
+                            </Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Margin" Value="3" />
+                            </Style>
+                        </Style.Resources>
+                    </Style>
+                </Grid.Style>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0">ポップアップの表示</TextBlock>
+                <StackPanel Grid.Row="0">
+                    <RadioButton IsChecked="{Binding Path=PopupState, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Enable}">有効</RadioButton>
+                    <RadioButton IsChecked="{Binding Path=PopupState, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Minimum}">最小化時</RadioButton>
+                    <RadioButton IsChecked="{Binding Path=PopupState, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Disable}">無効</RadioButton>
+                </StackPanel>
+                <TextBlock Grid.Row="1" Text="表示時間" />
+                <StackPanel Grid.Row="1">
+                    <extToolkit:IntegerUpDown Width="70" Value="{Binding Path=PopupTime}" Maximum="60" Minimum="1" />
+                    <TextBlock Margin="5,0,0,0">秒</TextBlock>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+    </StackPanel>
+</UserControl>

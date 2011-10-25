@@ -12,9 +12,6 @@
 	using Microsoft.CSharp.RuntimeBinder;
 	using NLog;
 	using SocketIO;
-	using System.Threading.Tasks;
-	using System.Threading;
-	using System.Windows;
 
 	public sealed class CavetubeClient : IDisposable {
 		private Logger logger = LogManager.GetCurrentClassLogger();
@@ -33,16 +30,15 @@
 		public String JoinedRoomId { get; private set; }
 
 		private ISocketIOClient client;
+		private Uri webUri;
 
-		public CavetubeClient()
-			: this(new Uri("http://ws.cavelis.net:3000/socket.io/1/")) {
+		public CavetubeClient(Uri commentUri, Uri webUri)
+			: this(new SocketIOClient(commentUri), webUri) {
 		}
 
-		public CavetubeClient(Uri uri)
-			: this(new SocketIOClient(uri)) {
-		}
+		public CavetubeClient(ISocketIOClient client, Uri webUri) {
+			this.webUri = webUri;
 
-		public CavetubeClient(ISocketIOClient client) {
 			// 配信情報関係
 			client.OnMessage += (sender, message) => {
 				logger.Debug(message);
@@ -129,7 +125,7 @@
 						{"user", userId},
 						{"pass", password},
 					};
-					var response = client.UploadValues("http://gae.cavelis.net/api/auth", "POST", data);
+					var response = client.UploadValues(String.Format("{0}api/auth", this.webUri.AbsoluteUri), "POST", data);
 					var jsonString = Encoding.UTF8.GetString(response);
 
 					var json = DynamicJson.Parse(jsonString);
@@ -178,7 +174,7 @@
 						{"user", userId},
 						{"pass", password},
 					};
-					var response = client.UploadValues("http://gae.cavelis.net/api/auth", "POST", data);
+					var response = client.UploadValues(String.Format("{0}api/auth", this.webUri.AbsoluteUri), "POST", data);
 					var jsonString = Encoding.UTF8.GetString(response);
 					var json = DynamicJson.Parse(jsonString);
 					if (json.IsDefined("ret") && json.ret == false) {
@@ -192,11 +188,7 @@
 			}
 		}
 
-		public void PostComment(String name, String message) {
-			this.PostComment(name, message, String.Empty);
-		}
-
-		public void PostComment(String name, String message, String apiKey) {
+		public void PostComment(String name, String message, String apiKey = "") {
 			if (String.IsNullOrWhiteSpace(message)) {
 				return;
 			}
@@ -210,7 +202,7 @@
 						{"apikey", apiKey},
 					};
 
-					var uri = new Uri("http://gae.cavelis.net/viewedit/postcomment");
+					var uri = new Uri(String.Format("{0}viewedit/postcomment", this.webUri.AbsoluteUri));
 					client.UploadValuesAsync(uri, data);
 				}
 			} catch (WebException e) {
@@ -333,7 +325,7 @@
 			try {
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
-					var url = String.Format("http://gae.cavelis.net/viewedit/getcomment2?stream_name={0}&comment_num=1", roomId);
+					var url = String.Format("{0}viewedit/getcomment2?stream_name={1}&comment_num=1", this.webUri.AbsoluteUri, roomId);
 
 					// WebClientでTaskを利用すると正常な順番で結果を受け取れないので、
 					// WebRequestを利用する予定ですが、
@@ -489,7 +481,8 @@
 	}
 
 	public class Reason : SocketIO.Reason {
-		public Reason(SocketIO.Reason parent) : base(parent.IsTimeout) {
+		public Reason(SocketIO.Reason parent)
+			: base(parent.IsTimeout) {
 		}
 	}
 }
