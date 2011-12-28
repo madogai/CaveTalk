@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SocketIO {
+namespace Drumcan.SocketIO {
 	public interface ITransport : IDisposable {
 		event Action<Object, EventArgs> OnOpen;
 		event Action<Object, String> OnMessage;

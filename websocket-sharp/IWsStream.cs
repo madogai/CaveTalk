@@ -26,16 +26,14 @@
  */
 #endregion
 
-using System;
+namespace WebSocketSharp {
+	using System;
 
-namespace WebSocketSharp
-{
-  public interface IWsStream : IDisposable
-  {
-    void Close();
-    int Read(byte[] buffer, int offset, int size);
-    int ReadByte();
-    void Write(byte[] buffer, int offset, int count);
-    void WriteByte(byte value);
-  }
+	public interface IWsStream : IDisposable {
+		void Close();
+		Int32 Read(Byte[] buffer, Int32 offset, Int32 size);
+		Int32 ReadByte();
+		void Write(Byte[] buffer, Int32 offset, Int32 count);
+		void WriteByte(Byte value);
+	}
 }

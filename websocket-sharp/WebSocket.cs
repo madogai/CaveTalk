@@ -422,7 +422,7 @@ namespace WebSocketSharp {
 					if (OnError != null) {
 						OnError(this, e.Message);
 					}
-					
+
 					ReadyState = WsState.CLOSED;
 #if DEBUG
 					Console.WriteLine("WS: Error @receive: {0}", (Object)e.Message);

@@ -12,7 +12,7 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="NotifyState" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
+      <Value Profile="(Default)">1</Value>
     </Setting>
     <Setting Name="ReadingApplication" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
@@ -21,16 +21,22 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="CommentPopup" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
+      <Value Profile="(Default)">1</Value>
     </Setting>
     <Setting Name="CommentPopupTime" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">10</Value>
+      <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="NotifyPopupTime" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">10</Value>
+      <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="NotifySoundFilePath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ReadNum" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ReadName" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>

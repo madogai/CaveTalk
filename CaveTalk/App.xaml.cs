@@ -16,8 +16,14 @@
 			try {
 				base.OnStartup(e);
 
+				var model = new MainWindowViewModel();
+
 				var window = new MainWindow {
-					DataContext = new MainWindowViewModel(),
+					DataContext = model,
+				};
+
+				window.Loaded += (e2, args) => {
+					model.Initialize();
 				};
 
 				window.Show();

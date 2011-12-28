@@ -9,5 +9,6 @@
     <ErrorReportUrlHistory />
     <FallbackCulture>ja-JP</FallbackCulture>
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
+    <ProjectView>ProjectFiles</ProjectView>
   </PropertyGroup>
 </Project>

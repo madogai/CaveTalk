@@ -1,7 +1,7 @@
-﻿using System;
-using System.Windows.Data;
+﻿namespace CaveTube.CaveTalk.Converter {
+	using System;
+	using System.Windows.Data;
 
-namespace CaveTube.CaveTalk.Converter {
 	public sealed class ConnectingStatusConverter : IValueConverter {
 		#region IValueConverter メンバー
 

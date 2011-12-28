@@ -10,6 +10,9 @@
 	using System.IO;
 	using System.Windows.Media;
 	using System;
+	using System.Net;
+	using System.Configuration;
+	using System.Diagnostics;
 
 	/// <summary>
 	/// MainWindow.xaml の相互作用ロジック

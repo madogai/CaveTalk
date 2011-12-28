@@ -1,8 +1,8 @@
-﻿using System;
-using System.Runtime.Remoting;
-using FNF.Utility;
+﻿namespace CaveTube.CaveTalk.Lib {
+	using System;
+	using System.Runtime.Remoting;
+	using FNF.Utility;
 
-namespace CaveTube.CaveTalk.Lib {
 	public sealed class BouyomiClientWrapper : IReadingApplicationClient {
 		#region IReadingApplicationClient メンバー
 

@@ -2,9 +2,17 @@
 /CaveTalk/obj
 /CaveTalk.Test/bin
 /CaveTalk.Test/obj
+/CaveTubeClient/bin
+/CaveTubeClient/obj
+/CaveTubeClient.Test/bin
+/CaveTubeClient.Test/obj
 /SocketIOClient/bin
 /SocketIOClient/obj
 /SocketIOClient.Test/bin
 /SocketIOClient.Test/obj
+/WebSocketClientTest/bin
+/WebSocketClientTest/obj
+/websocket-sharp/bin
+/websocket-sharp/obj
 /TestResults
 

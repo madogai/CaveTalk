@@ -26,9 +26,9 @@
 		private void DoAdd(T item) {
 			sync.AcquireWriterLock(Timeout.Infinite);
 			collection.Add(item);
-			if (CollectionChanged != null)
-				CollectionChanged(this,
-					new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+			if (CollectionChanged != null) {
+				CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+			}
 			sync.ReleaseWriterLock();
 		}
 
@@ -42,9 +42,9 @@
 		private void DoClear() {
 			sync.AcquireWriterLock(Timeout.Infinite);
 			collection.Clear();
-			if (CollectionChanged != null)
-				CollectionChanged(this,
-					new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			if (CollectionChanged != null) {
+				CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			}
 			sync.ReleaseWriterLock();
 		}
 
@@ -75,9 +75,9 @@
 		}
 
 		public bool Remove(T item) {
-			if (Thread.CurrentThread == dispatcher.Thread)
+			if (Thread.CurrentThread == dispatcher.Thread) {
 				return DoRemove(item);
-			else {
+			} else {
 				var op = dispatcher.BeginInvoke(new Func<T, bool>(DoRemove), item);
 				if (op == null || op.Result == null)
 					return false;
@@ -93,9 +93,9 @@
 				return false;
 			}
 			var result = collection.Remove(item);
-			if (result && CollectionChanged != null)
-				CollectionChanged(this, new
-					NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			if (result && CollectionChanged != null) {
+				CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			}
 			sync.ReleaseWriterLock();
 			return result;
 		}
@@ -116,26 +116,28 @@
 		}
 
 		public void Insert(int index, T item) {
-			if (Thread.CurrentThread == dispatcher.Thread)
+			if (Thread.CurrentThread == dispatcher.Thread) {
 				DoInsert(index, item);
-			else
+			} else {
 				dispatcher.BeginInvoke((Action)(() => { DoInsert(index, item); }));
+			}
 		}
 
 		private void DoInsert(int index, T item) {
 			sync.AcquireWriterLock(Timeout.Infinite);
 			collection.Insert(index, item);
-			if (CollectionChanged != null)
-				CollectionChanged(this,
-					new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+			if (CollectionChanged != null) {
+				CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+			}
 			sync.ReleaseWriterLock();
 		}
 
 		public void RemoveAt(int index) {
-			if (Thread.CurrentThread == dispatcher.Thread)
+			if (Thread.CurrentThread == dispatcher.Thread) {
 				DoRemoveAt(index);
-			else
+			} else {
 				dispatcher.BeginInvoke((Action)(() => { DoRemoveAt(index); }));
+			}
 		}
 
 		private void DoRemoveAt(int index) {
@@ -145,9 +147,25 @@
 				return;
 			}
 			collection.RemoveAt(index);
-			if (CollectionChanged != null)
-				CollectionChanged(this,
-					new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			if (CollectionChanged != null) {
+				CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			}
+			sync.ReleaseWriterLock();
+		}
+
+		public void Refresh() {
+			if (Thread.CurrentThread == dispatcher.Thread) {
+				DoRefresh();
+			} else {
+				dispatcher.BeginInvoke((Action)(() => { DoRefresh(); }));
+			}
+		}
+
+		private void DoRefresh() {
+			sync.AcquireWriterLock(Timeout.Infinite);
+			if (CollectionChanged != null) {
+				CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			}
 			sync.ReleaseWriterLock();
 		}
 

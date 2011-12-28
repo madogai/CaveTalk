@@ -1,8 +1,8 @@
-﻿using System;
-using System.Windows.Input;
-using CaveTube.CaveTalk.Utils;
+﻿namespace CaveTube.CaveTalk.ViewModel {
+	using System;
+	using System.Windows.Input;
+	using CaveTube.CaveTalk.Utils;
 
-namespace CaveTube.CaveTalk.ViewModel {
 	public sealed class OptionWindowViewModel : ViewModelBase {
 		public event Action OnClose;
 

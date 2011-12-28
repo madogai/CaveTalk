@@ -48,7 +48,6 @@ namespace FNF.Utility {
 		/// </summary>
 		/// <param name="sTalkText">喋らせたい文章</param>
 		public void AddTalkTask(string sTalkText) {
-			sTalkText = sTalkText.Replace("\n", "");
 			RemotingObject.AddTalkTask(sTalkText);
 		}
 

@@ -61,7 +61,7 @@ namespace CaveTube.CaveTalk.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
         public int NotifyState {
             get {
                 return ((int)(this["NotifyState"]));
@@ -97,7 +97,7 @@ namespace CaveTube.CaveTalk.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
         public int CommentPopup {
             get {
                 return ((int)(this["CommentPopup"]));
@@ -109,7 +109,7 @@ namespace CaveTube.CaveTalk.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
         public int CommentPopupTime {
             get {
                 return ((int)(this["CommentPopupTime"]));
@@ -121,7 +121,7 @@ namespace CaveTube.CaveTalk.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
         public int NotifyPopupTime {
             get {
                 return ((int)(this["NotifyPopupTime"]));
@@ -140,6 +140,30 @@ namespace CaveTube.CaveTalk.Properties {
             }
             set {
                 this["NotifySoundFilePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ReadNum {
+            get {
+                return ((bool)(this["ReadNum"]));
+            }
+            set {
+                this["ReadNum"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ReadName {
+            get {
+                return ((bool)(this["ReadName"]));
+            }
+            set {
+                this["ReadName"] = value;
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace CaveTube.CaveTalk.Utils {
+﻿namespace CaveTube.CaveTubeClient {
 
 	using System;
 	using System.Collections.Generic;

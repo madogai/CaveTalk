@@ -1,12 +1,10 @@
-﻿namespace CaveTube.CaveTalk.Lib.Test {
-
+﻿namespace CaveTubeClient.Test {
 	using System;
 	using System.Linq;
-	using CaveTube.CaveTalk.CaveTubeClient;
-	using CaveTube.CaveTalk.Utils;
+	using CaveTube.CaveTubeClient;
 	using Codeplex.Data;
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
-	using SocketIO;
+	using Drumcan.SocketIO;
 
 	[TestClass()]
 	public class CavetubeClientTest {
@@ -21,11 +19,9 @@
 		[TestMethod]
 		public void OnMessage_モードがpost() {
 			// arrange
-			Summary actSummary = null;
 			Message actMessage = null;
 
-			target.add_OnMessage((summary, message) => {
-				actSummary = summary;
+			target.add_OnMessage((message) => {
 				actMessage = message;
 			});
 
@@ -34,7 +30,7 @@
 				listener = 1,
 				viewer = 1
 			}));
-			var expMessage = new Message(1, "hoge", "comment", new DateTime(2000, 1, 1), false, false);
+			var expMessage = this.CreateMessage(1, "", "hoge", "comment", new DateTime(2000, 1, 1), false, false);
 
 			// act
 			var client = (MoqSocketIO)this.target.client;
@@ -52,7 +48,6 @@
 			});
 
 			// assert
-			Assert.AreEqual(expSummary, actSummary);
 			Assert.AreEqual(expMessage, actMessage);
 		}
 
@@ -223,9 +218,9 @@
 		public void ParseMessage_正常() {
 			// arrange
 			var time = new DateTime(2000, 1, 1);
-			var message1 = new Message(1, "hoge", "comment", time, true, false);
-			var message2 = new Message(1, "fuga", "comment", time, true, false);
-			var message3 = new Message(1, "piyo", "comment", time, true, false);
+			var message1 = this.CreateMessage(1, "", "hoge", "comment", time, true, false);
+			var message2 = this.CreateMessage(1, "", "fuga", "comment", time, true, false);
+			var message3 = this.CreateMessage(1, "", "piyo", "comment", time, true, false);
 			var list = new Message[] { message1, message2, message3 };
 			var jsonString = DynamicJson.Serialize(new {
 				comments = list.Select(item => new {
@@ -233,7 +228,7 @@
 					message = item.Comment,
 					html = "",
 					name = item.Name,
-					time = JavaScriptTime_Accessor.ToDouble(item.Time, TimeZoneKind.Japan),
+					time = JavaScriptTime.ToDouble(item.Time, TimeZoneKind.Japan),
 					is_ban = item.IsBan,
 					auth = item.Auth,
 				}),
@@ -248,18 +243,33 @@
 			Assert.AreEqual(message3, actual.ElementAt(2));
 		}
 
+		private Message CreateMessage(Int32 number, String id, String name, String comment, DateTime time, Boolean auth, Boolean isBan) {
+			var json = DynamicJson.Serialize(new {
+				comment_num = number,
+				user_id = id,
+				name = name,
+				message = comment,
+				auth = auth,
+				is_ban = isBan,
+				time = JavaScriptTime.ToDouble(time),
+			});
+			return new Message(json);
+		}
+
 		private sealed class MoqSocketIO : ISocketIOClient {
 			private Boolean isConnect;
 
 			#region ISocketIOClient メンバー
 
+#pragma warning disable 0067
 			public event Action<object, EventArgs> OnOpen;
 			public event Action<object, string> OnMessage;
 			public event Action<object, string> OnError;
-			public event Action<object, SocketIO.Reason> OnClose;
+			public event Action<object, Drumcan.SocketIO.Reason> OnClose;
+#pragma warning restore 0067
 
 			public string SessionId {
-				get { return "1234567890";  }
+				get { return "1234567890"; }
 			}
 
 			public bool IsConnect {
@@ -292,5 +302,6 @@
 				this.OnMessage(null, message);
 			}
 		}
+	
 	}
 }

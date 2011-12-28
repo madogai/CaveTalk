@@ -25,7 +25,7 @@
         <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2" Text="{Binding Path=Password}">
             <i:Interaction.Behaviors>
                 <b:TextBoxPlaceholderBehavior Placeholder="パスワード" />
-                <b:ExecCommandOnCtrlAndEnterKeyDownBehavior Command="LoginCommand" />
+                <b:ExecCommandOnCtrlOrShiftAndEnterKeyDownBehavior Command="LoginCommand" />
             </i:Interaction.Behaviors>
         </TextBox>
         <DockPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">

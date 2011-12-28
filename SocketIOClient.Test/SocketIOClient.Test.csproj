@@ -25,12 +25,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -54,13 +55,13 @@
       <Project>{7B0F21B8-9C1C-4FA1-9ACC-359FEFB20A25}</Project>
       <Name>SocketIOClient</Name>
     </ProjectReference>
-    <ProjectReference Include="..\websocket-sharp\websocket-sharp.csproj">
+    <ProjectReference Include="..\websocket-sharp\WebSocketClient.csproj">
       <Project>{B357BAC7-529E-4D81-A0D2-71041B19C8DE}</Project>
-      <Name>websocket-sharp</Name>
+      <Name>WebSocketClient</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Shadow Include="テストの参照\SocketIO.accessor" />
+    <Shadow Include="テストの参照\Drumcan.SocketIO.accessor" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

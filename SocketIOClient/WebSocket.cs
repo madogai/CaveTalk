@@ -1,4 +1,4 @@
-﻿namespace SocketIO {
+﻿namespace Drumcan.SocketIO {
 	using System;
 	using WebSocketSharp;
 

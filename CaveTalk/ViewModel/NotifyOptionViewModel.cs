@@ -1,10 +1,10 @@
-﻿using System;
-using System.Windows.Input;
-using CaveTube.CaveTalk.Properties;
-using CaveTube.CaveTalk.Utils;
-using Microsoft.Win32;
+﻿namespace CaveTube.CaveTalk.ViewModel {
+	using System;
+	using System.Windows.Input;
+	using CaveTube.CaveTalk.Properties;
+	using CaveTube.CaveTalk.Utils;
+	using Microsoft.Win32;
 
-namespace CaveTube.CaveTalk.ViewModel {
 	public sealed class NotifyOptionViewModel : OptionBaseViewModel {
 		private NotifyPopupStateEnum notifyState;
 

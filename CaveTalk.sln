@@ -6,12 +6,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder", "SolutionFolder", "{E46822AE-C279-4439-AB62-1FFF1B915508}"
 	ProjectSection(SolutionItems) = preProject
 		CommentSpecification.md = CommentSpecification.md
-		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketIOClient", "SocketIOClient\SocketIOClient.csproj", "{7B0F21B8-9C1C-4FA1-9ACC-359FEFB20A25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "websocket-sharp", "websocket-sharp\websocket-sharp.csproj", "{B357BAC7-529E-4D81-A0D2-71041B19C8DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSocketClient", "websocket-sharp\WebSocketClient.csproj", "{B357BAC7-529E-4D81-A0D2-71041B19C8DE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTalk.Test", "CaveTalk.Test\CaveTalk.Test.csproj", "{BA91B1BA-AAEC-4D7F-9876-3EC6A0DAA6D0}"
 EndProject
@@ -23,6 +22,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketIOClient.Test", "SocketIOClient.Test\SocketIOClient.Test.csproj", "{DAEE30EC-A0A9-4DA0-A352-4932B825841D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSocketClientTest", "WebSocketClientTest\WebSocketClientTest.csproj", "{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTubeClient", "CaveTubeClient\CaveTubeClient.csproj", "{9E3E1E57-073E-4181-BB36-3536E195577E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTubeClient.Test", "CaveTubeClient.Test\CaveTubeClient.Test.csproj", "{0DA20096-E106-4EC7-8471-5196CC1A52FD}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
@@ -121,7 +126,6 @@ Global
 		{BA91B1BA-AAEC-4D7F-9876-3EC6A0DAA6D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA91B1BA-AAEC-4D7F-9876-3EC6A0DAA6D0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BA91B1BA-AAEC-4D7F-9876-3EC6A0DAA6D0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{BA91B1BA-AAEC-4D7F-9876-3EC6A0DAA6D0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BA91B1BA-AAEC-4D7F-9876-3EC6A0DAA6D0}.Release|x86.ActiveCfg = Release|Any CPU
 		{DAEE30EC-A0A9-4DA0-A352-4932B825841D}.Debug_Ubuntu|Any CPU.ActiveCfg = Debug|Any CPU
 		{DAEE30EC-A0A9-4DA0-A352-4932B825841D}.Debug_Ubuntu|Any CPU.Build.0 = Debug|Any CPU
@@ -141,8 +145,65 @@ Global
 		{DAEE30EC-A0A9-4DA0-A352-4932B825841D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAEE30EC-A0A9-4DA0-A352-4932B825841D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DAEE30EC-A0A9-4DA0-A352-4932B825841D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{DAEE30EC-A0A9-4DA0-A352-4932B825841D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{DAEE30EC-A0A9-4DA0-A352-4932B825841D}.Release|x86.ActiveCfg = Release|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug_Ubuntu|Any CPU.ActiveCfg = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug_Ubuntu|Any CPU.Build.0 = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug_Ubuntu|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug_Ubuntu|Mixed Platforms.Build.0 = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug_Ubuntu|x86.ActiveCfg = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Release_Ubuntu|Any CPU.ActiveCfg = Release|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Release_Ubuntu|Any CPU.Build.0 = Release|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Release_Ubuntu|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Release_Ubuntu|Mixed Platforms.Build.0 = Release|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Release_Ubuntu|x86.ActiveCfg = Release|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{67A7CA59-80D9-422F-8AA8-2A0074EFBEAB}.Release|x86.ActiveCfg = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug_Ubuntu|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug_Ubuntu|Any CPU.Build.0 = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug_Ubuntu|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug_Ubuntu|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug_Ubuntu|x86.ActiveCfg = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release_Ubuntu|Any CPU.ActiveCfg = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release_Ubuntu|Any CPU.Build.0 = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release_Ubuntu|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release_Ubuntu|Mixed Platforms.Build.0 = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release_Ubuntu|x86.ActiveCfg = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9E3E1E57-073E-4181-BB36-3536E195577E}.Release|x86.ActiveCfg = Release|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug_Ubuntu|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug_Ubuntu|Any CPU.Build.0 = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug_Ubuntu|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug_Ubuntu|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug_Ubuntu|x86.ActiveCfg = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Release_Ubuntu|Any CPU.ActiveCfg = Release|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Release_Ubuntu|Any CPU.Build.0 = Release|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Release_Ubuntu|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Release_Ubuntu|Mixed Platforms.Build.0 = Release|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Release_Ubuntu|x86.ActiveCfg = Release|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

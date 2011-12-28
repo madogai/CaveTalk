@@ -26,17 +26,13 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace WebSocketSharp {
+	using System;
+	using System.Collections.Generic;
+	using System.Linq;
+
 	public static class Ext {
-		public static bool AreNotEqualDo(
-		  this string expected,
-		  string actual,
-		  Func<string, string, string> func,
-		  out string ret) {
+		public static Boolean AreNotEqualDo(this String expected, String actual, Func<String, String, String> func, out String ret) {
 			if (expected != actual) {
 				ret = func(expected, actual);
 				return true;
@@ -46,76 +42,67 @@ namespace WebSocketSharp {
 			return false;
 		}
 
-		public static bool EqualsWithSaveTo(this int asByte, char c, List<byte> dist) {
-			byte b = (byte)asByte;
+		public static Boolean EqualsWithSaveTo(this Int32 asByte, Char c, IList<Byte> dist) {
+			Byte b = (Byte)asByte;
 			dist.Add(b);
 			return b == Convert.ToByte(c);
 		}
 
-		public static uint GenerateKey(this Random rand, int space) {
-			uint max = (uint)(0xffffffff / space);
+		public static UInt32 GenerateKey(this Random rand, Int32 space) {
+			UInt32 max = (UInt32)(0xffffffff / space);
 
-			int upper16 = (int)((max & 0xffff0000) >> 16);
-			int lower16 = (int)(max & 0x0000ffff);
+			Int32 upper16 = (Int32)((max & 0xffff0000) >> 16);
+			Int32 lower16 = (Int32)(max & 0x0000ffff);
 
-			return ((uint)rand.Next(upper16 + 1) << 16) + (uint)rand.Next(lower16 + 1);
+			return ((UInt32)rand.Next(upper16 + 1) << 16) + (UInt32)rand.Next(lower16 + 1);
 		}
 
-		public static char GeneratePrintableASCIIwithoutSPandNum(this Random rand) {
-			int ascii = rand.Next(2) == 0 ? rand.Next(33, 48) : rand.Next(58, 127);
+		public static Char GeneratePrintableASCIIwithoutSPandNum(this Random rand) {
+			Int32 ascii = rand.Next(2) == 0 ? rand.Next(33, 48) : rand.Next(58, 127);
 			return Convert.ToChar(ascii);
 		}
 
-		public static string GenerateSecKey(this Random rand, out uint key) {
-			int space = rand.Next(1, 13);
-			int ascii = rand.Next(1, 13);
+		public static String GenerateSecKey(this Random rand, out UInt32 key) {
+			Int32 space = rand.Next(1, 13);
+			Int32 ascii = rand.Next(1, 13);
 
 			key = rand.GenerateKey(space);
 
-			long mKey = key * space;
-			List<char> secKey = new List<char>(mKey.ToString().ToCharArray());
+			Int64 mKey = key * space;
+			List<Char> secKey = new List<Char>(mKey.ToString().ToCharArray());
 
-			int i;
-			ascii.Times(() => {
-				i = rand.Next(secKey.Count + 1);
+			Int32 buf = 0;
+			for (var i = 0; i < ascii; i++) {
+				buf = rand.Next(secKey.Count + 1);
 				secKey.Insert(i, rand.GeneratePrintableASCIIwithoutSPandNum());
-			});
+			}
 
-			space.Times(() => {
-				i = rand.Next(1, secKey.Count);
-				secKey.Insert(i, ' ');
-			});
+			for (var i = 0; i < space; i++) {
+				buf = rand.Next(1, secKey.Count);
+				secKey.Insert(buf, ' ');
+			}
 
 			return new String(secKey.ToArray());
 		}
 
-		public static byte[] InitializeWithPrintableASCII(this byte[] bytes, Random rand) {
-			for (int i = 0; i < bytes.Length; i++) {
-				bytes[i] = (byte)rand.Next(32, 127);
+		public static Byte[] InitializeWithPrintableASCII(this Byte[] bytes, Random rand) {
+			for (var i = 0; i < bytes.Length; i++) {
+				bytes[i] = (Byte)rand.Next(32, 127);
 			}
 
 			return bytes;
 		}
 
-		public static bool IsValid(this string[] response, byte[] expectedCR, byte[] actualCR, out string message) {
-			string expectedCRtoHexStr = BitConverter.ToString(expectedCR);
-			string actualCRtoHexStr = BitConverter.ToString(actualCR);
+		public static Boolean IsValid(this String[] response, Byte[] expectedCR, Byte[] actualCR, out String message) {
+			String expectedCRtoHexStr = BitConverter.ToString(expectedCR);
+			String actualCRtoHexStr = BitConverter.ToString(actualCR);
 
-			Func<string, Func<string, string, string>> func = s => {
-				return (e, a) => {
-#if DEBUG
-					Console.WriteLine("WS: Error @IsValid: Invalid {0} response.", s);
-					Console.WriteLine("  expected: {0}", e);
-					Console.WriteLine("  actual  : {0}", a);
-#endif
-					return String.Format("Invalid {0} response: {1}", s, a);
-				};
-			};
+			Func<String, Func<String, String, String>> func = s => (e, a) => String.Format("Invalid {0} response: {1}", s, a);
 
-			Func<string, string, string> func1 = func("handshake");
-			Func<string, string, string> func2 = func("challenge");
+			Func<String, String, String> func1 = func("handshake");
+			Func<String, String, String> func2 = func("challenge");
 
-			string msg;
+			String msg;
 			if ("HTTP/1.1 101 WebSocket Protocol Handshake".AreNotEqualDo(response[0], func1, out msg) ||
 				"Upgrade: WebSocket".AreNotEqualDo(response[1], func1, out msg) ||
 				"Connection: Upgrade".AreNotEqualDo(response[2], func1, out msg) ||
@@ -128,8 +115,8 @@ namespace WebSocketSharp {
 			return true;
 		}
 
-		public static void Times(this int n, Action act) {
-			for (int i = 0; i < n; i++) {
+		public static void Times(this Int32 n, Action act) {
+			for (var i = 0; i < n; i++) {
 				act();
 			}
 		}

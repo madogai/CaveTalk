@@ -8,8 +8,8 @@
     <ProjectGuid>{7B0F21B8-9C1C-4FA1-9ACC-359FEFB20A25}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SocketIO</RootNamespace>
-    <AssemblyName>SocketIO</AssemblyName>
+    <RootNamespace>Drumcan.SocketIO</RootNamespace>
+    <AssemblyName>Drumcan.SocketIO</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -23,12 +23,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -43,9 +44,9 @@
     <Compile Include="SocketIOClient.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\websocket-sharp\websocket-sharp.csproj">
+    <ProjectReference Include="..\websocket-sharp\WebSocketClient.csproj">
       <Project>{B357BAC7-529E-4D81-A0D2-71041B19C8DE}</Project>
-      <Name>websocket-sharp</Name>
+      <Name>WebSocketClient</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,10 +1,10 @@
-﻿using System;
-using System.Windows.Input;
-using CaveTube.CaveTalk.Properties;
-using CaveTube.CaveTalk.Utils;
-using Microsoft.Win32;
+﻿namespace CaveTube.CaveTalk.ViewModel {
+	using System;
+	using System.Windows.Input;
+	using CaveTube.CaveTalk.Properties;
+	using CaveTube.CaveTalk.Utils;
+	using Microsoft.Win32;
 
-namespace CaveTube.CaveTalk.ViewModel {
 	public sealed class CommentOptionViewModel : OptionBaseViewModel {
 
 		private ReadingApplicationEnum readingApplication;
@@ -37,13 +37,33 @@ namespace CaveTube.CaveTalk.ViewModel {
 			}
 		}
 
-		private int popupTime;
+		private Int32 popupTime;
 
-		public int PopupTime {
+		public Int32 PopupTime {
 			get { return this.popupTime; }
 			set {
 				this.popupTime = value;
 				base.OnPropertyChanged("PopupTime");
+			}
+		}
+
+		private Boolean readNum;
+
+		public Boolean ReadNum {
+			get { return this.readNum; }
+			set {
+				this.readNum = value;
+				base.OnPropertyChanged("ReadNum");
+			}
+		}
+
+		public Boolean readName;
+
+		public Boolean ReadName {
+			get { return this.readName; }
+			set {
+				this.readName = value;
+				base.OnPropertyChanged("ReadName");
 			}
 		}
 
@@ -54,6 +74,8 @@ namespace CaveTube.CaveTalk.ViewModel {
 			this.PopupTime = Settings.Default.CommentPopupTime;
 			this.PopupState = (CommentPopupStateEnum)Settings.Default.CommentPopup;
 			this.SoftalkFilePath = Settings.Default.SofTalkPath;
+			this.ReadNum = Settings.Default.ReadNum;
+			this.ReadName = Settings.Default.ReadName;
 
 			this.FindSoftalkExeCommand = new RelayCommand(p => {
 				var dialog = new OpenFileDialog {
@@ -72,10 +94,12 @@ namespace CaveTube.CaveTalk.ViewModel {
 		}
 
 		internal override void Save() {
-			Settings.Default.ReadingApplication = (int)this.ReadingApplication;
+			Settings.Default.ReadingApplication = (Int32)this.ReadingApplication;
 			Settings.Default.SofTalkPath = this.SoftalkFilePath;
-			Settings.Default.CommentPopup = (int)this.PopupState;
+			Settings.Default.CommentPopup = (Int32)this.PopupState;
 			Settings.Default.CommentPopupTime = this.PopupTime;
+			Settings.Default.ReadNum = this.ReadNum;
+			Settings.Default.ReadName = this.ReadName;
 			Settings.Default.Save();
 		}
 	}

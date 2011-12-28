@@ -1,4 +1,4 @@
-﻿namespace SocketIO {
+﻿namespace Drumcan.SocketIO {
 	using System;
 
 	public interface ISocketIOClient : IDisposable {
@@ -17,12 +17,7 @@
 		void Send(String message);
 	}
 
-	[Serializable]
-	public class Reason {
-		public Boolean IsTimeout { get; private set; }
-
-		public Reason(Boolean isTimeout) {
-			this.IsTimeout = IsTimeout;
-		}
+	public enum Reason {
+		Timeout, Unknown,
 	}
 }

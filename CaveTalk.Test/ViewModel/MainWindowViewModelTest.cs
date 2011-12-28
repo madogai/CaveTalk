@@ -1,7 +1,7 @@
 ﻿using CaveTube.CaveTalk.ViewModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using CaveTube.CaveTalk.CaveTubeClient;
+using CaveTube.CaveTubeClient;
 
 namespace CaveTube.CaveTalk.Test {
 

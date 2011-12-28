@@ -67,12 +67,13 @@
 		}
 	}
 
-	public sealed class ExecCommandOnCtrlAndEnterKeyDownBehavior : ExecCommandKeyDownBehavior<TextBox> {
+	public sealed class ExecCommandOnCtrlOrShiftAndEnterKeyDownBehavior : ExecCommandKeyDownBehavior<TextBox> {
 
 		protected override Boolean IsFire(KeyEventArgs e) {
 			var isEneter = new[] { Key.Return, Key.Enter }.Contains(e.Key);
 			var isPressCtrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-			return isEneter && isPressCtrl;
+			var isPressShift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+			return isEneter && (isPressCtrl || isPressShift);
 		}
 	}
 

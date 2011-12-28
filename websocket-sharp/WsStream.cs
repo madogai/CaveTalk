@@ -26,22 +26,19 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Security;
-using System.Net.Sockets;
-using System.Reflection;
-
 namespace WebSocketSharp {
+	using System;
+	using System.IO;
+	using System.Net.Security;
+	using System.Net.Sockets;
+
 	public class WsStream<T> : IWsStream
 	  where T : Stream {
 		private T innerStream;
 
 		public WsStream(T innerStream) {
-			Type streamType = typeof(T);
-			if (streamType != typeof(NetworkStream) &&
-				streamType != typeof(SslStream)) {
+			var streamType = typeof(T);
+			if (streamType != typeof(NetworkStream) && streamType != typeof(SslStream)) {
 				throw new NotSupportedException("Unsupported Stream type: " + streamType.ToString());
 			}
 
@@ -60,19 +57,19 @@ namespace WebSocketSharp {
 			innerStream.Dispose();
 		}
 
-		public int Read(byte[] buffer, int offset, int size) {
+		public Int32 Read(Byte[] buffer, Int32 offset, Int32 size) {
 			return innerStream.Read(buffer, offset, size);
 		}
 
-		public int ReadByte() {
+		public Int32 ReadByte() {
 			return innerStream.ReadByte();
 		}
 
-		public void Write(byte[] buffer, int offset, int count) {
+		public void Write(Byte[] buffer, Int32 offset, Int32 count) {
 			innerStream.Write(buffer, offset, count);
 		}
 
-		public void WriteByte(byte value) {
+		public void WriteByte(Byte value) {
 			innerStream.WriteByte(value);
 		}
 	}

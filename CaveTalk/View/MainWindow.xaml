@@ -18,14 +18,10 @@
                     <Setter Property="Background" Value="AliceBlue" />
                     <Setter Property="Foreground" Value="Black" />
                     <Setter Property="BorderBrush" Value="Transparent" />
-                    <Setter Property="ContextMenu">
-                        <Setter.Value>
-                            <ContextMenu>
-                                <MenuItem Header="コメントをコピー" Command="{Binding Path=CopyCommentCommand}" />
-                            </ContextMenu>
-                        </Setter.Value>
-                    </Setter>
                 </Trigger>
+                <DataTrigger Binding="{Binding Path=IsBan}" Value="True">
+                    <Setter Property="Background" Value="LightGray" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </rb:RibbonWindow.Resources>
@@ -242,36 +238,79 @@
                         <b:TextBoxPlaceholderBehavior Placeholder="名前" />
                     </i:Interaction.Behaviors>
                 </TextBox>
-                <TextBox Grid.Column="2" Text="{Binding Path=PostMessage, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Path=RoomJoinStatus}">
+                <TextBox Grid.Column="2" Text="{Binding Path=PostMessage, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Path=RoomJoinStatus}" AcceptsReturn="True" MaxLength="4096" MaxLines="3" VerticalScrollBarVisibility="Auto">
                     <i:Interaction.Behaviors>
                         <b:TextBoxPlaceholderBehavior Placeholder="コメントを記述してください。" />
-                        <b:ExecCommandOnCtrlAndEnterKeyDownBehavior Command="PostCommentCommand" />
+                        <b:ExecCommandOnCtrlOrShiftAndEnterKeyDownBehavior Command="PostCommentCommand" />
                     </i:Interaction.Behaviors>
                 </TextBox>
                 <Button Grid.Column="4" x:Name="PostKey" Content="書き込み" Command="{Binding Path=PostCommentCommand}" IsEnabled="{Binding Path=RoomJoinStatus}" />
             </Grid>
         </Border>
         <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True" SelectedIndex="{Binding Path=MessageIndex}" HorizontalScrollBarVisibility="Disabled">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <Trigger Property="DataGridRow.IsSelected" Value="True">
+                            <Setter Property="ContextMenu">
+                                <Setter.Value>
+                                    <ContextMenu>
+                                        <MenuItem Header="コメントをコピー" Command="{Binding Path=CopyCommentCommand}" />
+                                        <MenuItem Header="リスナーをBAN" Command="{Binding Path=BanUserCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsBan}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                        <MenuItem Header="BANを解除" Command="{Binding Path=UnBanUserCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsBan}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Path=Number}" Header="No" Width="40" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" />
-                <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" Width="80">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="DataGridCell" BasedOn="{StaticResource ResourceKey=DefaultCellStyle}">
+                <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Path=Auth}" Value="True">
                                     <Setter Property="Foreground" Value="ForestGreen" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Comment" Width="*" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock TextWrapping="Wrap" Text="{Binding Path=Comment}" />
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                <DataGridTextColumn Binding="{Binding Path=Comment}" Header="Comment" Width="*" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=IsAsciiArt}" Value="True">
+                                    <Setter Property="FontFamily" Value="IPAMonaPGothic,Monapo,Mona,MS PGothic,sans-serif" />
+                                    <Setter Property="TextWrapping" Value="NoWrap" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Path=Id}" Header="Id" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" />
                 <DataGridTextColumn Binding="{Binding Path=Time, StringFormat=HH:mm:ss}" Header="Time" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" />
             </DataGrid.Columns>
         </DataGrid>

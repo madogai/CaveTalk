@@ -1,5 +1,5 @@
 ﻿namespace SocketIOClient.Test {
-	using SocketIO;
+	using Drumcan.SocketIO;
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
 	using System;
 
@@ -81,6 +81,7 @@
 
 			#region ITransport メンバー
 
+#pragma warning disable 0067
 			public event Action<object, EventArgs> OnOpen;
 
 			public event Action<object, string> OnMessage;
@@ -88,7 +89,7 @@
 			public event Action<object, string> OnError;
 
 			public event Action<object, EventArgs> OnClose;
-
+#pragma warning restore 0067
 			public bool IsConnect {
 				get { return true; }
 			}

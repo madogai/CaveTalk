@@ -44,7 +44,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -55,29 +55,22 @@
     <ApplicationIcon>Images\cavelis.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DynamicJson">
-      <HintPath>..\..\CaveBouyomi\CaveBouyomi\bin\Debug\DynamicJson.dll</HintPath>
-    </Reference>
     <Reference Include="Hardcodet.Wpf.TaskbarNotification">
       <HintPath>bin\Release\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="NLog">
-      <HintPath>..\packages\NLog.2.0.0.2000\lib\net40\NLog.dll</HintPath>
-    </Reference>
+    <Reference Include="NLog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL" />
     <Reference Include="ParallelExtensionsExtras">
       <HintPath>bin\Release\ParallelExtensionsExtras.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.SQLite">
-      <HintPath>..\packages\System.Data.SQLite.1.0.76.0\lib\net40\System.Data.SQLite.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite.Linq">
-      <HintPath>..\packages\System.Data.SQLite.1.0.76.0\lib\net40\System.Data.SQLite.Linq.dll</HintPath>
+    <Reference Include="System.Interactive">
+      <HintPath>..\packages\Ix_Experimental-Main.1.1.10823\lib\Net4\System.Interactive.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -112,8 +105,11 @@
     </Compile>
     <Compile Include="Converter\ConnectingStatusConverter.cs" />
     <Compile Include="Converter\EnumBooleanConverter.cs" />
+    <Compile Include="Converter\AutoLinkConverter.cs" />
     <Compile Include="Definitions.cs" />
     <Compile Include="Lib\BouyomiClientWrapper.cs" />
+    <Compile Include="Lib\CaveTubeClientWrapper.cs" />
+    <Compile Include="Lib\ICommentClient.cs" />
     <Compile Include="Lib\IReadingApplication.cs" />
     <Compile Include="Lib\SofTalkClient.cs" />
     <Compile Include="Settings.cs" />
@@ -127,7 +123,6 @@
     <Compile Include="View\LoginBox.xaml.cs">
       <DependentUpon>LoginBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Utils\JavaScriptTime.cs" />
     <Compile Include="Utils\RelayCommand.cs" />
     <Compile Include="Utils\SafeObservableCollection.cs" />
     <Compile Include="ViewModel\LoginBoxViewModel.cs" />
@@ -135,6 +130,9 @@
     <Compile Include="Utils\ViewModelBase.cs" />
     <Compile Include="View\NotifyOptoinControl.xaml.cs">
       <DependentUpon>NotifyOptoinControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\NotifyUpdate.xaml.cs">
+      <DependentUpon>NotifyUpdate.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\OptionWindow.xaml.cs">
       <DependentUpon>OptionWindow.xaml</DependentUpon>
@@ -179,12 +177,15 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Lib\BouyomiChanClient.cs" />
-    <Compile Include="Lib\CavetubeClient.cs" />
     <Compile Include="View\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
     <Page Include="View\NotifyOptoinControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\NotifyUpdate.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -221,18 +222,13 @@
     <None Include="App.Release.config">
       <DependentUpon>App.config</DependentUpon>
     </None>
+    <None Include="NLog.config" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SocketIOClient\SocketIOClient.csproj">
-      <Project>{7B0F21B8-9C1C-4FA1-9ACC-359FEFB20A25}</Project>
-      <Name>SocketIOClient</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\cavelis.ico" />
@@ -297,6 +293,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\notify_no.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CaveTubeClient\CaveTubeClient.csproj">
+      <Project>{9E3E1E57-073E-4181-BB36-3536E195577E}</Project>
+      <Name>CaveTubeClient</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />

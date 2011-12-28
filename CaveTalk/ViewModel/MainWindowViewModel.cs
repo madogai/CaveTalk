@@ -1,32 +1,33 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
-
 	using System;
 	using System.Collections.Generic;
 	using System.Configuration;
+	using System.IO;
 	using System.Linq;
 	using System.Net;
+	using System.Runtime.InteropServices;
 	using System.Text.RegularExpressions;
 	using System.Windows;
 	using System.Windows.Input;
 	using System.Windows.Threading;
-	using CaveTube.CaveTalk.CaveTubeClient;
 	using CaveTube.CaveTalk.Lib;
 	using CaveTube.CaveTalk.Properties;
 	using CaveTube.CaveTalk.Utils;
 	using CaveTube.CaveTalk.View;
-	using NLog;
-	using System.IO;
+	using CaveTube.CaveTubeClient;
 	using Microsoft.Win32;
+	using NLog;
 
 	public sealed class MainWindowViewModel : ViewModelBase {
 		private Logger logger = LogManager.GetCurrentClassLogger();
 
-		private CavetubeClient cavetubeClient;
+		internal CavetubeClient cavetubeClient;
+		private ICommentClient commentClient;
 		private IReadingApplicationClient readingClient;
 		private Dispatcher uiDispatcher;
+		private Lib.Summary summary;
 
 		public event Action<LiveNotification> OnNotifyLive;
-
 		public event Action<Message> OnMessage;
 
 		#region プロパティ
@@ -41,7 +42,7 @@
 			}
 		}
 
-		public IList<Message> MessageList { get; private set; }
+		public SafeObservable<Message> MessageList { get; private set; }
 
 		private String liveUrl;
 
@@ -81,13 +82,17 @@
 
 		public Boolean RoomJoinStatus {
 			get {
-				return String.IsNullOrEmpty(this.cavetubeClient.JoinedRoomId) == false;
+				if (this.commentClient == null) {
+					return false;
+				}
+
+				return String.IsNullOrEmpty(this.commentClient.RoomId) == false;
 			}
 		}
 
 		public Boolean LoginStatus {
 			get {
-				return String.IsNullOrWhiteSpace(CaveTalk.Properties.Settings.Default.ApiKey) == false;
+				return String.IsNullOrWhiteSpace(Settings.Default.ApiKey) == false;
 			}
 		}
 
@@ -202,7 +207,7 @@
 				this.LoginCavetube();
 			});
 			this.PostCommentCommand = new RelayCommand(p => {
-				var apiKey = CaveTalk.Properties.Settings.Default.ApiKey ?? String.Empty;
+				var apiKey = Settings.Default.ApiKey ?? String.Empty;
 				this.PostComment(this.PostName, this.PostMessage, apiKey);
 			});
 			this.AboutBoxCommand = new RelayCommand(p => this.ShowVersion());
@@ -210,50 +215,35 @@
 
 			#endregion
 
-			#region CavetubeClientの接続
+			this.PostName = Settings.Default.UserId;
 
-			this.cavetubeClient = new CavetubeClient(new Uri(ConfigurationManager.AppSettings["comment_server"]), new Uri(ConfigurationManager.AppSettings["web_server"]));
-			this.cavetubeClient.OnMessage += (summary, mes) => {
-				var message = new Message(mes);
-				this.AddMessage(summary, message);
+			SystemEvents.PowerModeChanged += this.OnPowerModeChanged;
+		}
 
-				if (this.OnMessage != null) {
-					uiDispatcher.BeginInvoke(new Action(() => {
-						this.OnMessage(message);
-					}));
-				}
-			};
-			this.cavetubeClient.OnUpdateMember += this.UpdateListenerCount;
-			this.cavetubeClient.OnJoin += (summary, messages) => {
-				base.OnPropertyChanged("RoomJoinStatus");
-				this.AddMessage(summary, messages.Select(m => new Message(m)));
+		public void Initialize() {
+			#region バージョン確認
 
-				uiDispatcher.BeginInvoke(new Action(() => {
-					Mouse.OverrideCursor = null;
-				}));
-			};
-			this.cavetubeClient.OnNotifyLive += liveInfo => {
-				if (this.OnNotifyLive == null || (NotifyPopupStateEnum)Settings.Default.NotifyState == NotifyPopupStateEnum.False) {
-					return;
-				}
-				uiDispatcher.BeginInvoke(new Action(() => {
-					this.OnNotifyLive(liveInfo);
-				}));
-			};
-			this.cavetubeClient.OnClose += (e) => {
-				if (e.IsTimeout) {
-					this.cavetubeClient.Connect();
-					if (this.RoomJoinStatus) {
-						this.JoinRoom(this.cavetubeClient.JoinedRoomId);
-					}
-				}
-			};
-
-			this.cavetubeClient.Connect();
+			//using (var client = new WebClient()) {
+			//    var version = client.DownloadString(ConfigurationManager.AppSettings["version_check_url"]);
+			//    var fileInfo = FileVersionInfo.GetVersionInfo(Environment.GetCommandLineArgs()[0]);
+			//}
 
 			#endregion
 
-			this.PostName = CaveTalk.Properties.Settings.Default.UserId;
+			#region CavetubeClientの接続
+
+			this.cavetubeClient = new CavetubeClient(new Uri(ConfigurationManager.AppSettings["comment_server"]), new Uri(ConfigurationManager.AppSettings["web_server"]));
+			this.cavetubeClient.OnNotifyLive += this.OnLiveNotification;
+			this.cavetubeClient.OnClose += this.OnClose;
+
+			try {
+				this.cavetubeClient.Connect();
+			} catch (WebException e) {
+				logger.Error(e);
+				MessageBox.Show("CaveTubeに接続できません。");
+			}
+
+			#endregion
 
 			#region 読み上げソフト
 
@@ -261,14 +251,13 @@
 
 			#endregion
 
-			SystemEvents.PowerModeChanged += OnPowerModeChanged;
 		}
 
 		/// <summary>
 		/// デストラクタ
 		/// </summary>
 		~MainWindowViewModel() {
-			SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+			SystemEvents.PowerModeChanged -= this.OnPowerModeChanged;
 		}
 
 		/// <summary>
@@ -276,6 +265,10 @@
 		/// オブジェクトを破棄します。
 		/// </summary>
 		protected override void OnDispose() {
+			if (this.commentClient != null) {
+				this.commentClient.Dispose();
+			}
+
 			if (this.cavetubeClient != null) {
 				this.cavetubeClient.Dispose();
 			}
@@ -286,28 +279,16 @@
 		}
 
 		/// <summary>
-		/// 視聴人数を更新します。
-		/// </summary>
-		/// <param name="count"></param>
-		private void UpdateListenerCount(Int32 count) {
-			this.Listener = count;
-		}
-
-		/// <summary>
 		/// コメントを追加します。
 		/// </summary>
 		/// <param name="summary"></param>
 		/// <param name="message"></param>
-		private void AddMessage(Summary summary, Message message) {
-			if (message.IsBan) {
-				return;
-			}
-
+		private void AddMessage(Message message) {
 			this.MessageList.Insert(0, message);
 
 			if (this.ReadingApplicationStatus) {
-				var isAdded = this.readingClient.Add(message.Comment);
-				if (isAdded == false) {
+				var isSpeech = this.SpeechComment(message);
+				if (isSpeech == false) {
 					MessageBox.Show("読み上げに失敗しました。");
 					this.ReadingApplicationStatus = false;
 				}
@@ -319,12 +300,10 @@
 		/// </summary>
 		/// <param name="summary"></param>
 		/// <param name="messages"></param>
-		private void AddMessage(Summary summary, IEnumerable<Message> messages) {
+		private void AddMessage(IEnumerable<Message> messages) {
 			base.OnPropertyChanged("ConnectingStatus");
 			foreach (var message in messages) {
-				if (message.IsBan == false) {
-					this.MessageList.Insert(0, message);
-				}
+				this.MessageList.Insert(0, message);
 			}
 		}
 
@@ -342,20 +321,83 @@
 		/// </summary>
 		/// <param name="liveUrl"></param>
 		private void JoinRoom(String liveUrl) {
+			if (String.IsNullOrWhiteSpace(liveUrl)) {
+				return;
+			}
+
 			Mouse.OverrideCursor = Cursors.Wait;
 
 			this.LeaveRoom();
 
-			var roomId = this.ParseUrl(liveUrl);
-			if (String.IsNullOrEmpty(roomId)) {
+			if (this.commentClient != null) {
+				this.commentClient.Dispose();
+			}
+
+			var urlType = this.JudgeUrl(liveUrl);
+			switch (urlType) {
+				case UrlType.Cavetube:
+					this.commentClient = new CaveTubeClientWrapper(this.cavetubeClient);
+					break;
+				case UrlType.Jbbs:
+					this.commentClient = null;
+					//var match = Regex.Match(liveUrl, @"^http://jbbs.livedoor.jp/bbs/read.cgi/([a-z]+/\d+/\d+)");
+					//if (match.Success == false) {
+					//    return;
+					//}
+
+					//this.LiveUrl = match.Groups[1].Value;
+					break;
+				default:
+					this.commentClient = null;
+					break;
+			}
+
+			if (this.commentClient == null) {
+				Mouse.OverrideCursor = null;
+				MessageBox.Show("不正なURLです。");
+				Mouse.OverrideCursor = null;
 				return;
 			}
 
-			this.LiveUrl = roomId;
 			try {
-				this.cavetubeClient.JoinRoom(roomId);
-			} catch (WebException) {
-				MessageBox.Show("Cavetubeに接続できませんでした。");
+				var room = this.commentClient.GetRoomInfo(liveUrl);
+				var roomId = room.Summary.RoomId;
+				if (String.IsNullOrWhiteSpace(roomId)) {
+					Mouse.OverrideCursor = null;
+					MessageBox.Show("不正なURLです。");
+					Mouse.OverrideCursor = null;
+					return;
+				}
+
+				this.commentClient.OnJoin += this.OnJoin;
+				this.commentClient.OnMessage += this.OnReceiveMessage;
+				this.commentClient.OnUpdateMember += this.OnUpdateMember;
+				this.commentClient.OnBan += this.OnBanUser;
+				this.commentClient.OnUnBan += this.OnUnBanUser;
+
+				if (String.IsNullOrWhiteSpace(roomId) == false) {
+					this.LiveUrl = roomId;
+				}
+
+				this.AddMessage(room.Messages.Select(m => {
+					var message = new Message(m, this.BanUser, this.UnBanUser);
+					return message;
+				}));
+				this.summary = room.Summary;
+
+				try {
+					this.commentClient.JoinRoom(roomId);
+				} catch (WebException) {
+					Mouse.OverrideCursor = null;
+					MessageBox.Show("コメントサーバに接続できませんでした。");
+					return;
+				}
+
+			} catch (CavetubeException e) {
+				Mouse.OverrideCursor = null;
+				MessageBox.Show(e.Message);
+				logger.Error(e);
+				return;
 			}
 		}
 
@@ -363,12 +405,19 @@
 		/// コメント部屋から抜けます。
 		/// </summary>
 		private void LeaveRoom() {
-			if (String.IsNullOrEmpty(this.cavetubeClient.JoinedRoomId) == false) {
-				this.cavetubeClient.LeaveRoom();
-
-				base.OnPropertyChanged("RoomJoinStatus");
-				this.ResetStatus();
+			if (this.commentClient == null) {
+				return;
 			}
+
+			var roomId = this.commentClient.RoomId;
+			if (String.IsNullOrEmpty(this.commentClient.RoomId)) {
+				return;
+			}
+
+			this.commentClient.LeaveRoom();
+
+			base.OnPropertyChanged("RoomJoinStatus");
+			this.ResetStatus();
 		}
 
 		/// <summary>
@@ -378,13 +427,172 @@
 		/// <param name="postMessage"></param>
 		/// <param name="apiKey"></param>
 		private void PostComment(String postName, String postMessage, String apiKey) {
-			if (String.IsNullOrEmpty(this.cavetubeClient.JoinedRoomId)) {
+			if (String.IsNullOrEmpty(this.commentClient.RoomId)) {
 				return;
 			}
 
-			this.cavetubeClient.PostComment(postName, postMessage, apiKey);
+			this.commentClient.PostComment(postName, postMessage, apiKey);
 			this.PostMessage = String.Empty;
 		}
+
+		/// <summary>
+		/// ユーザーをBANします。
+		/// </summary>
+		/// <param name="commentNum"></param>
+		private void BanUser(Int32 commentNum) {
+			if (this.LoginStatus == false) {
+				MessageBox.Show("BANするにはログインが必須です。");
+				return;
+			}
+
+			if (Settings.Default.UserId != this.summary.Author) {
+				MessageBox.Show("配信者でないとBANすることはできません。");
+				return;
+			}
+
+			try {
+				var isSuccess = this.commentClient.BanListener(commentNum, Settings.Default.ApiKey);
+				if (isSuccess == false) {
+					MessageBox.Show("BANに失敗しました。");
+				}
+			} catch (ArgumentException) {
+				logger.Error("未ログイン状態のため、BANできませんでした。");
+			} catch (WebException) {
+				logger.Error("CaveTubeとの通信に失敗しました。");
+				MessageBox.Show("BANに失敗しました。");
+			}
+		}
+
+		/// <summary>
+		/// ユーザーBANを解除します。
+		/// </summary>
+		/// <param name="commentNum"></param>
+		private void UnBanUser(Int32 commentNum) {
+			if (this.LoginStatus == false) {
+				MessageBox.Show("BANするにはログインが必須です。");
+				return;
+			}
+
+			if (Settings.Default.UserId != this.summary.Author) {
+				MessageBox.Show("配信者でないとBANすることはできません。");
+				return;
+			}
+
+			try {
+				var isSuccess = this.commentClient.UnBanListener(commentNum, Settings.Default.ApiKey);
+				if (isSuccess == false) {
+					MessageBox.Show("BANに失敗しました。");
+				}
+
+			} catch (ArgumentException) {
+				logger.Error("未ログイン状態のため、BAN解除できませんでした。");
+			} catch (WebException) {
+				logger.Error("CaveTubeとの通信に失敗しました。");
+				MessageBox.Show("BAN解除に失敗しました。");
+			}
+		}
+
+		#region CommentClientに登録するイベント
+
+		/// <summary>
+		/// 放送への接続時に実行されるイベントです。
+		/// </summary>
+		/// <param name="summary"></param>
+		/// <param name="messages"></param>
+		private void OnJoin(String roomId) {
+			base.OnPropertyChanged("RoomJoinStatus");
+
+			uiDispatcher.BeginInvoke(new Action(() => {
+				Mouse.OverrideCursor = null;
+			}));
+		}
+
+		/// <summary>
+		/// メッセージ受信時に実行されるイベントです。
+		/// </summary>
+		/// <param name="summary"></param>
+		/// <param name="mes"></param>
+		private void OnReceiveMessage(Lib.Message mes) {
+			var message = new Message(mes, this.BanUser, this.UnBanUser);
+
+			this.AddMessage(message);
+
+			if (this.OnMessage != null) {
+				uiDispatcher.BeginInvoke(new Action(() => {
+					this.OnMessage(message);
+				}));
+			}
+		}
+
+		/// <summary>
+		/// 人数更新受信時に実行されるイベントです。
+		/// </summary>
+		/// <param name="count"></param>
+		private void OnUpdateMember(Int32 count) {
+			this.Listener = count;
+		}
+
+		/// <summary>
+		/// BAN通知受信時に実行されるイベントです。
+		/// </summary>
+		/// <param name="message"></param>
+		private void OnBanUser(Lib.Message message) {
+			var oldComment = this.MessageList.FirstOrDefault(m => m.Number == message.Number);
+			if (oldComment == null) {
+				return;
+			}
+
+			var newMessage = new Message(message, this.BanUser, this.UnBanUser);
+			var index = this.MessageList.IndexOf(oldComment);
+			this.MessageList.RemoveAt(index);
+			this.MessageList.Insert(index, newMessage);
+		}
+
+		/// <summary>
+		/// BAN解除通知時に実行されるイベントです。
+		/// </summary>
+		/// <param name="message"></param>
+		private void OnUnBanUser(Lib.Message message) {
+			var oldComment = this.MessageList.FirstOrDefault(m => m.Number == message.Number);
+			if (oldComment == null) {
+				return;
+			}
+
+			var newMessage = new Message(message, this.BanUser, this.UnBanUser);
+			var index = this.MessageList.IndexOf(oldComment);
+			this.MessageList.RemoveAt(index);
+			this.MessageList.Insert(index, newMessage);
+		}
+
+		#endregion
+
+		#region CavetubeClientに登録するイベント
+
+		/// <summary>
+		/// ライブ通知を受け取ったときに実行されるイベントです。
+		/// </summary>
+		/// <param name="liveInfo"></param>
+		private void OnLiveNotification(LiveNotification liveInfo) {
+			if (this.OnNotifyLive == null || (NotifyPopupStateEnum)Settings.Default.NotifyState == NotifyPopupStateEnum.False) {
+				return;
+			}
+			uiDispatcher.BeginInvoke(new Action(() => {
+				this.OnNotifyLive(liveInfo);
+			}));
+		}
+
+		private void OnClose(Reason reason) {
+			if (reason != Reason.Timeout) {
+				return;
+			}
+
+			this.cavetubeClient.Connect();
+			if (this.RoomJoinStatus) {
+				this.JoinRoom(this.commentClient.RoomId);
+			}
+		}
+
+		#endregion
 
 		#region 読み上げソフト
 
@@ -400,7 +608,7 @@
 						this.readingClient = new SofTalkClient(Settings.Default.SofTalkPath);
 						this.ReadingApplicationStatus = true;
 					} catch (FileNotFoundException) {
-						MessageBox.Show("SofTalkに接続できませんでした。\nオプションからSofTalkの正しいパスを指定してください。");
+						MessageBox.Show("SofTalkに接続できませんでした。\nオプションでSofTalk.exeの正しいパスを指定してください。");
 						this.ReadingApplicationStatus = false;
 					}
 					break;
@@ -409,7 +617,7 @@
 					if (this.readingClient.IsConnect) {
 						this.ReadingApplicationStatus = true;
 					} else {
-						MessageBox.Show("棒読みちゃんに接続できませんでした。\n後から棒読みちゃんを起動する場合は、リボンの棒読みアイコンを押してください。");
+						MessageBox.Show("棒読みちゃんに接続できませんでした。\n後から棒読みちゃんを起動した場合は、リボンの読み上げアイコンから読み上げソフトに接続を選択してください。");
 						this.ReadingApplicationStatus = false;
 					}
 					break;
@@ -426,34 +634,59 @@
 			}
 		}
 
+		/// <summary>
+		/// 読み上げソフトにコメントを渡します。
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		private Boolean SpeechComment(Message message) {
+			var comment = message.Comment;
+
+			comment = message.IsAsciiArt ? "アスキーアート" : comment;
+
+			comment = Regex.Replace(comment, @"https?://(?:[^.]+\.)?(?:images-)?amazon\.(?:com|ca|co\.uk|de|co\.jp|jp|fr|cn)(/.+)(?![\w\s!?&.\/\+:;#~%""=-]*>)", "アマゾンリンク");
+
+			comment = comment.Replace("\n", " ");
+
+			if (Settings.Default.ReadName && String.IsNullOrWhiteSpace(message.Name) == false) {
+				comment = String.Format("{0}さん {1}", message.Name, comment);
+			}
+
+			if (Settings.Default.ReadNum) {
+				comment = String.Format("コメント{0} {1}", message.Number, comment);
+			}
+
+			return this.readingClient.Add(comment);
+		}
+
 		#endregion
 
 		#region Logging関係
 
 		private void LoginCavetube() {
 			var loginBox = new LoginBox();
-			var viewModel = new LoginBoxViewModel(cavetubeClient);
+			var viewModel = new LoginBoxViewModel(this.cavetubeClient);
 			viewModel.OnClose += () => {
 				loginBox.Close();
 			};
 			loginBox.DataContext = viewModel;
 			loginBox.ShowDialog();
 			base.OnPropertyChanged("LoginStatus");
-			this.PostName = CaveTalk.Properties.Settings.Default.UserId;
+			this.PostName = Settings.Default.UserId;
 		}
 
 		private void LogoutCavetube() {
-			var apiKey = CaveTalk.Properties.Settings.Default.ApiKey;
+			var apiKey = Settings.Default.ApiKey;
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				return;
 			}
 
-			var userId = CaveTalk.Properties.Settings.Default.UserId;
+			var userId = Settings.Default.UserId;
 			if (String.IsNullOrWhiteSpace(userId)) {
 				throw new ConfigurationErrorsException("UserIdが登録されていません。");
 			}
 
-			var password = CaveTalk.Properties.Settings.Default.Password;
+			var password = Settings.Default.Password;
 			if (String.IsNullOrWhiteSpace(userId)) {
 				throw new ConfigurationErrorsException("Passwordが登録されていません。");
 			}
@@ -462,10 +695,14 @@
 			if (String.IsNullOrWhiteSpace(devKey)) {
 				throw new ConfigurationErrorsException("[dev_key]が設定されていません。");
 			}
-			var isSuccess = cavetubeClient.Logout(userId, password, devKey);
-			if (isSuccess) {
-				CaveTalk.Properties.Settings.Default.Reset();
-				base.OnPropertyChanged("LoginStatus");
+			try {
+				var isSuccess = cavetubeClient.Logout(userId, password, devKey);
+				if (isSuccess) {
+					Settings.Default.Reset();
+					base.OnPropertyChanged("LoginStatus");
+				}
+			} catch (WebException) {
+				MessageBox.Show("ログアウトに失敗しました。");
 			}
 		}
 
@@ -493,13 +730,16 @@
 
 		#endregion
 
-		private String ParseUrl(String url) {
-			var pattern = String.Format(@"({0}(?:\:\d{{1,5}})?/[a-z]+/)?([0-9A-Z]{{32}})", ConfigurationManager.AppSettings["web_server"]);
-			var match = Regex.Match(url, pattern);
-			if (match.Success) {
-				return match.Groups[2].Value;
+		private UrlType JudgeUrl(String url) {
+			var webServer = ConfigurationManager.AppSettings["web_server"];
+			if (Regex.IsMatch(url, String.Format(@"^(?:{0}(?:\:\d{{1,5}})?/[a-z]+/)?([0-9A-Z]{{32}})", webServer))) {
+				return UrlType.Cavetube;
+			} else if (Regex.IsMatch(url, String.Format(@"^{0}(?:\:\d{{1,5}})?/live/(.*)", webServer))) {
+				return UrlType.Cavetube;
+			} else if (Regex.IsMatch(url, String.Format(@"^http://jbbs.livedoor.jp/bbs/read.cgi/[a-z0-9]+/\d+$"))) {
+				return UrlType.Jbbs;
 			} else {
-				return String.Empty;
+				return UrlType.Unknown;
 			}
 		}
 
@@ -518,20 +758,54 @@
 					break;
 			}
 		}
+
+		private enum UrlType {
+			Cavetube,
+			Jbbs,
+			Unknown,
+		}
 	}
 
-	public sealed class Message : CaveTubeClient.Message {
+	public sealed class Message : Lib.Message {
 		private Logger logger = LogManager.GetCurrentClassLogger();
 
-		public ICommand CopyCommentCommand { get; private set; }
+		public event Action<Int32> OnBanUser;
+		public event Action<Int32> OnUnBanUser;
 
-		public Message(CaveTubeClient.Message message)
-			: base(message.Number, message.Name, message.Comment, message.Time, message.Auth, message.IsBan) {
+		public ICommand CopyCommentCommand { get; private set; }
+		public ICommand BanUserCommand { get; private set; }
+		public ICommand UnBanUserCommand { get; private set; }
+
+		public Message(Lib.Message message, Action<Int32> OnBan, Action<Int32> OnUnBan) {
+			this.Number = message.Number;
+			this.Id = message.Id;
+			this.Name = message.Name;
+			this.Comment = message.Comment;
+			this.Time = message.Time;
+			this.Auth = message.Auth;
+			this.IsBan = message.IsBan;
+
+			this.OnBanUser += OnBan;
+			this.OnUnBanUser += OnUnBan;
+
 			this.CopyCommentCommand = new RelayCommand(p => {
 				try {
 					Clipboard.SetText(this.Comment);
+				} catch (ExternalException e) {
+					MessageBox.Show("クリップボードへのコピーに失敗しました。");
+					logger.Error("クリップボードのコピーへの失敗しました。", e);
 				} catch (ArgumentException e) {
 					logger.Error("コメントがnullのためクリップボードにコピーできませんでした。", e);
+				}
+			});
+			this.BanUserCommand = new RelayCommand(p => {
+				if (this.OnBanUser != null) {
+					this.OnBanUser(this.Number);
+				}
+			});
+			this.UnBanUserCommand = new RelayCommand(p => {
+				if (this.OnUnBanUser != null) {
+					this.OnUnBanUser(this.Number);
 				}
 			});
 		}

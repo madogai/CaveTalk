@@ -5,9 +5,10 @@
 	using System.Threading.Tasks;
 	using System.Windows.Input;
 	using CaveTube.CaveTalk.Properties;
-	using CaveTube.CaveTalk.CaveTubeClient;
 	using CaveTube.CaveTalk.Utils;
+	using CaveTube.CaveTubeClient;
 	using NLog;
+	using System.Net;
 
 	public sealed class LoginBoxViewModel : ViewModelBase {
 		private Logger logger = LogManager.GetCurrentClassLogger();
@@ -90,6 +91,10 @@
 					this.ErrorMessage = message;
 					logger.Error(message, e);
 					return;
+				} catch (WebException e) {
+					var message = "ログインに失敗しました。";
+					this.ErrorMessage = message;
+					logger.Error(message, e);
 				}
 			} finally {
 				this.Cursor = null;

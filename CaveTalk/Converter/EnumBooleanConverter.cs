@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Data;
-using System.Windows;
+﻿namespace CaveTube.CaveTalk.Converter {
+	using System;
+	using System.Collections.Generic;
+	using System.Linq;
+	using System.Text;
+	using System.Windows.Data;
+	using System.Windows;
 
-namespace CaveTube.CaveTalk.Converter {
 	public class EnumBooleanConverter : IValueConverter {
 		#region IValueConverter Members
 		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {

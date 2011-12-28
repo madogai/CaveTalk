@@ -1,8 +1,8 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿namespace CaveTube.CaveTalk.Lib {
+	using System;
+	using System.Diagnostics;
+	using System.IO;
 
-namespace CaveTube.CaveTalk.Lib {
 	public sealed class SofTalkClient : IReadingApplicationClient {
 		private String exePath;
 		private Int32 taskCount;

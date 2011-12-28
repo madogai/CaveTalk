@@ -1,5 +1,4 @@
-﻿namespace SocketIO {
-
+﻿namespace Drumcan.SocketIO {
 	using System;
 	using System.Linq;
 	using System.Net;
@@ -55,7 +54,7 @@
 
 		public void Connect() {
 			var handshakeInfo = this.GetHandshakeInfo(this.socketIOUri);
-			var client = clientBuilder(this.socketIOUri, handshakeInfo.SessionId);
+			var client = this.clientBuilder(this.socketIOUri, handshakeInfo.SessionId);
 			this.client = client;
 
 			client = this.SetupClientEvent(client);
@@ -114,7 +113,10 @@
 				stopwatch.Reset();
 				timer.Change(Timeout.Infinite, Timeout.Infinite);
 				if (this.OnClose != null) {
-					var reason = new Reason(isTimeout);
+					Reason reason = Reason.Unknown;
+					if (isTimeout) {
+						reason = Reason.Timeout;
+					}
 					this.OnClose(this, reason);
 				}
 			};
