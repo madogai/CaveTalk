@@ -29,6 +29,7 @@
 			return new Room {
 				Summary = new Summary {
 					RoomId = tuple.Item1.RoomId,
+					Title = tuple.Item1.Title,
 					Author = tuple.Item1.Author,
 					PageView = tuple.Item1.PageView,
 					Listener = tuple.Item1.Listener,

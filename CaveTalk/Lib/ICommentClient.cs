@@ -54,6 +54,7 @@
 
 	public partial class Summary {
 		public String RoomId { get; set; }
+		public String Title { get; set; }
 		public String Author { get; set; }
 		public Int32 Listener { get; set; }
 		public Int32 PageView { get; set; }
@@ -68,11 +69,6 @@
 		public DateTime Time { get; set; }
 		public Boolean Auth { get; set; }
 		public Boolean IsBan { get; set; }
-		public Boolean IsAsciiArt {
-			get {
-				return Regex.IsMatch(this.Comment, "　 (?!<br>|$)");
-			}
-		}
 
 		public Message() {}
 	}

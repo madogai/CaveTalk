@@ -9,26 +9,31 @@
 	using System.Text.RegularExpressions;
 	using System.Windows;
 	using System.Windows.Input;
+	using System.Windows.Media;
 	using System.Windows.Threading;
 	using CaveTube.CaveTalk.Lib;
+	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Properties;
 	using CaveTube.CaveTalk.Utils;
 	using CaveTube.CaveTalk.View;
 	using CaveTube.CaveTubeClient;
 	using Microsoft.Win32;
 	using NLog;
+using CaveTube.CaveTalk.Logic;
 
 	public sealed class MainWindowViewModel : ViewModelBase {
 		private Logger logger = LogManager.GetCurrentClassLogger();
 
 		internal CavetubeClient cavetubeClient;
 		private ICommentClient commentClient;
-		private IReadingApplicationClient readingClient;
 		private Dispatcher uiDispatcher;
-		private Lib.Summary summary;
+		private Model.Room room;
+		private CaveTalkContext context;
+
+		private SpeechLogic speechLogic;
 
 		public event Action<LiveNotification> OnNotifyLive;
-		public event Action<Message> OnMessage;
+		public event Action<Model.Message> OnMessage;
 
 		#region プロパティ
 
@@ -64,12 +69,10 @@
 			}
 		}
 
-		public Boolean readingApplicationStatus;
-
 		public Boolean ReadingApplicationStatus {
-			get { return this.readingApplicationStatus; }
+			get { return this.speechLogic.SpeechStatus; }
 			set {
-				this.readingApplicationStatus = value;
+				this.speechLogic.SpeechStatus = value;
 				base.OnPropertyChanged("ReadingApplicationStatus");
 			}
 		}
@@ -193,11 +196,15 @@
 		public MainWindowViewModel() {
 			this.MessageList = new SafeObservable<Message>();
 			this.uiDispatcher = Dispatcher.CurrentDispatcher;
+			this.context = new CaveTalkContext();
+			this.context.Database.CreateIfNotExists();
+
+			this.speechLogic = new SpeechLogic();
 
 			#region Commandの登録
 
-			this.ConnectReadingApplicationCommand = new RelayCommand(p => this.ConnectReadingApplication());
-			this.DisconnectReadingApplicationCommand = new RelayCommand(p => this.DisconnectReadingApplication());
+			this.ConnectReadingApplicationCommand = new RelayCommand(p => this.speechLogic.Connect());
+			this.DisconnectReadingApplicationCommand = new RelayCommand(p => this.speechLogic.Disconnect());
 			this.JoinRoomCommand = new RelayCommand(p => this.JoinRoom(this.LiveUrl));
 			this.LeaveRoomCommand = new RelayCommand(p => this.LeaveRoom());
 			this.LoginCommand = new RelayCommand(p => this.LoginCavetube());
@@ -247,7 +254,7 @@
 
 			#region 読み上げソフト
 
-			this.ConnectReadingApplication();
+			this.speechLogic.Connect();
 
 			#endregion
 
@@ -273,38 +280,23 @@
 				this.cavetubeClient.Dispose();
 			}
 
-			if (this.readingClient != null) {
-				this.readingClient.Dispose();
+			if (this.speechLogic != null) {
+				this.speechLogic.Dispose();
 			}
 		}
 
 		/// <summary>
-		/// コメントを追加します。
+		/// メッセージをDBに保存します。
 		/// </summary>
-		/// <param name="summary"></param>
-		/// <param name="message"></param>
-		private void AddMessage(Message message) {
-			this.MessageList.Insert(0, message);
-
-			if (this.ReadingApplicationStatus) {
-				var isSpeech = this.SpeechComment(message);
-				if (isSpeech == false) {
-					MessageBox.Show("読み上げに失敗しました。");
-					this.ReadingApplicationStatus = false;
-				}
-			}
-		}
-
-		/// <summary>
-		/// コメントを追加します。
-		/// </summary>
-		/// <param name="summary"></param>
 		/// <param name="messages"></param>
-		private void AddMessage(IEnumerable<Message> messages) {
-			base.OnPropertyChanged("ConnectingStatus");
-			foreach (var message in messages) {
-				this.MessageList.Insert(0, message);
-			}
+		private void SaveMessage(IEnumerable<Model.Message> messages) {
+			var dbMessages = this.context.Messages.Where(message => message.Room.RoomId == room.RoomId);
+
+			messages.Where(m => dbMessages.All(dm => dm.Number != m.Number && dm.PostTime != m.PostTime)).ForEach(m => {
+				this.context.Messages.Add(m);
+			});
+
+			this.context.SaveChanges();
 		}
 
 		/// <summary>
@@ -369,6 +361,18 @@
 					return;
 				}
 
+				var dbRoom = this.context.Rooms.Find(roomId);
+				if (dbRoom == null) {
+					dbRoom = new Model.Room {
+						RoomId = room.Summary.RoomId,
+						Title = room.Summary.Title,
+						Author = room.Summary.Author,
+						StartTime = room.Summary.StartTime,
+					};
+					this.context.Rooms.Add(dbRoom);
+					this.context.SaveChanges();
+				}
+
 				this.commentClient.OnJoin += this.OnJoin;
 				this.commentClient.OnMessage += this.OnReceiveMessage;
 				this.commentClient.OnUpdateMember += this.OnUpdateMember;
@@ -379,11 +383,18 @@
 					this.LiveUrl = roomId;
 				}
 
-				this.AddMessage(room.Messages.Select(m => {
-					var message = new Message(m, this.BanUser, this.UnBanUser);
-					return message;
-				}));
-				this.summary = room.Summary;
+				this.room = dbRoom;
+
+				var dbMessages = room.Messages.Select(this.ConvertMessage);
+
+				// DBに保存
+				this.SaveMessage(dbMessages);
+
+				// ビューモデルを追加
+				var messages = dbMessages.Select(m => new Message(m, this.BanUser, this.UnBanUser, this.MarkListener));
+				foreach (var message in messages) {
+					this.MessageList.Insert(0, message);
+				}
 
 				try {
 					this.commentClient.JoinRoom(roomId);
@@ -445,7 +456,7 @@
 				return;
 			}
 
-			if (Settings.Default.UserId != this.summary.Author) {
+			if (Settings.Default.UserId != this.room.Author) {
 				MessageBox.Show("配信者でないとBANすることはできません。");
 				return;
 			}
@@ -455,6 +466,8 @@
 				if (isSuccess == false) {
 					MessageBox.Show("BANに失敗しました。");
 				}
+
+				base.OnPropertyChanged("MessageList");
 			} catch (ArgumentException) {
 				logger.Error("未ログイン状態のため、BANできませんでした。");
 			} catch (WebException) {
@@ -473,7 +486,7 @@
 				return;
 			}
 
-			if (Settings.Default.UserId != this.summary.Author) {
+			if (Settings.Default.UserId != this.room.Author) {
 				MessageBox.Show("配信者でないとBANすることはできません。");
 				return;
 			}
@@ -484,12 +497,92 @@
 					MessageBox.Show("BANに失敗しました。");
 				}
 
+				base.OnPropertyChanged("MessageList");
+
 			} catch (ArgumentException) {
 				logger.Error("未ログイン状態のため、BAN解除できませんでした。");
 			} catch (WebException) {
 				logger.Error("CaveTubeとの通信に失敗しました。");
 				MessageBox.Show("BAN解除に失敗しました。");
 			}
+		}
+
+		/// <summary>
+		/// Id付きのリスナーに色を付けます。
+		/// </summary>
+		/// <param name="id"></param>
+		private void MarkListener(Int32 commentNum, String id) {
+			var comment = this.MessageList.FirstOrDefault(m => m.Number == commentNum);
+			if (comment == null) {
+				return;
+			}
+
+			var solidBrush = comment.Color as SolidColorBrush;
+			if (solidBrush.Color != Colors.White) {
+				comment.Color = Brushes.White;
+			} else {
+				var random = new Random();
+				// 暗い色だと文字が見えなくなるので、96以上とします。
+				var red = (byte)random.Next(96, 255);
+				var green = (byte)random.Next(96, 255);
+				var blue = (byte)random.Next(96, 255);
+				comment.Color = new SolidColorBrush(Color.FromRgb(red, green, blue));
+			}
+
+			this.context.SaveChanges();
+
+			this.MessageList.Refresh();
+		}
+
+		/// <summary>
+		/// CavetubeClientから受け取ったメッセージをモデルに変換します。<br />
+		/// 必要に応じてリスナー登録も行います。
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		private Model.Message ConvertMessage(Lib.Message message) {
+			var listener = this.context.Listener.Find(message.Id);
+
+			if (message.Id != null) {
+				var account = message.Auth ? this.context.Account.Find(message.Name) : null;
+
+				// リスナーの登録
+				if (listener == null) {
+					this.context.Listener.Add(new Model.Listener {
+						ListenerId = message.Id,
+						Name = message.Name,
+						Author = this.room.Author,
+						BackgroundColor = account != null ? account.BackgroundColor : Brushes.White,
+						Account = account,
+					});
+					this.context.SaveChanges();
+				} else if (message.Auth && listener.Account == null) {
+					listener.Account = account ?? new Model.Account {
+						AccountName = message.Name,
+						BackgroundColor = Brushes.White,
+					};
+
+					// アカウントの登録
+					this.context.Listener.Where(l => l.ListenerId == listener.ListenerId).ForEach(l => {
+						l.Account = account;
+						l.Color = account.Color;
+					});
+
+					this.context.SaveChanges();
+				}
+			}
+
+			var dbMessage = new Model.Message {
+				Room = this.room,
+				Number = message.Number,
+				Name = message.Name,
+				Comment = message.Comment,
+				PostTime = message.Time,
+				IsBan = message.IsBan,
+				IsAuth = message.Auth,
+				Listener = listener,
+			};
+			return dbMessage;
 		}
 
 		#region CommentClientに登録するイベント
@@ -513,13 +606,28 @@
 		/// <param name="summary"></param>
 		/// <param name="mes"></param>
 		private void OnReceiveMessage(Lib.Message mes) {
-			var message = new Message(mes, this.BanUser, this.UnBanUser);
+			var dbMessage = this.ConvertMessage(mes);
 
-			this.AddMessage(message);
+			// DBに保存
+			this.SaveMessage(new[] { dbMessage });
 
+			// ビューモデルを追加
+			var message = new Message(dbMessage, this.BanUser, this.UnBanUser, this.MarkListener);
+			this.MessageList.Insert(0, message);
+
+			// コメントの読み上げ
+			if (this.ReadingApplicationStatus) {
+				var isSpeech = this.speechLogic.Speak(dbMessage);
+				if (isSpeech == false) {
+					MessageBox.Show("読み上げに失敗しました。");
+					this.ReadingApplicationStatus = false;
+				}
+			}
+
+			// コードビハインドのイベントを実行
 			if (this.OnMessage != null) {
 				uiDispatcher.BeginInvoke(new Action(() => {
-					this.OnMessage(message);
+					this.OnMessage(dbMessage);
 				}));
 			}
 		}
@@ -537,15 +645,9 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void OnBanUser(Lib.Message message) {
-			var oldComment = this.MessageList.FirstOrDefault(m => m.Number == message.Number);
-			if (oldComment == null) {
-				return;
-			}
-
-			var newMessage = new Message(message, this.BanUser, this.UnBanUser);
-			var index = this.MessageList.IndexOf(oldComment);
-			this.MessageList.RemoveAt(index);
-			this.MessageList.Insert(index, newMessage);
+			var target = this.MessageList.FirstOrDefault(m => m.Number == message.Number);
+			target.IsBan = true;
+			this.context.SaveChanges();
 		}
 
 		/// <summary>
@@ -553,15 +655,9 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void OnUnBanUser(Lib.Message message) {
-			var oldComment = this.MessageList.FirstOrDefault(m => m.Number == message.Number);
-			if (oldComment == null) {
-				return;
-			}
-
-			var newMessage = new Message(message, this.BanUser, this.UnBanUser);
-			var index = this.MessageList.IndexOf(oldComment);
-			this.MessageList.RemoveAt(index);
-			this.MessageList.Insert(index, newMessage);
+			var target = this.MessageList.FirstOrDefault(m => m.Number == message.Number);
+			target.IsBan = false;
+			this.context.SaveChanges();
 		}
 
 		#endregion
@@ -590,73 +686,6 @@
 			if (this.RoomJoinStatus) {
 				this.JoinRoom(this.commentClient.RoomId);
 			}
-		}
-
-		#endregion
-
-		#region 読み上げソフト
-
-		/// <summary>
-		/// 読み上げソフトに接続します。
-		/// </summary>
-		private void ConnectReadingApplication() {
-			this.DisconnectReadingApplication();
-
-			switch ((ReadingApplicationEnum)Settings.Default.ReadingApplication) {
-				case ReadingApplicationEnum.Softalk:
-					try {
-						this.readingClient = new SofTalkClient(Settings.Default.SofTalkPath);
-						this.ReadingApplicationStatus = true;
-					} catch (FileNotFoundException) {
-						MessageBox.Show("SofTalkに接続できませんでした。\nオプションでSofTalk.exeの正しいパスを指定してください。");
-						this.ReadingApplicationStatus = false;
-					}
-					break;
-				default:
-					this.readingClient = new BouyomiClientWrapper();
-					if (this.readingClient.IsConnect) {
-						this.ReadingApplicationStatus = true;
-					} else {
-						MessageBox.Show("棒読みちゃんに接続できませんでした。\n後から棒読みちゃんを起動した場合は、リボンの読み上げアイコンから読み上げソフトに接続を選択してください。");
-						this.ReadingApplicationStatus = false;
-					}
-					break;
-			}
-		}
-
-		/// <summary>
-		/// 読み上げソフトから切断します。
-		/// </summary>
-		private void DisconnectReadingApplication() {
-			if (this.readingClient != null) {
-				this.readingClient.Dispose();
-				this.ReadingApplicationStatus = false;
-			}
-		}
-
-		/// <summary>
-		/// 読み上げソフトにコメントを渡します。
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		private Boolean SpeechComment(Message message) {
-			var comment = message.Comment;
-
-			comment = message.IsAsciiArt ? "アスキーアート" : comment;
-
-			comment = Regex.Replace(comment, @"https?://(?:[^.]+\.)?(?:images-)?amazon\.(?:com|ca|co\.uk|de|co\.jp|jp|fr|cn)(/.+)(?![\w\s!?&.\/\+:;#~%""=-]*>)", "アマゾンリンク");
-
-			comment = comment.Replace("\n", " ");
-
-			if (Settings.Default.ReadName && String.IsNullOrWhiteSpace(message.Name) == false) {
-				comment = String.Format("{0}さん {1}", message.Name, comment);
-			}
-
-			if (Settings.Default.ReadNum) {
-				comment = String.Format("コメント{0} {1}", message.Number, comment);
-			}
-
-			return this.readingClient.Add(comment);
 		}
 
 		#endregion
@@ -725,7 +754,7 @@
 			option.DataContext = viewModel;
 			option.ShowDialog();
 
-			this.ConnectReadingApplication();
+			this.speechLogic.Connect();
 		}
 
 		#endregion
@@ -766,27 +795,124 @@
 		}
 	}
 
-	public sealed class Message : Lib.Message {
+	public sealed class Message : ViewModelBase {
 		private Logger logger = LogManager.GetCurrentClassLogger();
+		private Model.Message message;
+
+		public Int32 Number {
+			get { return this.message.Number; }
+			set {
+				this.message.Number = value;
+				base.OnPropertyChanged("Number");
+			}
+		}
+
+		public String ListenerId {
+			get {
+				if (this.message.Listener == null) {
+					return null;
+				}
+				return this.message.Listener.ListenerId;
+			}
+			set {
+				if (this.message.Listener == null) {
+					return;
+				}
+
+				this.message.Listener.ListenerId = value;
+				base.OnPropertyChanged("ListenerId");
+			}
+		}
+
+		public String Name {
+			get { return this.message.Name; }
+			set {
+				this.message.Name = value;
+				base.OnPropertyChanged("Name");
+			}
+		}
+
+		public String Comment {
+			get { return this.message.Comment; }
+			set {
+				this.message.Comment = value;
+				base.OnPropertyChanged("Comment");
+			}
+		}
+
+		public DateTime PostTime {
+			get { return this.message.PostTime; }
+			set {
+				this.message.PostTime = value;
+				base.OnPropertyChanged("PostTime");
+			}
+		}
+
+		public Boolean IsAuth {
+			get { return this.message.IsAuth; }
+			set {
+				this.message.IsAuth = value;
+				base.OnPropertyChanged("IsAuth");
+			}
+		}
+
+		public Boolean IsBan {
+			get { return this.message.IsBan; }
+			set {
+				this.message.IsBan = value;
+				base.OnPropertyChanged("IsBan");
+			}
+		}
+
+		public Boolean IsAsciiArt {
+			get {
+				return this.message.IsAsciiArt;
+			}
+		}
+
+		public Brush Color {
+			get {
+				if (this.message.Listener == null) {
+					return new SolidColorBrush(Colors.White);
+				}
+
+				return this.message.Listener.BackgroundColor;
+			}
+			set {
+				if (this.message.Listener == null) {
+					return;
+				}
+
+				if (this.message.Listener.Account != null) {
+					this.message.Listener.Account.BackgroundColor = value;
+					// Context経由で取得しないと更新できないのでとりあえずこうしています。
+					foreach (var listener in this.message.Listener.Account.Listeners) {
+						listener.BackgroundColor = value;
+					}
+				} else {
+					this.message.Listener.BackgroundColor = value;
+				}
+
+
+				base.OnPropertyChanged("Color");
+			}
+		}
 
 		public event Action<Int32> OnBanUser;
 		public event Action<Int32> OnUnBanUser;
+		public event Action<Int32, String> OnMarkListener;
 
 		public ICommand CopyCommentCommand { get; private set; }
 		public ICommand BanUserCommand { get; private set; }
 		public ICommand UnBanUserCommand { get; private set; }
+		public ICommand MarkCommand { get; private set; }
 
-		public Message(Lib.Message message, Action<Int32> OnBan, Action<Int32> OnUnBan) {
-			this.Number = message.Number;
-			this.Id = message.Id;
-			this.Name = message.Name;
-			this.Comment = message.Comment;
-			this.Time = message.Time;
-			this.Auth = message.Auth;
-			this.IsBan = message.IsBan;
+		public Message(Model.Message message, Action<Int32> OnBan, Action<Int32> OnUnBan, Action<Int32, String> OnMarkListener) {
+			this.message = message;
 
 			this.OnBanUser += OnBan;
 			this.OnUnBanUser += OnUnBan;
+			this.OnMarkListener += OnMarkListener;
 
 			this.CopyCommentCommand = new RelayCommand(p => {
 				try {
@@ -806,6 +932,11 @@
 			this.UnBanUserCommand = new RelayCommand(p => {
 				if (this.OnUnBanUser != null) {
 					this.OnUnBanUser(this.Number);
+				}
+			});
+			this.MarkCommand = new RelayCommand(p => {
+				if (this.OnMarkListener != null && String.IsNullOrWhiteSpace(this.ListenerId) == false) {
+					this.OnMarkListener(this.Number, this.ListenerId);
 				}
 			});
 		}

@@ -55,6 +55,9 @@
     <ApplicationIcon>Images\cavelis.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.4.3.0\lib\net40\EntityFramework.dll</HintPath>
+    </Reference>
     <Reference Include="Hardcodet.Wpf.TaskbarNotification">
       <HintPath>bin\Release\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
     </Reference>
@@ -64,8 +67,10 @@
       <HintPath>bin\Release\ParallelExtensionsExtras.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Interactive">
       <HintPath>..\packages\Ix_Experimental-Main.1.1.10823\lib\Net4\System.Interactive.dll</HintPath>
     </Reference>
@@ -96,6 +101,7 @@
     </ApplicationDefinition>
     <Compile Include="Behavior\KeydownBehavior.cs" />
     <Compile Include="Behavior\PlaceholderBehavior.cs" />
+    <Compile Include="Behavior\DoubleClickBehavior.cs" />
     <Compile Include="Control\NotifyBalloon.xaml.cs">
       <DependentUpon>NotifyBalloon.xaml</DependentUpon>
     </Compile>
@@ -112,6 +118,12 @@
     <Compile Include="Lib\ICommentClient.cs" />
     <Compile Include="Lib\IReadingApplication.cs" />
     <Compile Include="Lib\SofTalkClient.cs" />
+    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Model\CaveTalkContext.cs" />
+    <Compile Include="Model\Message.cs" />
+    <Compile Include="Model\Room.cs" />
+    <Compile Include="Model\Listener.cs" />
+    <Compile Include="Model\Account.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ViewModel\CommentOptionViewModel.cs" />
     <Compile Include="ViewModel\NotifyOptionViewModel.cs" />

@@ -57,6 +57,14 @@
 		}
 
 		protected abstract Boolean IsFire(KeyEventArgs e);
+
+		[Flags]
+		public enum OptionKey {
+			None,
+			Ctrl,
+			Shift,
+			Alt,
+		}
 	}
 
 	public sealed class ExecCommandOnEnterKeyDownBehavior : ExecCommandKeyDownBehavior<ComboBox> {
@@ -75,13 +83,5 @@
 			var isPressShift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
 			return isEneter && (isPressCtrl || isPressShift);
 		}
-	}
-
-	[Flags]
-	public enum OptionKey {
-		None,
-		Ctrl,
-		Shift,
-		Alt,
 	}
 }

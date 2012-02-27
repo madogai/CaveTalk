@@ -522,6 +522,7 @@
 	/// </summary>
 	public class Summary {
 		public String RoomId { get; set; }
+		public String Title { get; set; }
 		public String Author { get; set; }
 		public Int32 Listener { get; set; }
 		public Int32 PageView { get; set; }
@@ -533,6 +534,7 @@
 		public Summary(String jsonString) {
 			var json = DynamicJson.Parse(jsonString);
 			this.RoomId = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
+			this.Title = json.IsDefined("title") ? json.title : String.Empty;
 			this.Author = json.IsDefined("author") ? json.author : String.Empty;
 			this.Listener = json.IsDefined("listener") ? (Int32)json.listener : 0;
 			this.PageView = json.IsDefined("viewer") ? (Int32)json.viewer : 0;
