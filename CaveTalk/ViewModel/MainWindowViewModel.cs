@@ -2,7 +2,6 @@
 	using System;
 	using System.Collections.Generic;
 	using System.Configuration;
-	using System.IO;
 	using System.Linq;
 	using System.Net;
 	using System.Runtime.InteropServices;
@@ -12,14 +11,13 @@
 	using System.Windows.Media;
 	using System.Windows.Threading;
 	using CaveTube.CaveTalk.Lib;
+	using CaveTube.CaveTalk.Logic;
 	using CaveTube.CaveTalk.Model;
-	using CaveTube.CaveTalk.Properties;
 	using CaveTube.CaveTalk.Utils;
 	using CaveTube.CaveTalk.View;
 	using CaveTube.CaveTubeClient;
 	using Microsoft.Win32;
 	using NLog;
-using CaveTube.CaveTalk.Logic;
 
 	public sealed class MainWindowViewModel : ViewModelBase {
 		private Logger logger = LogManager.GetCurrentClassLogger();
@@ -29,11 +27,12 @@ using CaveTube.CaveTalk.Logic;
 		private Dispatcher uiDispatcher;
 		private Model.Room room;
 		private CaveTalkContext context;
+		private Model.Config config;
 
 		private SpeechLogic speechLogic;
 
-		public event Action<LiveNotification> OnNotifyLive;
-		public event Action<Model.Message> OnMessage;
+		public event Action<LiveNotification, Model.Config> OnNotifyLive;
+		public event Action<Model.Message, Model.Config> OnMessage;
 
 		#region プロパティ
 
@@ -69,12 +68,8 @@ using CaveTube.CaveTalk.Logic;
 			}
 		}
 
-		public Boolean ReadingApplicationStatus {
+		public Boolean SpeakApplicationStatus {
 			get { return this.speechLogic.SpeechStatus; }
-			set {
-				this.speechLogic.SpeechStatus = value;
-				base.OnPropertyChanged("ReadingApplicationStatus");
-			}
 		}
 
 		public Boolean ConnectingStatus {
@@ -95,7 +90,7 @@ using CaveTube.CaveTalk.Logic;
 
 		public Boolean LoginStatus {
 			get {
-				return String.IsNullOrWhiteSpace(Settings.Default.ApiKey) == false;
+				return String.IsNullOrWhiteSpace(this.config.ApiKey) == false;
 			}
 		}
 
@@ -117,6 +112,16 @@ using CaveTube.CaveTalk.Logic;
 				this.postMessage = value;
 				base.OnPropertyChanged("PostMessage");
 			}
+		}
+
+		public Int32 FontSize {
+			get {
+				return this.config.FontSize;
+			}
+		}
+
+		public Boolean TopMost {
+			get { return this.config.TopMost; }
 		}
 
 		#endregion
@@ -161,12 +166,12 @@ using CaveTube.CaveTalk.Logic;
 		/// <summary>
 		/// 読み上げソフトに接続します。
 		/// </summary>
-		public ICommand ConnectReadingApplicationCommand { get; private set; }
+		public ICommand ConnectSpeakApplicationCommand { get; private set; }
 
 		/// <summary>
 		/// 読み上げソフトのコネクションを切断します。
 		/// </summary>
-		public ICommand DisconnectReadingApplicationCommand { get; private set; }
+		public ICommand DisconnectSpeakApplicationCommand { get; private set; }
 
 		/// <summary>
 		/// 通知を有効にします。
@@ -197,14 +202,22 @@ using CaveTube.CaveTalk.Logic;
 			this.MessageList = new SafeObservable<Message>();
 			this.uiDispatcher = Dispatcher.CurrentDispatcher;
 			this.context = new CaveTalkContext();
-			this.context.Database.CreateIfNotExists();
 
 			this.speechLogic = new SpeechLogic();
 
+			// 設定データの取得
+			this.config = this.context.Config.First();
+
 			#region Commandの登録
 
-			this.ConnectReadingApplicationCommand = new RelayCommand(p => this.speechLogic.Connect());
-			this.DisconnectReadingApplicationCommand = new RelayCommand(p => this.speechLogic.Disconnect());
+			this.ConnectSpeakApplicationCommand = new RelayCommand(p => {
+				this.speechLogic.Connect();
+				base.OnPropertyChanged("SpeakApplicationStatus");
+			});
+			this.DisconnectSpeakApplicationCommand = new RelayCommand(p => {
+				this.speechLogic.Disconnect();
+				base.OnPropertyChanged("SpeakApplicationStatus");
+			});
 			this.JoinRoomCommand = new RelayCommand(p => this.JoinRoom(this.LiveUrl));
 			this.LeaveRoomCommand = new RelayCommand(p => this.LeaveRoom());
 			this.LoginCommand = new RelayCommand(p => this.LoginCavetube());
@@ -214,7 +227,7 @@ using CaveTube.CaveTalk.Logic;
 				this.LoginCavetube();
 			});
 			this.PostCommentCommand = new RelayCommand(p => {
-				var apiKey = Settings.Default.ApiKey ?? String.Empty;
+				var apiKey = this.config.ApiKey ?? String.Empty;
 				this.PostComment(this.PostName, this.PostMessage, apiKey);
 			});
 			this.AboutBoxCommand = new RelayCommand(p => this.ShowVersion());
@@ -222,7 +235,7 @@ using CaveTube.CaveTalk.Logic;
 
 			#endregion
 
-			this.PostName = Settings.Default.UserId;
+			this.PostName = this.config.UserId;
 
 			SystemEvents.PowerModeChanged += this.OnPowerModeChanged;
 		}
@@ -255,9 +268,9 @@ using CaveTube.CaveTalk.Logic;
 			#region 読み上げソフト
 
 			this.speechLogic.Connect();
+			base.OnPropertyChanged("SpeakApplicationStatus");
 
 			#endregion
-
 		}
 
 		/// <summary>
@@ -456,13 +469,13 @@ using CaveTube.CaveTalk.Logic;
 				return;
 			}
 
-			if (Settings.Default.UserId != this.room.Author) {
+			if (this.config.UserId != this.room.Author) {
 				MessageBox.Show("配信者でないとBANすることはできません。");
 				return;
 			}
 
 			try {
-				var isSuccess = this.commentClient.BanListener(commentNum, Settings.Default.ApiKey);
+				var isSuccess = this.commentClient.BanListener(commentNum, this.config.ApiKey);
 				if (isSuccess == false) {
 					MessageBox.Show("BANに失敗しました。");
 				}
@@ -486,13 +499,13 @@ using CaveTube.CaveTalk.Logic;
 				return;
 			}
 
-			if (Settings.Default.UserId != this.room.Author) {
+			if (this.config.UserId != this.room.Author) {
 				MessageBox.Show("配信者でないとBANすることはできません。");
 				return;
 			}
 
 			try {
-				var isSuccess = this.commentClient.UnBanListener(commentNum, Settings.Default.ApiKey);
+				var isSuccess = this.commentClient.UnBanListener(commentNum, this.config.ApiKey);
 				if (isSuccess == false) {
 					MessageBox.Show("BANに失敗しました。");
 				}
@@ -564,6 +577,9 @@ using CaveTube.CaveTalk.Logic;
 
 					// アカウントの登録
 					this.context.Listener.Where(l => l.ListenerId == listener.ListenerId).ForEach(l => {
+						if (account == null) {
+							return;
+						}
 						l.Account = account;
 						l.Color = account.Color;
 					});
@@ -616,18 +632,19 @@ using CaveTube.CaveTalk.Logic;
 			this.MessageList.Insert(0, message);
 
 			// コメントの読み上げ
-			if (this.ReadingApplicationStatus) {
+			if (this.SpeakApplicationStatus) {
 				var isSpeech = this.speechLogic.Speak(dbMessage);
 				if (isSpeech == false) {
 					MessageBox.Show("読み上げに失敗しました。");
-					this.ReadingApplicationStatus = false;
+					this.speechLogic.Disconnect();
+					base.OnPropertyChanged("SpeakApplicationStatus");
 				}
 			}
 
 			// コードビハインドのイベントを実行
 			if (this.OnMessage != null) {
 				uiDispatcher.BeginInvoke(new Action(() => {
-					this.OnMessage(dbMessage);
+					this.OnMessage(dbMessage, this.config);
 				}));
 			}
 		}
@@ -669,11 +686,11 @@ using CaveTube.CaveTalk.Logic;
 		/// </summary>
 		/// <param name="liveInfo"></param>
 		private void OnLiveNotification(LiveNotification liveInfo) {
-			if (this.OnNotifyLive == null || (NotifyPopupStateEnum)Settings.Default.NotifyState == NotifyPopupStateEnum.False) {
+			if (this.OnNotifyLive == null || (NotifyPopupState)this.config.NotifyPopupState == NotifyPopupState.False) {
 				return;
 			}
 			uiDispatcher.BeginInvoke(new Action(() => {
-				this.OnNotifyLive(liveInfo);
+				this.OnNotifyLive(liveInfo, this.config);
 			}));
 		}
 
@@ -700,22 +717,24 @@ using CaveTube.CaveTalk.Logic;
 			};
 			loginBox.DataContext = viewModel;
 			loginBox.ShowDialog();
+
+			this.context.Entry(this.config).Reload();
 			base.OnPropertyChanged("LoginStatus");
-			this.PostName = Settings.Default.UserId;
+			this.PostName = this.config.UserId;
 		}
 
 		private void LogoutCavetube() {
-			var apiKey = Settings.Default.ApiKey;
+			var apiKey = this.config.ApiKey;
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				return;
 			}
 
-			var userId = Settings.Default.UserId;
+			var userId = this.config.UserId;
 			if (String.IsNullOrWhiteSpace(userId)) {
 				throw new ConfigurationErrorsException("UserIdが登録されていません。");
 			}
 
-			var password = Settings.Default.Password;
+			var password = this.config.Password;
 			if (String.IsNullOrWhiteSpace(userId)) {
 				throw new ConfigurationErrorsException("Passwordが登録されていません。");
 			}
@@ -727,7 +746,12 @@ using CaveTube.CaveTalk.Logic;
 			try {
 				var isSuccess = cavetubeClient.Logout(userId, password, devKey);
 				if (isSuccess) {
-					Settings.Default.Reset();
+					this.config.ApiKey = null;
+					this.config.UserId = null;
+					this.config.Password = null;
+					this.context.SaveChanges();
+
+					this.context.Entry(this.config).Reload();
 					base.OnPropertyChanged("LoginStatus");
 				}
 			} catch (WebException) {
@@ -750,11 +774,16 @@ using CaveTube.CaveTalk.Logic;
 		private void ShowOption() {
 			var option = new OptionWindow();
 			var viewModel = new OptionWindowViewModel();
+
 			viewModel.OnClose += () => option.Close();
 			option.DataContext = viewModel;
 			option.ShowDialog();
 
+			this.context.Entry(this.config).Reload();
 			this.speechLogic.Connect();
+			base.OnPropertyChanged("SpeakApplicationStatus");
+			base.OnPropertyChanged("FontSize");
+			base.OnPropertyChanged("TopMost");
 		}
 
 		#endregion

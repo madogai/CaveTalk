@@ -14,8 +14,8 @@
         <GroupBox Header="読み上げソフト">
             <StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,3">
-                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=ReadingApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Bouyomi}">棒読みちゃん</RadioButton>
-                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=ReadingApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Softalk}">SofTalk</RadioButton>
+                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Bouyomi}">棒読みちゃん</RadioButton>
+                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Softalk}">SofTalk</RadioButton>
                 </StackPanel>
                 <Grid>
                     <Grid.Style>

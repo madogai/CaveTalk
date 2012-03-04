@@ -105,6 +105,7 @@
     <Compile Include="Control\NotifyBalloon.xaml.cs">
       <DependentUpon>NotifyBalloon.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Control\PasswordBoxAssistant.cs" />
     <Compile Include="Control\RibbonTextBlock.cs" />
     <Compile Include="Control\MessageBalloon.xaml.cs">
       <DependentUpon>MessageBalloon.xaml</DependentUpon>
@@ -119,16 +120,20 @@
     <Compile Include="Lib\IReadingApplication.cs" />
     <Compile Include="Lib\SofTalkClient.cs" />
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Logic\SpeechLogic.cs" />
     <Compile Include="Model\CaveTalkContext.cs" />
+    <Compile Include="Model\CaveTalkInitializer.cs" />
     <Compile Include="Model\Message.cs" />
     <Compile Include="Model\Room.cs" />
     <Compile Include="Model\Listener.cs" />
     <Compile Include="Model\Account.cs" />
+    <Compile Include="Model\Config.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ViewModel\CommentOptionViewModel.cs" />
     <Compile Include="ViewModel\NotifyOptionViewModel.cs" />
     <Compile Include="ViewModel\OptionBaseViewModel.cs" />
     <Compile Include="ViewModel\OptionWindowViewModel.cs" />
+    <Compile Include="ViewModel\GeneralOptionViewModel.cs" />
     <Compile Include="View\CommentOptionControl.xaml.cs">
       <DependentUpon>CommentOptionControl.xaml</DependentUpon>
     </Compile>
@@ -148,6 +153,9 @@
     </Compile>
     <Compile Include="View\OptionWindow.xaml.cs">
       <DependentUpon>OptionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\GeneralOptoinControl.xaml.cs">
+      <DependentUpon>GeneralOptoinControl.xaml</DependentUpon>
     </Compile>
     <Page Include="Control\NotifyBalloon.xaml">
       <SubType>Designer</SubType>
@@ -205,6 +213,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\GeneralOptoinControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -214,11 +226,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -236,10 +243,6 @@
     </None>
     <None Include="NLog.config" />
     <None Include="packages.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>

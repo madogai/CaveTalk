@@ -1,68 +1,59 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
+	using System.Linq;
 	using System.Windows.Input;
-	using CaveTube.CaveTalk.Properties;
+	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Utils;
 	using Microsoft.Win32;
 
 	public sealed class CommentOptionViewModel : OptionBaseViewModel {
+		private CaveTalkContext context;
+		private Config config;
 
-		private ReadingApplicationEnum readingApplication;
-
-		public ReadingApplicationEnum ReadingApplication {
-			get { return this.readingApplication; }
+		public SpeakApplicationState SpeakApplication {
+			get { return (SpeakApplicationState)this.config.SpeakApplication; }
 			set {
-				this.readingApplication = value;
-				base.OnPropertyChanged("ReadingApplication");
+				this.config.SpeakApplication = (Int32)value;
+				base.OnPropertyChanged("SpeakApplication");
 			}
 		}
 
-		private String softalkFilePath;
-
 		public String SoftalkFilePath {
-			get { return this.softalkFilePath; }
+			get { return this.config.SofTalkPath; }
 			set {
-				this.softalkFilePath = value;
+				this.config.SofTalkPath = value;
 				base.OnPropertyChanged("SoftalkFilePath");
 			}
 		}
 
-		private CommentPopupStateEnum popupState;
-
-		public CommentPopupStateEnum PopupState {
-			get { return this.popupState; }
+		public CommentPopupState PopupState {
+			get { return (CommentPopupState)this.config.CommentPopupState; }
 			set {
-				this.popupState = value;
+				this.config.CommentPopupState = (Int32)value;
 				base.OnPropertyChanged("PopupState");
 			}
 		}
 
-		private Int32 popupTime;
-
 		public Int32 PopupTime {
-			get { return this.popupTime; }
+			get { return this.config.CommentPopupTime; }
 			set {
-				this.popupTime = value;
+				this.config.CommentPopupTime = value;
 				base.OnPropertyChanged("PopupTime");
 			}
 		}
 
-		private Boolean readNum;
-
 		public Boolean ReadNum {
-			get { return this.readNum; }
+			get { return this.config.ReadCommentNumber; }
 			set {
-				this.readNum = value;
+				this.config.ReadCommentNumber = value;
 				base.OnPropertyChanged("ReadNum");
 			}
 		}
 
-		public Boolean readName;
-
 		public Boolean ReadName {
-			get { return this.readName; }
+			get { return this.config.ReadCommentName; }
 			set {
-				this.readName = value;
+				this.config.ReadCommentName = value;
 				base.OnPropertyChanged("ReadName");
 			}
 		}
@@ -70,12 +61,8 @@
 		public ICommand FindSoftalkExeCommand { get; private set; }
 
 		public CommentOptionViewModel() {
-			this.ReadingApplication = (ReadingApplicationEnum)Settings.Default.ReadingApplication;
-			this.PopupTime = Settings.Default.CommentPopupTime;
-			this.PopupState = (CommentPopupStateEnum)Settings.Default.CommentPopup;
-			this.SoftalkFilePath = Settings.Default.SofTalkPath;
-			this.ReadNum = Settings.Default.ReadNum;
-			this.ReadName = Settings.Default.ReadName;
+			this.context = new CaveTalkContext();
+			this.config = this.context.Config.First();
 
 			this.FindSoftalkExeCommand = new RelayCommand(p => {
 				var dialog = new OpenFileDialog {
@@ -94,13 +81,7 @@
 		}
 
 		internal override void Save() {
-			Settings.Default.ReadingApplication = (Int32)this.ReadingApplication;
-			Settings.Default.SofTalkPath = this.SoftalkFilePath;
-			Settings.Default.CommentPopup = (Int32)this.PopupState;
-			Settings.Default.CommentPopupTime = this.PopupTime;
-			Settings.Default.ReadNum = this.ReadNum;
-			Settings.Default.ReadName = this.ReadName;
-			Settings.Default.Save();
+			this.context.SaveChanges();
 		}
 	}
 }

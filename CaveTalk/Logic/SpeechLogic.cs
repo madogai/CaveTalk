@@ -1,14 +1,24 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
-using CaveTube.CaveTalk.Lib;
-using CaveTube.CaveTalk.Properties;
 using System.Windows;
+using CaveTube.CaveTalk.Lib;
+using CaveTube.CaveTalk.Model;
+using CaveTube.CaveTalk.Properties;
 
 namespace CaveTube.CaveTalk.Logic {
 	internal sealed class SpeechLogic : IDisposable {
+		private CaveTalkContext context;
+		private Config config;
+
 		private IReadingApplicationClient client;
 		public Boolean SpeechStatus;
+
+		public SpeechLogic() {
+			this.context = new CaveTalkContext();
+			this.config = this.context.Config.First();
+		}
 
 		/// <summary>
 		/// 読み上げソフトに接続します。
@@ -16,10 +26,12 @@ namespace CaveTube.CaveTalk.Logic {
 		public void Connect() {
 			this.Disconnect();
 
-			switch ((ReadingApplicationEnum)Settings.Default.ReadingApplication) {
-				case ReadingApplicationEnum.Softalk:
+			this.context.Entry(this.config).Reload();
+
+			switch ((SpeakApplicationState)this.config.SpeakApplication) {
+				case SpeakApplicationState.Softalk:
 					try {
-						this.client = new SofTalkClient(Settings.Default.SofTalkPath);
+						this.client = new SofTalkClient(this.config.SofTalkPath);
 						this.SpeechStatus = true;
 					} catch (FileNotFoundException) {
 						MessageBox.Show("SofTalkに接続できませんでした。\nオプションでSofTalk.exeの正しいパスを指定してください。");
@@ -54,6 +66,8 @@ namespace CaveTube.CaveTalk.Logic {
 		/// <param name="message"></param>
 		/// <returns></returns>
 		public Boolean Speak(Model.Message message) {
+			var config = this.context.Config.First();
+
 			var comment = message.Comment;
 
 			comment = message.IsAsciiArt ? "アスキーアート" : comment;
@@ -62,11 +76,11 @@ namespace CaveTube.CaveTalk.Logic {
 
 			comment = comment.Replace("\n", " ");
 
-			if (Settings.Default.ReadName && String.IsNullOrWhiteSpace(message.Name) == false) {
+			if (config.ReadCommentName && String.IsNullOrWhiteSpace(message.Name) == false) {
 				comment = String.Format("{0}さん {1}", message.Name, comment);
 			}
 
-			if (Settings.Default.ReadNum) {
+			if (config.ReadCommentNumber) {
 				comment = String.Format("コメント{0} {1}", message.Number, comment);
 			}
 

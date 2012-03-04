@@ -1,37 +1,35 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
+	using System.Linq;
 	using System.Windows.Input;
-	using CaveTube.CaveTalk.Properties;
+	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Utils;
 	using Microsoft.Win32;
 
 	public sealed class NotifyOptionViewModel : OptionBaseViewModel {
-		private NotifyPopupStateEnum notifyState;
+		private CaveTalkContext context;
+		private Config config;
 
-		public NotifyPopupStateEnum NotifyState {
-			get { return notifyState; }
+		public NotifyPopupState NotifyState {
+			get { return (NotifyPopupState)this.config.NotifyPopupState; }
 			set {
-				notifyState = value;
+				this.config.NotifyPopupState = (Int32)value;
 				base.OnPropertyChanged("NotifyState");
 			}
 		}
 
-		private int popupTime;
-
-		public int PopupTime {
-			get { return this.popupTime; }
+		public Int32 PopupTime {
+			get { return this.config.NotifyPopupTime; }
 			set {
-				this.popupTime = value;
+				this.config.NotifyPopupTime = value;
 				base.OnPropertyChanged("PopupTime");
 			}
 		}
 
-		private String soundFilePath;
-
 		public String SoundFilePath {
-			get { return this.soundFilePath; }
+			get { return this.config.NotifySoundFilePath; }
 			set {
-				this.soundFilePath = value;
+				this.config.NotifySoundFilePath = value;
 				base.OnPropertyChanged("SoundFilePath");
 			}
 		}
@@ -39,9 +37,8 @@
 		public ICommand FindSoundFileCommand { get; private set; }
 
 		public NotifyOptionViewModel() {
-			this.NotifyState = (NotifyPopupStateEnum)Settings.Default.NotifyState;
-			this.PopupTime = Settings.Default.NotifyPopupTime;
-			this.SoundFilePath = Settings.Default.NotifySoundFilePath;
+			this.context = new CaveTalkContext();
+			this.config = this.context.Config.First();
 
 			this.FindSoundFileCommand = new RelayCommand(p => {
 				var dialog = new OpenFileDialog {
@@ -60,10 +57,7 @@
 		}
 
 		internal override void Save() {
-			Settings.Default.NotifyState = (int)this.NotifyState;
-			Settings.Default.NotifyPopupTime = this.PopupTime;
-			Settings.Default.NotifySoundFilePath = this.SoundFilePath;
-			Settings.Default.Save();
+			this.context.SaveChanges();
 		}
 	}
 }

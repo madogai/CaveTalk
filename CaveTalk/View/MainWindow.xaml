@@ -9,9 +9,10 @@
         xmlns:cv="clr-namespace:CaveTube.CaveTalk.Converter"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         x:Name="Root"
-        Title="CaveTalk" Height="350" Width="525" MinWidth="400" MinHeight="350" Icon="/CaveTalk;component/Images/cavelis.ico">
+        Title="CaveTalk" Height="350" Width="525" MinWidth="400" MinHeight="350" Icon="/CaveTalk;component/Images/cavelis.ico" Topmost="{Binding Path=TopMost}">
     <rb:RibbonWindow.Resources>
         <cv:ConnectingStatusConverter x:Key="ConnectingStatusConverter" />
+        <cv:AutoLinkConverter x:Key="AutoLinkConverter" />
         <Style x:Key="DefaultCellStyle" TargetType="DataGridCell">
             <Style.Triggers>
                 <Trigger Property="DataGridCell.IsSelected" Value="True">
@@ -162,28 +163,28 @@
                             <Style TargetType="{x:Type rb:RibbonMenuButton}">
                                 <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/connect_no.png" />
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=ReadingApplicationStatus}" Value="True">
+                                    <DataTrigger Binding="{Binding Path=SpeakApplicationStatus}" Value="True">
                                         <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/connect_established.png" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </rb:RibbonMenuButton.Style>
-                        <rb:RibbonMenuItem Header="読み上げソフトに接続" Command="{Binding Path=ConnectReadingApplicationCommand}">
+                        <rb:RibbonMenuItem Header="読み上げソフトに接続" Command="{Binding Path=ConnectSpeakApplicationCommand}">
                             <rb:RibbonMenuItem.Style>
                                 <Style TargetType="rb:RibbonMenuItem">
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Path=ReadingApplicationStatus}" Value="True">
+                                        <DataTrigger Binding="{Binding Path=SpeakApplicationStatus}" Value="True">
                                             <Setter Property="Visibility" Value="Collapsed" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </rb:RibbonMenuItem.Style>
                         </rb:RibbonMenuItem>
-                        <rb:RibbonMenuItem Header="読み上げソフトから切断" Command="{Binding Path=DisconnectReadingApplicationCommand}">
+                        <rb:RibbonMenuItem Header="読み上げソフトから切断" Command="{Binding Path=DisconnectSpeakApplicationCommand}">
                             <rb:RibbonMenuItem.Style>
                                 <Style TargetType="rb:RibbonMenuItem">
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Path=ReadingApplicationStatus}" Value="False">
+                                        <DataTrigger Binding="{Binding Path=SpeakApplicationStatus}" Value="False">
                                             <Setter Property="Visibility" Value="Collapsed" />
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -247,7 +248,7 @@
                 <Button Grid.Column="4" x:Name="PostKey" Content="書き込み" Command="{Binding Path=PostCommentCommand}" IsEnabled="{Binding Path=RoomJoinStatus}" />
             </Grid>
         </Border>
-        <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True" SelectedIndex="{Binding Path=MessageIndex}" HorizontalScrollBarVisibility="Disabled">
+        <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True" SelectedIndex="{Binding Path=MessageIndex}" HorizontalScrollBarVisibility="Disabled" FontSize="{Binding Path=FontSize}">
             <i:Interaction.Behaviors>
                 <b:ExecCommandDoubleClickBehavior Command="MarkCommand" />
             </i:Interaction.Behaviors>
@@ -304,18 +305,47 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Binding="{Binding Path=Comment}" Header="Comment" Width="*" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=IsAsciiArt}" Value="True">
-                                    <Setter Property="FontFamily" Value="IPAMonaPGothic,Monapo,Mona,MS PGothic,sans-serif" />
-                                    <Setter Property="TextWrapping" Value="NoWrap" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Comment" Width="*" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ContentControl Content="{Binding Path=Comment, Converter={StaticResource ResourceKey=AutoLinkConverter}}">
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Style.Setters>
+                                            <EventSetter Event="Hyperlink.RequestNavigate" Handler="OpenUrl" />
+                                        </Style.Setters>
+                                        <Style.Resources>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Setters>
+                                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                                </Style.Setters>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=IsAsciiArt}" Value="True">
+                                                        <Setter Property="FontFamily" Value="IPAMonaPGothic,Monapo,Mona,MS PGothic,sans-serif" />
+                                                        <Setter Property="TextWrapping" Value="NoWrap" />
+                                                    </DataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=IsAsciiArt}" Value="True" />
+                                                            <Condition Binding="{Binding RelativeSource={RelativeSource Mode=Self}, Path=IsMouseOver}" Value="True" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.EnterActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <!-- テキストのスクロールアニメーションを入れたい -->
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </MultiDataTrigger.EnterActions>
+                                                    </MultiDataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Style.Resources>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Binding="{Binding Path=ListenerId}" Header="Id" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" />
                 <DataGridTextColumn Binding="{Binding Path=PostTime, StringFormat=HH:mm:ss}" Header="Time" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" />
             </DataGrid.Columns>

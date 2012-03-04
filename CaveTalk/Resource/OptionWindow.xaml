@@ -4,6 +4,10 @@
                     xmlns:vw="clr-namespace:CaveTube.CaveTalk.View"
                     >
 
+    <DataTemplate DataType="{x:Type vm:GeneralOptionViewModel}">
+        <vw:GeneralOptoinControl />
+    </DataTemplate>
+
     <DataTemplate DataType="{x:Type vm:CommentOptionViewModel}">
         <vw:CommentOptionControl />
     </DataTemplate>

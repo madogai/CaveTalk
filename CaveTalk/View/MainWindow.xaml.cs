@@ -13,6 +13,8 @@
 	using System.Net;
 	using System.Configuration;
 	using System.Diagnostics;
+	using System.Windows;
+	using System.Windows.Documents;
 
 	/// <summary>
 	/// MainWindow.xaml の相互作用ロジック
@@ -31,20 +33,16 @@
 
 			this.Loaded += (sender, e) => {
 				var context = (MainWindowViewModel)this.DataContext;
-				context.OnNotifyLive += liveInfo => {
-					var notifyState = (NotifyPopupStateEnum)Settings.Default.NotifyState;
-					if (notifyState == NotifyPopupStateEnum.False) {
-						return;
-					}
-
+				context.OnNotifyLive += (liveInfo, config) => {
 					var balloon = new NotifyBalloon();
 					balloon.OnClose += () => this.MyNotifyIcon.CloseBalloon();
 					balloon.DataContext = liveInfo;
-					var timeout = Settings.Default.NotifyPopupTime * 1000;
+					
+					var timeout = config.NotifyPopupTime * 1000;
 					this.MyNotifyIcon.ShowCustomBalloon(balloon, PopupAnimation.Slide, timeout);
 				};
-				context.OnNotifyLive += liveInfo => {
-					var soundFilePath = Settings.Default.NotifySoundFilePath;
+				context.OnNotifyLive += (liveInfo, config) => {
+					var soundFilePath = config.NotifySoundFilePath;
 					if (File.Exists(soundFilePath) == false) {
 						return;
 					}
@@ -53,13 +51,13 @@
 					this.player.Play();
 				};
 
-				context.OnMessage += message => {
-					var commentState = (CommentPopupStateEnum)Settings.Default.CommentPopup;
-					if (commentState == CommentPopupStateEnum.Disable) {
+				context.OnMessage += (message, config) => {
+					var commentState = config.CommentPopupState;
+					if ((CommentPopupState)commentState == CommentPopupState.Disable) {
 						return;
 					}
 
-					if (commentState == CommentPopupStateEnum.Minimum && this.Root.WindowState != System.Windows.WindowState.Minimized) {
+					if ((CommentPopupState)commentState == CommentPopupState.Minimum && this.Root.WindowState != System.Windows.WindowState.Minimized) {
 						return;
 					}
 
@@ -69,7 +67,7 @@
 
 					var balloon = new MessageBalloon();
 					balloon.DataContext = message;
-					var timeout = Settings.Default.CommentPopupTime * 1000;
+					var timeout = config.CommentPopupTime * 1000;
 					this.MyNotifyIcon.ShowCustomBalloon(balloon, PopupAnimation.Slide, timeout);
 				};
 			};
@@ -82,6 +80,11 @@
 		// RoutedCommandが上手くいかなかったのでとりあえずイベントハンドラで登録します。
 		private void ResotreWindowButtonClick(object sender, System.Windows.RoutedEventArgs e) {
 			this.Root.WindowState = System.Windows.WindowState.Normal;
+		}
+
+		private void OpenUrl(object sender, RoutedEventArgs e) {
+			var hyperlink = (Hyperlink)e.Source;
+			Process.Start(hyperlink.NavigateUri.AbsoluteUri);
 		}
 	}
 }

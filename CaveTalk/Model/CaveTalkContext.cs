@@ -10,5 +10,6 @@ namespace CaveTube.CaveTalk.Model {
 		public DbSet<Room> Rooms { get; set; }
 		public DbSet<Message> Messages { get; set; }
 		public DbSet<Account> Account { get; set; }
+		public DbSet<Config> Config { get; set; }
 	}
 }
