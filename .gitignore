@@ -1,3 +1,4 @@
+/bin
 /CaveTalk/bin
 /CaveTalk/obj
 /CaveTalk.Test/bin
@@ -6,13 +7,12 @@
 /CaveTubeClient/obj
 /CaveTubeClient.Test/bin
 /CaveTubeClient.Test/obj
-/SocketIOClient/bin
-/SocketIOClient/obj
-/SocketIOClient.Test/bin
-/SocketIOClient.Test/obj
-/WebSocketClientTest/bin
-/WebSocketClientTest/obj
-/websocket-sharp/bin
-/websocket-sharp/obj
+/SocketIO/bin
+/SocketIO/obj
+/SocketIOClient
+/SocketIOClient.Test
+/WebSocketClientTest
+/websocket-sharp
 /TestResults
+/packages
 

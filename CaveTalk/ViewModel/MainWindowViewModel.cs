@@ -5,13 +5,11 @@
 	using System.Linq;
 	using System.Net;
 	using System.Runtime.InteropServices;
-	using System.Text.RegularExpressions;
 	using System.Windows;
 	using System.Windows.Input;
 	using System.Windows.Media;
 	using System.Windows.Threading;
 	using CaveTube.CaveTalk.Lib;
-	using CaveTube.CaveTalk.Logic;
 	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Utils;
 	using CaveTube.CaveTalk.View;
@@ -22,14 +20,13 @@
 	public sealed class MainWindowViewModel : ViewModelBase {
 		private Logger logger = LogManager.GetCurrentClassLogger();
 
-		internal CavetubeClient cavetubeClient;
-		private ICommentClient commentClient;
+		private ACommentClient commentClient;
 		private Dispatcher uiDispatcher;
-		private Model.Room room;
 		private CaveTalkContext context;
+		private Model.Room room;
 		private Model.Config config;
 
-		private SpeechLogic speechLogic;
+		private ASpeechClient speechClient;
 
 		public event Action<LiveNotification, Model.Config> OnNotifyLive;
 		public event Action<Model.Message, Model.Config> OnMessage;
@@ -69,12 +66,12 @@
 		}
 
 		public Boolean SpeakApplicationStatus {
-			get { return this.speechLogic.SpeechStatus; }
+			get { return this.speechClient != null && this.speechClient.IsConnect; }
 		}
 
 		public Boolean ConnectingStatus {
 			get {
-				return this.cavetubeClient.IsConnect;
+				return this.commentClient.IsConnect;
 			}
 		}
 
@@ -203,21 +200,13 @@
 			this.uiDispatcher = Dispatcher.CurrentDispatcher;
 			this.context = new CaveTalkContext();
 
-			this.speechLogic = new SpeechLogic();
-
 			// 設定データの取得
 			this.config = this.context.Config.First();
 
 			#region Commandの登録
 
-			this.ConnectSpeakApplicationCommand = new RelayCommand(p => {
-				this.speechLogic.Connect();
-				base.OnPropertyChanged("SpeakApplicationStatus");
-			});
-			this.DisconnectSpeakApplicationCommand = new RelayCommand(p => {
-				this.speechLogic.Disconnect();
-				base.OnPropertyChanged("SpeakApplicationStatus");
-			});
+			this.ConnectSpeakApplicationCommand = new RelayCommand(p => this.ConnectSpeakApplication());
+			this.DisconnectSpeakApplicationCommand = new RelayCommand(p => this.DisconnectSpeakApplication());
 			this.JoinRoomCommand = new RelayCommand(p => this.JoinRoom(this.LiveUrl));
 			this.LeaveRoomCommand = new RelayCommand(p => this.LeaveRoom());
 			this.LoginCommand = new RelayCommand(p => this.LoginCavetube());
@@ -250,25 +239,9 @@
 
 			#endregion
 
-			#region CavetubeClientの接続
-
-			this.cavetubeClient = new CavetubeClient(new Uri(ConfigurationManager.AppSettings["comment_server"]), new Uri(ConfigurationManager.AppSettings["web_server"]));
-			this.cavetubeClient.OnNotifyLive += this.OnLiveNotification;
-			this.cavetubeClient.OnClose += this.OnClose;
-
-			try {
-				this.cavetubeClient.Connect();
-			} catch (WebException e) {
-				logger.Error(e);
-				MessageBox.Show("CaveTubeに接続できません。");
-			}
-
-			#endregion
-
 			#region 読み上げソフト
 
-			this.speechLogic.Connect();
-			base.OnPropertyChanged("SpeakApplicationStatus");
+			this.ConnectSpeakApplication();
 
 			#endregion
 		}
@@ -289,12 +262,8 @@
 				this.commentClient.Dispose();
 			}
 
-			if (this.cavetubeClient != null) {
-				this.cavetubeClient.Dispose();
-			}
-
-			if (this.speechLogic != null) {
-				this.speechLogic.Dispose();
+			if (this.speechClient != null) {
+				this.speechClient.Dispose();
 			}
 		}
 
@@ -338,29 +307,11 @@
 				this.commentClient.Dispose();
 			}
 
-			var urlType = this.JudgeUrl(liveUrl);
-			switch (urlType) {
-				case UrlType.Cavetube:
-					this.commentClient = new CaveTubeClientWrapper(this.cavetubeClient);
-					break;
-				case UrlType.Jbbs:
-					this.commentClient = null;
-					//var match = Regex.Match(liveUrl, @"^http://jbbs.livedoor.jp/bbs/read.cgi/([a-z]+/\d+/\d+)");
-					//if (match.Success == false) {
-					//    return;
-					//}
-
-					//this.LiveUrl = match.Groups[1].Value;
-					break;
-				default:
-					this.commentClient = null;
-					break;
-			}
+			this.commentClient = ACommentClient.CreateInstance(liveUrl);
 
 			if (this.commentClient == null) {
 				Mouse.OverrideCursor = null;
 				MessageBox.Show("不正なURLです。");
-				Mouse.OverrideCursor = null;
 				return;
 			}
 
@@ -370,7 +321,6 @@
 				if (String.IsNullOrWhiteSpace(roomId)) {
 					Mouse.OverrideCursor = null;
 					MessageBox.Show("不正なURLです。");
-					Mouse.OverrideCursor = null;
 					return;
 				}
 
@@ -387,7 +337,7 @@
 				}
 
 				this.commentClient.OnJoin += this.OnJoin;
-				this.commentClient.OnMessage += this.OnReceiveMessage;
+				this.commentClient.OnNewMessage += this.OnReceiveMessage;
 				this.commentClient.OnUpdateMember += this.OnUpdateMember;
 				this.commentClient.OnBan += this.OnBanUser;
 				this.commentClient.OnUnBan += this.OnUnBanUser;
@@ -416,7 +366,6 @@
 					MessageBox.Show("コメントサーバに接続できませんでした。");
 					return;
 				}
-
 			} catch (CavetubeException e) {
 				Mouse.OverrideCursor = null;
 				MessageBox.Show(e.Message);
@@ -474,18 +423,13 @@
 				return;
 			}
 
+			this.commentClient.BanListener(commentNum, this.config.ApiKey);
+
 			try {
-				var isSuccess = this.commentClient.BanListener(commentNum, this.config.ApiKey);
-				if (isSuccess == false) {
-					MessageBox.Show("BANに失敗しました。");
-				}
 
 				base.OnPropertyChanged("MessageList");
 			} catch (ArgumentException) {
 				logger.Error("未ログイン状態のため、BANできませんでした。");
-			} catch (WebException) {
-				logger.Error("CaveTubeとの通信に失敗しました。");
-				MessageBox.Show("BANに失敗しました。");
 			}
 		}
 
@@ -505,18 +449,9 @@
 			}
 
 			try {
-				var isSuccess = this.commentClient.UnBanListener(commentNum, this.config.ApiKey);
-				if (isSuccess == false) {
-					MessageBox.Show("BANに失敗しました。");
-				}
-
-				base.OnPropertyChanged("MessageList");
-
+				this.commentClient.UnBanListener(commentNum, this.config.ApiKey);
 			} catch (ArgumentException) {
 				logger.Error("未ログイン状態のため、BAN解除できませんでした。");
-			} catch (WebException) {
-				logger.Error("CaveTubeとの通信に失敗しました。");
-				MessageBox.Show("BAN解除に失敗しました。");
 			}
 		}
 
@@ -601,6 +536,28 @@
 			return dbMessage;
 		}
 
+		private void ConnectSpeakApplication() {
+			if (this.speechClient == null) {
+				this.speechClient = ASpeechClient.CreateInstance();
+			}
+
+			try {
+				var isConnect = this.speechClient.Connect();
+				if (isConnect == false) {
+					throw new ConnectionException("読み上げソフトに接続できませんでした。後から読み上げソフトを立ち上げた場合は、メニューの読み上げアイコンから読み上げソフトに接続を選択してください。");
+				}
+				base.OnPropertyChanged("SpeakApplicationStatus");
+			}
+			catch (ConnectionException e) {
+				MessageBox.Show(e.Message);
+			}
+		}
+
+		private void DisconnectSpeakApplication() {
+			this.speechClient.Disconnect();
+			base.OnPropertyChanged("SpeakApplicationStatus");
+		}
+
 		#region CommentClientに登録するイベント
 
 		/// <summary>
@@ -617,7 +574,15 @@
 		}
 
 		/// <summary>
-		/// メッセージ受信時に実行されるイベントです。
+		/// 全コメント受信時に実行されるイベントです。
+		/// </summary>
+		/// <param name="mes"></param>
+		private void OnReceiveMessageList(Lib.Message mes) {
+
+		}
+
+		/// <summary>
+		/// コメント受信時に実行されるイベントです。
 		/// </summary>
 		/// <param name="summary"></param>
 		/// <param name="mes"></param>
@@ -632,12 +597,11 @@
 			this.MessageList.Insert(0, message);
 
 			// コメントの読み上げ
-			if (this.SpeakApplicationStatus) {
-				var isSpeech = this.speechLogic.Speak(dbMessage);
+			if (this.speechClient != null || this.speechClient.IsConnect == false) {
+				var isSpeech = this.speechClient.Speak(dbMessage);
 				if (isSpeech == false) {
-					MessageBox.Show("読み上げに失敗しました。");
-					this.speechLogic.Disconnect();
 					base.OnPropertyChanged("SpeakApplicationStatus");
+					MessageBox.Show("読み上げに失敗しました。");
 				}
 			}
 
@@ -694,15 +658,12 @@
 			}));
 		}
 
-		private void OnClose(Reason reason) {
-			if (reason != Reason.Timeout) {
-				return;
-			}
-
-			this.cavetubeClient.Connect();
-			if (this.RoomJoinStatus) {
-				this.JoinRoom(this.commentClient.RoomId);
-			}
+		/// <summary>
+		/// CaveTubeClientが何かしらのエラーが通知されたときに実行されるイベントです。
+		/// </summary>
+		/// <param name="e"></param>
+		private void OnError(CavetubeException e) {
+			
 		}
 
 		#endregion
@@ -711,7 +672,7 @@
 
 		private void LoginCavetube() {
 			var loginBox = new LoginBox();
-			var viewModel = new LoginBoxViewModel(this.cavetubeClient);
+			var viewModel = new LoginBoxViewModel();
 			viewModel.OnClose += () => {
 				loginBox.Close();
 			};
@@ -744,7 +705,7 @@
 				throw new ConfigurationErrorsException("[dev_key]が設定されていません。");
 			}
 			try {
-				var isSuccess = cavetubeClient.Logout(userId, password, devKey);
+				var isSuccess = CavetubeAuth.Logout(userId, password, devKey);
 				if (isSuccess) {
 					this.config.ApiKey = null;
 					this.config.UserId = null;
@@ -780,26 +741,16 @@
 			option.ShowDialog();
 
 			this.context.Entry(this.config).Reload();
-			this.speechLogic.Connect();
-			base.OnPropertyChanged("SpeakApplicationStatus");
+			if (this.speechClient != null) {
+				this.speechClient.Dispose();
+			}
+			this.speechClient = ASpeechClient.CreateInstance();
+			this.ConnectSpeakApplication();
 			base.OnPropertyChanged("FontSize");
 			base.OnPropertyChanged("TopMost");
 		}
 
 		#endregion
-
-		private UrlType JudgeUrl(String url) {
-			var webServer = ConfigurationManager.AppSettings["web_server"];
-			if (Regex.IsMatch(url, String.Format(@"^(?:{0}(?:\:\d{{1,5}})?/[a-z]+/)?([0-9A-Z]{{32}})", webServer))) {
-				return UrlType.Cavetube;
-			} else if (Regex.IsMatch(url, String.Format(@"^{0}(?:\:\d{{1,5}})?/live/(.*)", webServer))) {
-				return UrlType.Cavetube;
-			} else if (Regex.IsMatch(url, String.Format(@"^http://jbbs.livedoor.jp/bbs/read.cgi/[a-z0-9]+/\d+$"))) {
-				return UrlType.Jbbs;
-			} else {
-				return UrlType.Unknown;
-			}
-		}
 
 		/// <summary>
 		/// 電源状態の変更時にコメントサーバへの接続/切断を行います。
@@ -809,18 +760,14 @@
 		private void OnPowerModeChanged(Object sender, PowerModeChangedEventArgs e) {
 			switch (e.Mode) {
 				case PowerModes.Resume:
-					this.cavetubeClient.Connect();
 					break;
 				case PowerModes.Suspend:
-					this.cavetubeClient.Close();
+					if (this.commentClient != null) {
+						this.commentClient.Dispose();
+					}
+					
 					break;
 			}
-		}
-
-		private enum UrlType {
-			Cavetube,
-			Jbbs,
-			Unknown,
 		}
 	}
 

@@ -15,7 +15,7 @@
 			var jsTime = 946652400000d;
 
 			// act
-			var act = JavaScriptTime.ToDateTime(jsTime, TimeZoneKind.Japan);
+			var act = JavaScriptTime_Accessor.ToDateTime(jsTime, TimeZoneKind.Japan);
 
 			// assert
 			Assert.AreEqual(new DateTime(2000, 1, 1), act);
@@ -27,7 +27,7 @@
 			var date = new DateTime(2000, 1, 1);
 
 			// act
-			var act = JavaScriptTime.ToDouble(date, TimeZoneKind.Japan);
+			var act = JavaScriptTime_Accessor.ToDouble(date, TimeZoneKind.Japan);
 
 			// assert
 			Assert.AreEqual(946652400000, act);
@@ -39,7 +39,7 @@
 			var date = new DateTime(2000, 1, 1, 0, 0, 0, 999);
 
 			// act
-			var act = JavaScriptTime.ToDouble(date, TimeZoneKind.Japan);
+			var act = JavaScriptTime_Accessor.ToDouble(date, TimeZoneKind.Japan);
 
 			// assert
 			Assert.AreEqual(946652400000, act);

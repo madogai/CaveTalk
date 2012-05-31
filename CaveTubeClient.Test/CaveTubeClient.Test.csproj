@@ -36,6 +36,15 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SocketIOClient">
+      <HintPath>..\packages\SocketIO4Net.Client.0.4.08\lib\net40\SocketIOClient.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.ClientEngine">
+      <HintPath>..\packages\SocketIO4Net.Client.0.4.08\lib\net40\SuperSocket.ClientEngine.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -45,6 +54,9 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="WebSocket4Net">
+      <HintPath>..\packages\SocketIO4Net.Client.0.4.08\lib\net40\WebSocket4Net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
@@ -52,6 +64,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CavetubeAuthTest.cs" />
     <Compile Include="CavetubeClientTest.cs" />
     <Compile Include="JavaScriptTimeTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -61,13 +74,13 @@
       <Project>{9E3E1E57-073E-4181-BB36-3536E195577E}</Project>
       <Name>CaveTubeClient</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SocketIOClient\SocketIOClient.csproj">
-      <Project>{7B0F21B8-9C1C-4FA1-9ACC-359FEFB20A25}</Project>
-      <Name>SocketIOClient</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Shadow Include="テストの参照\CaveTube.CaveTubeClient.accessor" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

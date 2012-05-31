@@ -3,46 +3,53 @@
 	using System.Runtime.Remoting;
 	using FNF.Utility;
 
-	public sealed class BouyomiClientWrapper : IReadingApplicationClient {
-		#region IReadingApplicationClient メンバー
-
-		public String ApplicationName {
-			get {
-				return "棒読みちゃん";
-			}
-		}
-
-		public Boolean IsConnect {
-			get {
-				try {
-					var count = this.client.TalkTaskCount;
-					return true;
-				} catch (RemotingException) {
-					return false;
-				}
-			}
-		}
-
+	public sealed class BouyomiClientWrapper : ASpeechClient {
 		private BouyomiChanClient client;
 
-		public BouyomiClientWrapper() {
+		public BouyomiClientWrapper()
+			: base() {
 			this.client = new BouyomiChanClient();
 		}
 
-		public Boolean Add(String text) {
+		#region ASpeechClient メンバー
+
+		public override String ApplicationName {
+			get { return "棒読みちゃん"; }
+		}
+
+		public override Boolean IsConnect {
+			get { return base.IsConnect && this.CanSpeech(); }
+		}
+
+		private Boolean CanSpeech() {
 			try {
-				this.client.AddTalkTask(text);
+				var count = this.client.TalkTaskCount;
 				return true;
-			} catch (RemotingException) {
+			}
+			catch (RemotingException) {
 				return false;
 			}
 		}
 
-		#endregion
+		public override Boolean Connect() {
+			if (this.CanSpeech() == false) {
+				return false;
+			}
+			base.Connect();
+			return true;
+		}
 
-		#region IDisposable メンバー
+		protected override Boolean Speak(String text) {
+			try {
+				this.client.AddTalkTask(text);
+				return true;
+			}
+			catch (RemotingException) {
+				return false;
+			}
+		}
 
-		public void Dispose() {
+		public override void Dispose() {
 			if (this.client != null) {
 				this.client.Dispose();
 			}

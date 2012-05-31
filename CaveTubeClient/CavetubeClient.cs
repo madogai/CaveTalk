@@ -2,6 +2,7 @@
 	using System;
 	using System.Collections.Generic;
 	using System.Collections.Specialized;
+	using System.Configuration;
 	using System.Diagnostics;
 	using System.Linq;
 	using System.Net;
@@ -9,14 +10,22 @@
 	using System.Text.RegularExpressions;
 	using System.Xml;
 	using Codeplex.Data;
-	using Drumcan.SocketIO;
 	using Microsoft.CSharp.RuntimeBinder;
+	using SocketIOClient;
+	using SocketIOClient.Messages;
 
 	public sealed class CavetubeClient : IDisposable {
+		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
+		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.vmhost:3000";
+
+		/// <summary>
+		/// メッセージ一覧を取得した時に通知されるイベントです。
+		/// </summary>
+		public event Action<IEnumerable<Message>> OnMessageList;
 		/// <summary>
 		/// 新しいコメントを受信した時に通知されるイベントです。
 		/// </summary>
-		public event Action<Message> OnMessage;
+		public event Action<Message> OnNewMessage;
 		/// <summary>
 		/// リスナー人数が更新された時に通知されるイベントです。
 		/// </summary>
@@ -24,11 +33,11 @@
 		/// <summary>
 		/// コメントサーバに接続した時に通知されるイベントです。
 		/// </summary>
-		public event Action<EventArgs> OnConnect;
+		public event Action OnConnect;
 		/// <summary>
 		/// コメントサーバの接続が切れた時に通知されるイベントです。
 		/// </summary>
-		public event Action<Reason> OnClose;
+		public event Action OnDisconnect;
 		/// <summary>
 		/// コメントルームに入室した時に通知されるイベントです。
 		/// </summary>
@@ -49,41 +58,42 @@
 		/// 新しい配信が始まった時に通知されるイベントです。
 		/// </summary>
 		public event Action<LiveNotification> OnNotifyLive;
+		/// <summary>
+		/// 何かしらのエラーが発生したときに通知されるイベントです。
+		/// </summary>
+		public event Action<CavetubeException> OnError;
+
+		private event Action<dynamic> OnMessage;
 
 		/// <summary>
 		/// コメントサーバとの接続状態
 		/// </summary>
 		public Boolean IsConnect {
-			get { return this.client.IsConnect; }
+			get { return this.client.IsConnected; }
 		}
 		/// <summary>
 		/// 入室している部屋のID
 		/// </summary>
 		public String JoinedRoomId { get; private set; }
 
-		private ISocketIOClient client;
 		private Uri webUri;
-
-		/// <summary>
-		/// コンストラクタ
-		/// </summary>
-		/// <param name="commentUri"></param>
-		/// <param name="webUri"></param>
-		public CavetubeClient(Uri commentUri, Uri webUri)
-			: this(new SocketIOClient(commentUri), webUri) {
-		}
+		private Uri socketIOUri;
+		private Client client;
 
 		/// <summary>
 		/// コンストラクタ
 		/// </summary>
 		/// <param name="client"></param>
-		/// <param name="webUri"></param>
-		private CavetubeClient(ISocketIOClient client, Uri webUri) {
-			this.webUri = webUri;
+		public CavetubeClient() {
+			this.webUri = new Uri(webUrl);
+			this.socketIOUri = new Uri(socketIOUrl);
+			this.client = new Client(socketIOUrl);
+
+			this.client.RetryConnectionAttempts = 15;
 
 			// 配信情報関係
-			client.OnMessage += (sender, message) => {
-				var json = DynamicJson.Parse(message);
+			this.client.On("message", message => {
+				var json = DynamicJson.Parse(message.MessageText);
 				if (json.IsDefined("ret") && json.ret == false) {
 					return;
 				}
@@ -92,33 +102,40 @@
 					return;
 				}
 
-				this.HandleMessage(json);
-				this.HandleLiveInfomation(json);
-				this.HandleJoinOrLeave(json);
-			};
+				if (this.OnMessage != null) {
+					this.OnMessage(json);
+				}
+			});
 
-			client.OnOpen += (sender, e) => {
+			this.client.Opened += (sender, e) => {
 				if (this.OnConnect != null) {
-					this.OnConnect(e);
+					this.OnConnect();
+				}
+
+				if (String.IsNullOrWhiteSpace(this.JoinedRoomId) == false) {
+					this.JoinRoom(this.JoinedRoomId);
 				}
 			};
 
-			client.OnClose += (sender, reason) => {
-				Reason notifyReason;
-				switch (reason) {
-					case Drumcan.SocketIO.Reason.Timeout:
-						notifyReason = Reason.Timeout;
-						break;
-					default:
-						notifyReason = Reason.Unknown;
-						break;
-				}
-
-				if (this.OnClose != null) {
-					this.OnClose(notifyReason);
+			this.client.Error += (sender, e) => {
+				if (this.OnError != null) {
+					this.OnError(new CavetubeException(e.Message, e.Exception));
 				}
 			};
-			this.client = client;
+
+			this.client.SocketConnectionClosed += (sender, args) => {
+				if (this.OnDisconnect != null) {
+					this.OnDisconnect();
+				}
+			};
+
+			this.OnMessage += this.HandleMessage;
+			this.OnMessage += this.HandleLiveInfomation;
+			this.OnMessage += this.HandleJoin;
+		}
+
+		~CavetubeClient() {
+			this.Dispose();
 		}
 
 		/// <summary>
@@ -126,30 +143,99 @@
 		/// </summary>
 		/// <exception cref="System.Net.WebException" />
 		public void Connect() {
+			this.client.Connect();
+		}
+
+		/// <summary>
+		/// 部屋の情報を取得します。
+		/// </summary>
+		/// <param name="liveUrl">配信URL</param>
+		/// <returns></returns>
+		public Summary GetSummary(String liveUrl) {
 			try {
-				this.client.Connect();
-			} catch (SocketIOException e) {
-				throw new WebException("Cavetubeに接続できません。", e);
+				var streamName = this.ParseStreamUrl(liveUrl);
+
+				using (var client = new WebClient()) {
+					client.Encoding = Encoding.UTF8;
+					var url = String.Format("{0}://{1}:{2}/viewedit/get?stream_name={3}", this.webUri.Scheme, this.webUri.Host, this.webUri.Port, streamName);
+
+					// WebClientでTaskを利用すると正常な順番で結果を受け取れないので、
+					// WebRequestを利用する予定ですが、
+					// 実装が間に合わないのでまだ同期パターンを使用します。
+					var jsonString = client.DownloadString(url);
+					if (String.IsNullOrEmpty(jsonString)) {
+						throw new CavetubeException("サマリーの取得に失敗しました。");
+					}
+
+					var json = DynamicJson.Parse(jsonString);
+					if (json.ret == false) {
+						throw new CavetubeException("サマリーの取得に失敗しました。");
+					}
+
+					var summary = new Summary(jsonString);
+					return summary;
+				}
+			}
+			catch (WebException) {
+				return new Summary();
+			}
+		}
+
+		/// <summary>
+		/// コメントの取得リクエストを送信します。
+		/// </summary>
+		/// <param name="url">配信URL</param>
+		public IEnumerable<Message> GetComment(String liveUrl) {
+			try {
+				var streamName = this.ParseStreamUrl(liveUrl);
+
+				using (var client = new WebClient()) {
+					client.Encoding = Encoding.UTF8;
+					client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+					var url = String.Format("{0}://{1}:{2}/comment/{3}", this.socketIOUri.Scheme, this.socketIOUri.Host, this.socketIOUri.Port, streamName);
+
+					var jsonString = client.DownloadString(url);
+					if (String.IsNullOrEmpty(jsonString)) {
+						throw new CavetubeException("コメントの取得に失敗しました。");
+					}
+
+					var json = DynamicJson.Parse(jsonString);
+					if (json.ret == false) {
+						throw new CavetubeException("コメントの取得に失敗しました。");
+					}
+
+					var comments = this.ParseMessage(json);
+					return comments;
+				}
+			}
+			catch (WebException) {
+				return new List<Message>();
 			}
 		}
 
 		/// <summary>
 		/// コメントルームに接続します。
 		/// </summary>
-		/// <param name="roomId">ルームID</param>
-		public void JoinRoom(String roomId) {
+		/// <param name="roomId">視聴ページのURL、またはルームID</param>
+		/// <exception cref="System.FormatException">引数のフォーマットが正しくありません。</exception>
+		public void JoinRoom(String liveUrl) {
+			var roomId = this.ParseStreamUrl(liveUrl);
+			if (String.IsNullOrWhiteSpace(roomId)) {
+				throw new FormatException("URLのフォーマットが正常ではありません。");
+			}
+
 			var message = DynamicJson.Serialize(new {
 				mode = "join",
 				room = roomId,
 			});
-			client.Send(message);
+			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
 		/// コメントルームから退出します。
 		/// </summary>
 		public void LeaveRoom() {
-			if (this.JoinedRoomId == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				return;
 			}
 
@@ -157,105 +243,13 @@
 				mode = "leave",
 				room = this.JoinedRoomId,
 			});
-			client.Send(message);
+			client.Send(new TextMessage(message));
 
 			if (this.OnLeave != null) {
 				this.OnLeave(this.JoinedRoomId);
 			}
 
 			this.JoinedRoomId = null;
-
-		}
-
-		/// <summary>
-		/// CaveTubeにログインします。
-		/// </summary>
-		/// <param name="userId">ユーザー名</param>
-		/// <param name="password">パスワード</param>
-		/// <param name="devKey">開発者キー</param>
-		/// <returns>APIキー</returns>
-		/// <exception cref="System.ArgumentException" />
-		/// <exception cref="System.Net.WebException" />
-		public String Login(String userId, String password, String devKey) {
-			if (String.IsNullOrWhiteSpace(userId)) {
-				throw new ArgumentException("UserIdが指定されていません。");
-			}
-
-			if (String.IsNullOrWhiteSpace(password)) {
-				throw new ArgumentException("Passwordが指定されていません。");
-			}
-
-			if (String.IsNullOrWhiteSpace(devKey)) {
-				throw new ArgumentException("DevKeyが指定されていません。");
-			}
-
-			// ログイン処理に関しては同期処理にします。
-			// 一度TPLパターンで実装しましたが、特に必要性を感じなかったので同期に戻しました。
-			using (var client = new WebClient()) {
-				var data = new NameValueCollection {
-						{"mode", "login"},
-						{"devkey", devKey},
-						{"user", userId},
-						{"pass", password},
-					};
-				var response = client.UploadValues(String.Format("{0}api/auth", this.webUri.AbsoluteUri), "POST", data);
-				var jsonString = Encoding.UTF8.GetString(response);
-
-				var json = DynamicJson.Parse(jsonString);
-				if (json.IsDefined("ret") && json.ret == false) {
-					return String.Empty;
-				}
-
-				if (json.IsDefined("apikey") == false) {
-					return String.Empty;
-				}
-
-				return json.apikey;
-			}
-		}
-
-		/// <summary>
-		/// CaveTuneからログアウトします。
-		/// </summary>
-		/// <param name="userId">ユーザーID</param>
-		/// <param name="password">パスワード</param>
-		/// <param name="devKey">開発者キー</param>
-		/// <returns>ログアウトの成否</returns>
-		/// <exception cref="System.ArgumentException" />
-		/// <exception cref="System.Net.WebException" />
-		public Boolean Logout(String userId, String password, String devKey) {
-			if (String.IsNullOrWhiteSpace(userId)) {
-				var message = "UserIdが指定されていません。";
-				throw new ArgumentException(message);
-			}
-
-			if (String.IsNullOrWhiteSpace(password)) {
-				var message = "Passwordが指定されていません。";
-				throw new ArgumentException(message);
-			}
-
-			if (String.IsNullOrWhiteSpace(devKey)) {
-				var message = "DevKeyが指定されていません。";
-				throw new ArgumentException(message);
-			}
-
-			// ログアウト処理に関しても同期処理にします。
-			// 一度TPLパターンで実装しましたが、特に必要性を感じなかったので同期に戻しました。
-			using (var client = new WebClient()) {
-				var data = new NameValueCollection {
-						{"devkey", devKey},
-						{"mode", "logout"},
-						{"user", userId},
-						{"pass", password},
-					};
-				var response = client.UploadValues(String.Format("{0}api/auth", this.webUri.AbsoluteUri), "POST", data);
-				var jsonString = Encoding.UTF8.GetString(response);
-				var json = DynamicJson.Parse(jsonString);
-				if (json.IsDefined("ret") && json.ret == false) {
-					return false;
-				}
-				return true;
-			}
 		}
 
 		/// <summary>
@@ -265,6 +259,10 @@
 		/// <param name="message">メッセージ</param>
 		/// <param name="apiKey">APIキー</param>
 		public void PostComment(String name, String message, String apiKey = "") {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
 			if (String.IsNullOrWhiteSpace(message)) {
 				return;
 			}
@@ -277,7 +275,7 @@
 				apikey = apiKey,
 				_session = "cavetalk",
 			});
-			this.client.Send(jsonString);
+			client.Send(new TextMessage(jsonString));
 		}
 
 		/// <summary>
@@ -285,10 +283,23 @@
 		/// </summary>
 		/// <param name="commentNum">BANするコメント番号</param>
 		/// <param name="apiKey">APIキー</param>
-		/// <returns>BANの成否</returns>
-		/// <exception cref="System.Net.WebException" />
-		public Boolean BanListener(Int32 commentNum, String apiKey) {
-			return this.SetBanStatus(true, commentNum, apiKey);
+		/// <exception cref="System.ArgumentException"></exception>
+		public void BanListener(Int32 commentNum, String apiKey) {
+			if (String.IsNullOrWhiteSpace(apiKey)) {
+				throw new ArgumentException("APIキーは必須です。");
+			}
+
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
+			var message = DynamicJson.Serialize(new {
+				mode = "ban",
+				room = this.JoinedRoomId,
+				comment_num = commentNum,
+				api_key = apiKey,
+			});
+			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
@@ -296,10 +307,23 @@
 		/// </summary>
 		/// <param name="commentNum">BAN解除するコメント番号</param>
 		/// <param name="apiKey">APIキー</param>
-		/// <returns>BAN解除の成否</returns>
-		/// <exception cref="System.Net.WebException" />
-		public Boolean UnBanListener(Int32 commentNum, String apiKey) {
-			return this.SetBanStatus(false, commentNum, apiKey);
+		/// <exception cref="System.ArgumentException"></exception>
+		public void UnBanListener(Int32 commentNum, String apiKey) {
+			if (String.IsNullOrWhiteSpace(apiKey)) {
+				throw new ArgumentException("APIキーは必須です。");
+			}
+
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
+			var message = DynamicJson.Serialize(new {
+				mode = "unban",
+				room = this.JoinedRoomId,
+				comment_num = commentNum,
+				api_key = apiKey,
+			});
+			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
@@ -316,42 +340,15 @@
 		/// オブジェクトを破棄します。
 		/// </summary>
 		public void Dispose() {
+			this.OnMessage -= this.HandleMessage;
+			this.OnMessage -= this.HandleLiveInfomation;
+			this.OnMessage -= this.HandleJoin;
+
 			if (this.client == null) {
 				return;
 			}
 			this.client.Dispose();
 			this.client = null;
-		}
-
-		/// <summary>
-		/// BANステータスを設定します。
-		/// </summary>
-		/// <param name="isBan"></param>
-		/// <param name="commentNum"></param>
-		/// <returns></returns>
-		/// <exception cref="System.Net.WebException" />
-		private Boolean SetBanStatus(Boolean isBan, Int32 commentNum, String apiKey) {
-			if (String.IsNullOrWhiteSpace(apiKey)) {
-				throw new ArgumentNullException("APIキーがNullです。");
-			}
-
-			using (var client = new WebClient()) {
-				var data = new NameValueCollection {
-					{"is_ban", isBan ? "true" : "false" },
-					{"stream_name", this.JoinedRoomId},
-					{"comment_num", commentNum.ToString()},
-					{"apikey", apiKey},
-				};
-				var response = client.UploadValues(String.Format("{0}viewedit/bancomment", this.webUri.AbsoluteUri), "POST", data);
-				var jsonString = Encoding.UTF8.GetString(response);
-
-				var json = DynamicJson.Parse(jsonString);
-				if (json.IsDefined("ret") && json.ret == false) {
-					return false;
-				}
-
-				return true;
-			}
 		}
 
 		/// <summary>
@@ -363,13 +360,21 @@
 			try {
 				String mode = json.mode;
 				switch (mode) {
+					case "get":
+						if (this.OnMessageList == null) {
+							break;
+						}
+
+						var messages = this.ParseMessage(json);
+						this.OnMessageList(messages);
+						break;
 					case "post":
-						if (this.OnMessage == null) {
+						if (this.OnNewMessage == null) {
 							break;
 						}
 
 						var post = new Message(json);
-						this.OnMessage(post);
+						this.OnNewMessage(post);
 						break;
 					case "ban_notify":
 						post = new Message(json);
@@ -378,7 +383,8 @@
 							if (this.OnBan != null) {
 								this.OnBan(post);
 							}
-						} else {
+						}
+						else {
 							if (this.OnUnBan != null) {
 								this.OnUnBan(post);
 							}
@@ -398,9 +404,11 @@
 					default:
 						break;
 				}
-			} catch (XmlException) {
+			}
+			catch (XmlException) {
 				Debug.WriteLine("メッセージのParseに失敗しました。");
-			} catch (RuntimeBinderException) {
+			}
+			catch (RuntimeBinderException) {
 				Debug.WriteLine("Json内にプロパティが見つかりませんでした。");
 			}
 		}
@@ -429,12 +437,8 @@
 		/// CaveTalkクライアントの部屋へのJoin/Leave情報を処理します。
 		/// </summary>
 		/// <param name="json"></param>
-		private void HandleJoinOrLeave(dynamic json) {
-			if (json.mode != "join") {
-				return;
-			}
-
-			if (this.client.SessionId != json.id) {
+		private void HandleJoin(dynamic json) {
+			if (json.mode != "ready") {
 				return;
 			}
 
@@ -443,47 +447,9 @@
 			if (this.OnJoin != null) {
 				this.OnJoin(this.JoinedRoomId);
 			}
-
 		}
 
-		~CavetubeClient() {
-			this.Dispose();
-		}
-
-		public Tuple<Summary, IEnumerable<Message>> GetCavetubeInfomation(String liveUrl) {
-			try {
-				var streamName = this.ParseStreamUrl(liveUrl);
-
-				using (var client = new WebClient()) {
-					client.Encoding = Encoding.UTF8;
-					var url = String.Format("{0}viewedit/getcomment?stream_name={1}&comment_num=1", this.webUri.AbsoluteUri, streamName);
-
-					// WebClientでTaskを利用すると正常な順番で結果を受け取れないので、
-					// WebRequestを利用する予定ですが、
-					// 実装が間に合わないのでまだ同期パターンを使用します。
-					var jsonString = client.DownloadString(url);
-					var json = DynamicJson.Parse(jsonString);
-					if (json.ret == false) {
-						throw new CavetubeException("コメントの取得に失敗しました。");
-					}
-
-					if (String.IsNullOrEmpty(jsonString)) {
-						throw new CavetubeException("コメントの取得に失敗しました。");
-					}
-
-					var summary = new Summary(jsonString);
-					var messages = this.ParseMessage(jsonString);
-					return Tuple.Create(summary, messages);
-				}
-			} catch (WebException) {
-				var summary = new Summary();
-				IEnumerable<Message> messages = new List<Message>();
-				return Tuple.Create(summary, messages);
-			}
-		}
-
-		private IEnumerable<Message> ParseMessage(String jsonString) {
-			var json = DynamicJson.Parse(jsonString);
+		private IEnumerable<Message> ParseMessage(dynamic json) {
 			var messages = ((dynamic[])json.comments).Select(comment => new Message(comment));
 			return messages;
 		}
@@ -510,11 +476,10 @@
 					var streamName = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
 					return streamName;
 				}
-			} else {
-				return String.Empty;
 			}
-		}
 
+			return String.Empty;
+		}
 	}
 
 	/// <summary>
@@ -635,13 +600,5 @@
 		public override Int32 GetHashCode() {
 			return this.Author.GetHashCode() ^ this.RoomId.GetHashCode();
 		}
-	}
-
-	/// <summary>
-	/// 切断理由
-	/// </summary>
-	public enum Reason {
-		Timeout,
-		Unknown,
 	}
 }

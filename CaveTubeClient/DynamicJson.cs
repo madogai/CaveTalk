@@ -22,7 +22,7 @@ using System.Xml.Linq;
 
 namespace Codeplex.Data
 {
-    public class DynamicJson : DynamicObject
+    internal class DynamicJson : DynamicObject
     {
         private enum JsonType
         {

@@ -18,8 +18,7 @@
 				return Binding.DoNothing;
 			}
 
-			var escapedText = text.Replace("<", "&lt;").Replace(">", "&gt;").Replace("&", "&amp;").Replace("\"", "&quot;").Replace("'", "&apos;").Replace("{", "{}{");
-			var lineBreakText = escapedText.Replace("\n", "<LineBreak />");
+			var lineBreakText = text.Replace("\n", "<LineBreak />");
 			var autolinkedText = Regex.Replace(lineBreakText, @"(?:http|https|ftp):\/\/[\w!?=&,.\/\+:;#~%-]+(?![\w\s!?&,.\/\+:;#~%""=-]*>)", @"<Hyperlink NavigateUri=""$&""><Run Text=""$&"" /></Hyperlink>", RegexOptions.Multiline);
 			var xaml = String.Format(textBlockFormat, autolinkedText);
 			return (TextBlock)XamlReader.Parse(xaml);

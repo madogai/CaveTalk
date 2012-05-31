@@ -7,7 +7,6 @@
 	using System.Threading.Tasks;
 	using System.Windows.Input;
 	using CaveTube.CaveTalk.Model;
-	using CaveTube.CaveTalk.Properties;
 	using CaveTube.CaveTalk.Utils;
 	using CaveTube.CaveTubeClient;
 	using NLog;
@@ -62,11 +61,8 @@
 
 		public event Action OnClose;
 
-		private CavetubeClient client;
-
-		public LoginBoxViewModel(CavetubeClient client) {
+		public LoginBoxViewModel() {
 			this.LoginCommand = new RelayCommand(Login);
-			this.client = client;
 		}
 
 		private void Login(Object data) {
@@ -78,7 +74,7 @@
 				}
 
 				try {
-					var apiKey = this.client.Login(this.UserId, this.Password, devKey);
+					var apiKey = CavetubeAuth.Login(this.UserId, this.Password, devKey);
 					if (String.IsNullOrWhiteSpace(apiKey)) {
 						this.ErrorMessage = "ログインに失敗しました。";
 						return;

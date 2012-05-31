@@ -3,7 +3,7 @@
 	using System;
 	using System.Collections.Generic;
 
-	public sealed class JavaScriptTime {
+	internal sealed class JavaScriptTime {
 		private readonly static DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 		private readonly static IDictionary<TimeZoneKind, String> TimeZoneKindDictionary = new Dictionary<TimeZoneKind, String> {
 			{ TimeZoneKind.Utc, "UTC" },

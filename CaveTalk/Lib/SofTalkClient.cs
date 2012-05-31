@@ -2,38 +2,49 @@
 	using System;
 	using System.Diagnostics;
 	using System.IO;
+	using System.Linq;
 
-	public sealed class SofTalkClient : IReadingApplicationClient {
+	public sealed class SofTalkClient : ASpeechClient {
 		private String exePath;
 		private Int32 taskCount;
 
 		public SofTalkClient(String exePath) {
-			if (File.Exists(exePath) == false) {
-				throw new FileNotFoundException("指定されたファイルが存在しません。");
-			}
-
 			this.exePath = exePath;
-			var process = new Process {
-				StartInfo = new ProcessStartInfo {
-					FileName = exePath,
-				},
-			};
-			process.Start();
 		}
 
-		#region IReadingApplicationClient メンバー
+		#region ASpeechClient メンバー
 
-		public String ApplicationName {
+		public override String ApplicationName {
 			get {
 				return "SofTalk";
 			}
 		}
 
-		public bool IsConnect {
-			get { return true; }
+		public override Boolean IsConnect {
+			get { return base.IsConnect && this.CanSpeech(); }
 		}
 
-		public Boolean Add(string text) {
+		private Boolean CanSpeech() {
+			return File.Exists(this.exePath);
+		}
+
+		public override Boolean Connect() {
+			if (this.CanSpeech() == false) {
+				return false;
+			}
+
+			// アプリケーションをスムーズに実行するため、あらかじめ起動しておきます。
+			var process = new Process {
+				StartInfo = new ProcessStartInfo {
+					FileName = this.exePath,
+				},
+			};
+			process.Start();
+			base.Connect();
+			return true;
+		}
+
+		protected override Boolean Speak(string text) {
 			if (this.IsConnect == false) {
 				return false;
 			}
@@ -51,12 +62,13 @@
 				this.taskCount -= 1;
 			};
 			process.Start();
-
-			return true;
+			var isSuccess = process.WaitForExit(1000);
+			return isSuccess;
 		}
 
-		public void Dispose() {
-
+		public override void Dispose() {
+			var ps = Process.GetProcessesByName("softalk");
+			ps.ForEach(p => p.CloseMainWindow());
 		}
 
 		#endregion

@@ -55,8 +55,9 @@
     <ApplicationIcon>Images\cavelis.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EntityFramework, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.4.3.0\lib\net40\EntityFramework.dll</HintPath>
+    <Reference Include="EntityFramework, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.4.3.1\lib\net40\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Hardcodet.Wpf.TaskbarNotification">
       <HintPath>bin\Release\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
@@ -71,6 +72,14 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.1, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\SqlServerCompact.4.0.8852.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SqlServerCe.Entity, Version=4.0.0.1, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\SqlServerCompact.4.0.8852.1\lib\net40\System.Data.SqlServerCe.Entity.dll</HintPath>
+    </Reference>
     <Reference Include="System.Interactive">
       <HintPath>..\packages\Ix_Experimental-Main.1.1.10823\lib\Net4\System.Interactive.dll</HintPath>
     </Reference>
@@ -116,11 +125,11 @@
     <Compile Include="Definitions.cs" />
     <Compile Include="Lib\BouyomiClientWrapper.cs" />
     <Compile Include="Lib\CaveTubeClientWrapper.cs" />
-    <Compile Include="Lib\ICommentClient.cs" />
-    <Compile Include="Lib\IReadingApplication.cs" />
+    <Compile Include="Lib\Exception.cs" />
+    <Compile Include="Lib\ACommentClient.cs" />
+    <Compile Include="Lib\ASpeechClient.cs" />
     <Compile Include="Lib\SofTalkClient.cs" />
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Logic\SpeechLogic.cs" />
     <Compile Include="Model\CaveTalkContext.cs" />
     <Compile Include="Model\CaveTalkInitializer.cs" />
     <Compile Include="Model\Message.cs" />
@@ -338,4 +347,11 @@
     <Copy Condition="Exists('$(TransformWebConfigIntermediateLocation)\transformed\App.config')" SourceFiles="$(TransformWebConfigIntermediateLocation)\transformed\App.config" DestinationFiles="$(OutputPath)\$(AssemblyName).exe.config" />
     <Copy Condition="Exists('$(TransformWebConfigIntermediateLocation)\transformed\App.config') And Exists('$(OutputPath)\$(AssemblyName).vshost.exe')" SourceFiles="$(TransformWebConfigIntermediateLocation)\transformed\App.config" DestinationFiles="$(OutputPath)\$(AssemblyName).vshost.exe.config" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>
+    if not exist "$(TargetDir)x86" md "$(TargetDir)x86"
+    xcopy /s /y "$(SolutionDir)packages\SqlServerCompact.4.0.8852.1\NativeBinaries\x86\*.*" "$(TargetDir)x86"
+    if not exist "$(TargetDir)amd64" md "$(TargetDir)amd64"
+    xcopy /s /y "$(SolutionDir)packages\SqlServerCompact.4.0.8852.1\NativeBinaries\amd64\*.*" "$(TargetDir)amd64"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

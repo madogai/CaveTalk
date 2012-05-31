@@ -2,82 +2,76 @@
 	using System;
 	using System.Linq;
 	using CaveTube.CaveTubeClient;
+	using System.Collections.Generic;
 
-	public sealed class CaveTubeClientWrapper : ICommentClient {
+	public sealed class CaveTubeClientWrapper : ACommentClient {
 
-		public String RoomId {
+		public override String RoomId {
 			get {
 				return this.client.JoinedRoomId;
 			}
 		}
 
-		public Boolean IsDisposed { get; private set; }
+		public override Boolean IsConnect {
+			get { return this.client.IsConnect; }
+		}
+
+		public  Boolean IsDisposed { get; private set; }
 
 		private CaveTubeClient.CavetubeClient client;
 
-		#region ICommentClient メンバー
+		public override event Action<IEnumerable<Message>> OnMessageList;
+		public override event Action<Message> OnNewMessage;
+		public override event Action<Int32> OnUpdateMember;
+		public override event Action<Message> OnBan;
+		public override event Action<Message> OnUnBan;
+		public override event Action<String> OnJoin;
+		public override event Action<String> OnLeave;
 
-		public event Action<Message> OnMessage;
-		public event Action<Int32> OnUpdateMember;
-		public event Action<Message> OnBan;
-		public event Action<Message> OnUnBan;
-		public event Action<String> OnJoin;
-		public event Action<String> OnLeave;
-
-		public Room GetRoomInfo(String url) {
-			var tuple = this.client.GetCavetubeInfomation(url);
+		public override Room GetRoomInfo(String url) {
+			var summary = this.client.GetSummary(url);
+			var messages = this.client.GetComment(url);
 			return new Room {
-				Summary = new Summary {
-					RoomId = tuple.Item1.RoomId,
-					Title = tuple.Item1.Title,
-					Author = tuple.Item1.Author,
-					PageView = tuple.Item1.PageView,
-					Listener = tuple.Item1.Listener,
-					StartTime = tuple.Item1.StartTime,
-				},
-				Messages = tuple.Item2.Select(m => new Message {
-					Auth = m.Auth,
-					Comment = m.Comment,
-					Id = m.Id,
-					IsBan = m.IsBan,
-					Name = m.Name,
-					Number = m.Number,
-					Time = m.Time,
-				}),
+				Summary = new Summary(summary),
+				Messages = messages.Select(m => new Message(m)),
 			};
 		}
 
-		public void JoinRoom(String roomId) {
-			this.client.JoinRoom(roomId);
+		public override void JoinRoom(String url) {
+			this.client.JoinRoom(url);
 		}
 
-		public void LeaveRoom() {
+		public override void LeaveRoom() {
 			this.client.LeaveRoom();
 		}
 
-		public Boolean BanListener(Int32 commentNumber, String apiKey) {
-			return this.client.BanListener(commentNumber, apiKey);
+		public override void BanListener(Int32 commentNumber, String apiKey) {
+			this.client.BanListener(commentNumber, apiKey);
 		}
 
-		public Boolean UnBanListener(Int32 commentNumber, String apiKey) {
-			return this.client.UnBanListener(commentNumber, apiKey);
+		public override void UnBanListener(Int32 commentNumber, String apiKey) {
+			this.client.UnBanListener(commentNumber, apiKey);
 		}
 
-		public void PostComment(String name, String message, String apiKey) {
+		public override void PostComment(String name, String message, String apiKey) {
 			this.client.PostComment(name, message, apiKey);
 		}
 
-		#endregion
+		public CaveTubeClientWrapper()
+			: this(new CavetubeClient()) {
+		}
 
-		public CaveTubeClientWrapper(CaveTubeClient.CavetubeClient client) {
+		private CaveTubeClientWrapper(CaveTubeClient.CavetubeClient client) {
 			this.client = client;
 
 			this.client.OnJoin += this.Join;
 			this.client.OnLeave += this.Leave;
-			this.client.OnMessage += this.Message;
+			this.client.OnNewMessage += this.NewMessage;
 			this.client.OnUpdateMember += this.UpdateMember;
 			this.client.OnBan += this.Ban;
 			this.client.OnUnBan += this.UnBan;
+
+			this.client.Connect();
 		}
 
 		~CaveTubeClientWrapper() {
@@ -86,17 +80,17 @@
 			}
 		}
 
-		public void Dispose() {
+		public override void Dispose() {
 			this.IsDisposed = true;
 			this.client.OnJoin -= this.Join;
 			this.client.OnLeave -= this.Leave;
-			this.client.OnMessage -= this.Message;
+			this.client.OnNewMessage -= this.NewMessage;
 			this.client.OnUpdateMember -= this.UpdateMember;
 			this.client.OnBan -= this.Ban;
 			this.client.OnUnBan -= this.UnBan;
 			this.OnJoin = null;
 			this.OnLeave = null;
-			this.OnMessage = null;
+			this.OnNewMessage = null;
 			this.OnUpdateMember = null;
 			this.OnBan = null;
 			this.OnUnBan = null;
@@ -114,9 +108,15 @@
 			}
 		}
 
-		private void Message(CaveTubeClient.Message m) {
-			if (this.OnMessage != null) {
-				this.OnMessage(new Message(m));
+		public void MessageList(IEnumerable<CaveTubeClient.Message> messageList) {
+			if (this.OnMessageList != null) {
+				this.OnMessageList(messageList.Select(message => new Message(message)));
+			}
+		}
+
+		private void NewMessage(CaveTubeClient.Message message) {
+			if (this.OnNewMessage != null) {
+				this.OnNewMessage(new Message(message));
 			}
 		}
 
@@ -126,16 +126,27 @@
 			}
 		}
 
-		private void Ban(CaveTubeClient.Message m) {
+		private void Ban(CaveTubeClient.Message message) {
 			if (this.OnBan != null) {
-				this.OnBan(new Message(m));
+				this.OnBan(new Message(message));
 			}
 		}
 
-		private void UnBan(CaveTubeClient.Message m) {
+		private void UnBan(CaveTubeClient.Message message) {
 			if (this.OnUnBan != null) {
-				this.OnUnBan(new Message(m));
+				this.OnUnBan(new Message(message));
 			}
+		}
+	}
+
+	public partial class Summary {
+		public Summary(CaveTubeClient.Summary summary) {
+			this.RoomId = summary.RoomId;
+			this.Title = summary.Title;
+			this.Author = summary.Author;
+			this.PageView = summary.PageView;
+			this.Listener = summary.Listener;
+			this.StartTime = summary.StartTime;
 		}
 	}
 
