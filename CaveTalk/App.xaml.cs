@@ -5,6 +5,8 @@
 	using CaveTube.CaveTalk.ViewModel;
 	using NLog;
 	using CaveTube.CaveTalk.View;
+	using CaveTube.CaveTalk.Model;
+	using CaveTube.CaveTalk.Utils;
 
 	/// <summary>
 	/// App.xaml の相互作用ロジック
@@ -15,6 +17,9 @@
 		protected override void OnStartup(StartupEventArgs e) {
 			try {
 				base.OnStartup(e);
+
+				// 保存用テーブルの作成
+				this.CreateTables();
 
 				var model = new MainWindowViewModel();
 
@@ -31,6 +36,20 @@
 				logger.Error(ex.ToString());
 				throw;
 			}
+		}
+
+		protected override void OnExit(ExitEventArgs e) {
+			DapperUtil.Vacuum();
+
+			base.OnExit(e);
+		}
+
+		private void CreateTables() {
+			Account.CreateTable();
+			Config.CreateTable();
+			Listener.CreateTable();
+			Model.Message.CreateTable();
+			Room.CreateTable();
 		}
 	}
 }

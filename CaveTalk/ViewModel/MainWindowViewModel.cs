@@ -322,6 +322,10 @@
 				// URLを部屋名に更新します。
 				this.LiveUrl = roomId;
 
+				room.Messages.Select(m => new Message(m, this.BanUser, this.UnBanUser, this.MarkListener)).ForEach(m => {
+					this.MessageList.Insert(0, m);
+				});
+
 				this.commentClient.JoinRoom(roomId);
 			}
 			catch (CommentException e) {
@@ -490,6 +494,10 @@
 		/// <param name="summary"></param>
 		/// <param name="mes"></param>
 		private void OnReceiveMessage(Lib.Message mes) {
+			// コメントを追加
+			var message = new Message(mes, this.BanUser, this.UnBanUser, this.MarkListener);
+			this.MessageList.Insert(0, message);
+
 			// コメントの読み上げ
 			if (this.speechClient != null || this.speechClient.IsConnect == false) {
 				var isSpeech = this.speechClient.Speak(mes);
@@ -709,10 +717,10 @@
 				}
 
 				var listener = Model.Listener.GetListener(this.message.ListenerId);
-				if (listener == null) {
+				if (listener == null || String.IsNullOrWhiteSpace(listener.Color)) {
 					return new SolidColorBrush(Colors.White);
 				}
-				return (Brush)new BrushConverter().ConvertFrom(this.Color);
+				return (Brush)new BrushConverter().ConvertFrom(listener.Color);
 			}
 			set {
 				if (this.message.ListenerId == null) {

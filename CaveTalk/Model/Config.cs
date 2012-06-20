@@ -185,14 +185,16 @@
 				var transaction = executor.BeginTransaction();
 				foreach (var item in this.configDictionary) {
 					executor.Execute(@"
-						UPDATE
-							Config
-						SET
-							Value = @Value
-						WHERE
-							ConfigKey = @ConfigKey
-						;
-					", item, transaction);
+						INSERT OR REPLACE INTO Config (
+							ConfigKey
+							,Value
+						) VALUES (
+							@ConfigKey, @Value
+						);
+					", new {
+						ConfigKey = item.Key,
+						Value = item.Value
+					}, transaction);
 				}
 
 				transaction.Commit();
@@ -205,6 +207,15 @@
 
 		public enum CommentPopupDisplayType {
 			Always, Minimize, None,
+		}
+
+		public static void CreateTable() {
+			DapperUtil.Execute(@"
+				CREATE TABLE IF NOT EXISTS Config (
+					ConfigKey TEXT PRIMARY KEY NOT NULL
+					,Value TEXT NOT NULL
+				);
+			");
 		}
 	}
 }

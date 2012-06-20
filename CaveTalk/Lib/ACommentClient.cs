@@ -68,17 +68,7 @@
 			Model.Room.UpdateRoom(dbRoom);
 
 			// コメントをDBに保存します。
-			var messages = room.Messages.Select(m => new Model.Message {
-				RoomId = summary.RoomId,
-				Number = m.Number,
-				Name = m.Name,
-				Comment = m.Comment,
-				IsAuth = m.IsAuth,
-				IsBan = m.IsBan,
-				PostTime = m.PostTime,
-				ListenerId = m.ListenerId,
-			});
-			Model.Message.UpdateMessage(messages);
+			this.NewMessage(room.Summary, room.Messages);
 
 			return room;
 		}
@@ -118,7 +108,10 @@
 		public abstract void Dispose();
 
 		private void NewMessage(Message message) {
-			var roomId = this.RoomId;
+			var author = this.Author;
+			if (String.IsNullOrWhiteSpace(author) == true) {
+				return;
+			}
 
 			if (String.IsNullOrWhiteSpace(message.ListenerId) == false) {
 				// リスナーが存在しなければ追加します。
@@ -126,25 +119,47 @@
 				if (listener == null) {
 					listener = new Model.Listener {
 						ListenerId = message.ListenerId,
+						Author = author,
 					};
 					Model.Listener.UpdateListener(listener);
 				}
 			}
+		}
 
-			if (message.IsAuth == false) {
-				// アカウント情報を更新
-				var account = Model.Account.GetAccount(message.Name);
-				if (account == null) {
-					account = new Model.Account {
-						AccountName = message.Name,
-					};
-					Model.Account.UpdateAccount(account);
+		/// <summary>
+		/// GetRoomからのみ呼ばれる想定です。
+		/// </summary>
+		/// <param name="summary"></param>
+		/// <param name="messages"></param>
+		private void NewMessage(Summary summary, IEnumerable<Message> messages) {
+			foreach (var message in messages) {
+				if (String.IsNullOrWhiteSpace(message.ListenerId) == false) {
+					// リスナーが存在しなければ追加します。
+					var listener = Model.Listener.GetListener(message.ListenerId);
+					if (listener == null) {
+						listener = new Model.Listener {
+							ListenerId = message.ListenerId,
+							Author = summary.Author,
+						};
+						Model.Listener.UpdateListener(listener);
+					}
+				}
+
+				if (message.IsAuth) {
+					// アカウント情報を更新
+					var account = Model.Account.GetAccount(message.Name);
+					if (account == null) {
+						account = new Model.Account {
+							AccountName = message.Name,
+						};
+						Model.Account.UpdateAccount(account);
+					}
 				}
 			}
 
 			// DBのコメント情報を更新します。
-			var dbMessage = new Model.Message {
-				RoomId = roomId,
+			var dbMessage = messages.Select(message => new Model.Message {
+				RoomId = summary.RoomId,
 				Number = message.Number,
 				Name = message.Name,
 				Comment = message.Comment,
@@ -152,7 +167,7 @@
 				IsBan = message.IsBan,
 				PostTime = message.PostTime,
 				ListenerId = message.ListenerId,
-			};
+			});
 			Model.Message.UpdateMessage(dbMessage);
 		}
 	}

@@ -261,9 +261,7 @@
     <None Include="App.Release.config">
       <DependentUpon>App.config</DependentUpon>
     </None>
-    <Content Include="CaveTalkDb.sqlite">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Content Include="CaveTalkDb.sqlite" />
     <None Include="NLog.config" />
     <None Include="packages.config" />
     <AppDesigner Include="Properties\" />

@@ -31,14 +31,13 @@
 		public static IEnumerable<Message> GetMessages(Room room) {
 			var messages = DapperUtil.Query<Message>(@"
 				SELECT
-					Order
+					RoomId
+					,PostTime
 					,Number
 					,Name
 					,Comment
-					,PostTime
 					,IsAuth
 					,IsBan
-					,RoomId
 					,ListenerId
 				FROM
 					Message
@@ -59,42 +58,42 @@
 			DapperUtil.Execute(executor => {
 				var transaction = executor.BeginTransaction();
 				foreach (var message in messages) {
-					if (message.Order == null) {
-						executor.Execute(@"
-							INSERT Message (
-								Number
-								,Name
-								,Comment
-								,PostTime
-								,IsAuth
-								,IsBan
-								,RoomId
-								,ListenerId
-							) VALUES (
-								@Number, @Name, @Comment, @PostTime, @IsAuth, @IsBan, @RoomId, @ListenerId
-							);
-						", message, transaction);
-					}
-					else {
-						executor.Execute(@"
-							UPDATE Message
-							SET
-								Number = @Number
-								,Name = @Name
-								,Comment = @Comment
-								,PostTime = @PostTime
-								,IsAuth = @IsAuth
-								,IsBan = @IsBan
-								,RoomId = @RoomId
-								,ListenerId = @ListenerId
-							WHERE
-								Order = @Order
-							;
-						", message, transaction);
-					}
+					executor.Execute(@"
+						INSERT OR REPLACE INTO Message (
+							RoomId
+							,PostTime
+							,Number
+							,Name
+							,Comment
+							,IsAuth
+							,IsBan
+							,ListenerId
+						) VALUES (
+							@RoomId, @PostTime, @Number, @Name, @Comment, @IsAuth, @IsBan, @ListenerId
+						);
+					", message, transaction);
 				}
 				transaction.Commit();
 			});
+		}
+
+		public static void CreateTable() {
+			DapperUtil.Execute(@"
+				CREATE TABLE IF NOT EXISTS Message (
+					RoomId TEXT NOT NULL
+					,PostTime DATETIME NOT NULL
+					,Number INTEGER NOT NULL 
+					,Name TEXT
+					,Comment TEXT NOT NULL
+					,IsAuth BOOL NOT NULL
+					,IsBan BOOL NOT NULL
+					,ListenerId TEXT
+					,PRIMARY KEY (
+						RoomId
+						,PostTime
+					)
+				);
+			");
 		}
 	}
 }

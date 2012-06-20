@@ -78,15 +78,7 @@
 
 				foreach (var listener in listeners) {
 					executor.Execute(@"
-						DELETE FROM
-							Listener
-						WHERE
-							ListenerId = @ListenerId
-						;
-					", listener, transaction);
-
-					executor.Execute(@"
-						INSERT OR REPACE INTO Listener (
+						INSERT OR REPLACE INTO Listener (
 							ListenerId
 							,Name
 							,Color
@@ -100,6 +92,18 @@
 
 				transaction.Commit();
 			});
+		}
+
+		public static void CreateTable() {
+			DapperUtil.Execute(@"
+				CREATE TABLE IF NOT EXISTS Listener (
+					ListenerId TEXT PRIMARY KEY NOT NULL
+					,Name TEXT
+					,Color TEXT
+					,Author TEXT NOT NULL
+					,AccountName TEXT
+				);
+			");
 		}
 	}
 }

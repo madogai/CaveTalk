@@ -14,8 +14,8 @@
         <GroupBox Header="読み上げソフト">
             <StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,3">
-                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Bouyomi}">棒読みちゃん</RadioButton>
-                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Softalk}">SofTalk</RadioButton>
+                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Bouyomichan}">棒読みちゃん</RadioButton>
+                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=SofTalk}">SofTalk</RadioButton>
                 </StackPanel>
                 <Grid>
                     <Grid.Style>
@@ -138,9 +138,9 @@
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0">ポップアップの表示</TextBlock>
                 <StackPanel Grid.Row="0">
-                    <RadioButton IsChecked="{Binding Path=PopupState, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Enable}">有効</RadioButton>
-                    <RadioButton IsChecked="{Binding Path=PopupState, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Minimum}">最小化時</RadioButton>
-                    <RadioButton IsChecked="{Binding Path=PopupState, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Disable}">無効</RadioButton>
+                    <RadioButton IsChecked="{Binding Path=PopupState, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Always}">有効</RadioButton>
+                    <RadioButton IsChecked="{Binding Path=PopupState, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Minimize}">最小化時</RadioButton>
+                    <RadioButton IsChecked="{Binding Path=PopupState, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=None}">無効</RadioButton>
                 </StackPanel>
                 <TextBlock Grid.Row="1" Text="表示時間" />
                 <StackPanel Grid.Row="1">

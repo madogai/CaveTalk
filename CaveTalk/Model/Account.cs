@@ -33,15 +33,7 @@
 				var transaction = executor.BeginTransaction();
 
 				executor.Execute(@"
-					DELETE FROM
-						Account
-					WHERE
-						AccountName = @AccountName
-					;
-				", account, transaction);
-
-				executor.Execute(@"
-					INSERT INTO Account (
+					INSERT OR REPLACE INTO Account (
 						AccountName
 						,Color
 					) VALUES (
@@ -51,6 +43,15 @@
 
 				transaction.Commit();
 			});
+		}
+
+		public static void CreateTable() {
+			DapperUtil.Execute(@"
+				CREATE TABLE IF NOT EXISTS Account (
+					AccountName TEXT PRIMARY KEY  NOT NULL
+					,Color TEXT
+				);
+			");
 		}
 	}
 }

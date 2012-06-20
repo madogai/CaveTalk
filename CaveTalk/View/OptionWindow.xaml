@@ -57,13 +57,6 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </TreeViewItem>
-            <TreeViewItem Header="配信通知">
-                <i:Interaction.Triggers>
-                    <i:EventTrigger EventName="Selected">
-                        <i:InvokeCommandAction Command="{Binding Path=NotifyOptionOpenCommand}" />
-                    </i:EventTrigger>
-                </i:Interaction.Triggers>
-            </TreeViewItem>
         </TreeView>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>

@@ -39,14 +39,7 @@
 				var transaction = executor.BeginTransaction();
 
 				executor.Execute(@"
-					DELETE FROM Room
-					WHERE
-						RoomId = @RoomId
-					;
-				", room, transaction);
-
-				executor.Execute(@"
-					INSERT INTO Room (
+					INSERT OR REPLACE INTO Room (
 						RoomId
 						,Author
 						,Title
@@ -59,7 +52,18 @@
 
 				transaction.Commit();
 			});
+		}
 
+		public static void CreateTable() {
+			DapperUtil.Execute(@"
+				CREATE TABLE IF NOT EXISTS Room (
+					RoomId TEXT PRIMARY KEY  NOT NULL
+					,Author TEXT NOT NULL
+					,Title TEXT NOT NULL
+					,StartTime DATETIME NOT NULL
+					,ListenerCount INTEGER NOT NULL
+				);
+			");
 		}
 	}
 }

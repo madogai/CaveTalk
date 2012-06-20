@@ -43,9 +43,18 @@
 			});
 		}
 
+		public static void Vacuum() {
+			ExecuteDbAction(conn => {
+				conn.Execute(@"
+					VACUUM;
+				");
+			});
+		}
+
 		private static void ExecuteDbAction(Action<IDbConnection> act) {
 			using (IDbConnection conn = factory.CreateConnection()) {
 				try {
+					conn.ConnectionString = connectionString;
 					conn.Open();
 					act(conn);
 				}
