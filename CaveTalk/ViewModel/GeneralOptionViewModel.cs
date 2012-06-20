@@ -7,7 +7,6 @@
 	using Microsoft.Win32;
 
 	public sealed class GeneralOptionViewModel : OptionBaseViewModel {
-		private CaveTalkContext context;
 		private Config config;
 
 		public SafeObservable<Int32> FontSizeList { get; private set; }
@@ -29,8 +28,7 @@
 		}
 
 		public GeneralOptionViewModel() {
-			this.context = new CaveTalkContext();
-			this.config = this.context.Config.First();
+			this.config = Config.GetConfig();
 
 			this.FontSizeList = new SafeObservable<Int32>();
 			new[] { 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20 }.ForEach(size => {
@@ -39,7 +37,7 @@
 		}
 
 		internal override void Save() {
-			this.context.SaveChanges();
+			this.config.Save();
 		}
 	}
 }

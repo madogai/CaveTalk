@@ -1,24 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Media = System.Windows.Media;
-using System.ComponentModel.DataAnnotations;
+﻿namespace CaveTube.CaveTalk.Model {
+	using System;
+	using System.Collections.Generic;
+	using CaveTube.CaveTalk.Utils;
 
-namespace CaveTube.CaveTalk.Model {
-	public class Account {
-		[Key]
+	public sealed class Account {
 		public String AccountName { get; set; }
 		public String Color { get; set; }
-		[NotMapped]
-		public Media.Brush BackgroundColor {
+		public IEnumerable<Listener> Listeners {
 			get {
-				return (Media.Brush)new Media.BrushConverter().ConvertFrom(this.Color);
-			}
-			set {
-				this.Color = value.ToString();
+				return Listener.GetListeners(this.AccountName);
 			}
 		}
-		public virtual ICollection<Listener> Listeners { get; set; }
+
+		public static Account GetAccount(String accountName) {
+			var result = DapperUtil.QueryFirst<Account>(@"
+				SELECT
+					AccountName
+					,Account.Color
+				FROM
+					Account
+				WHERE
+					AccountName = @AccountName
+				;
+			", new {
+				 AccountName = accountName,
+			 });
+			return result;
+		}
+
+		public static void UpdateAccount(Account account) {
+			DapperUtil.Execute(executor => {
+				var transaction = executor.BeginTransaction();
+
+				executor.Execute(@"
+					DELETE FROM
+						Account
+					WHERE
+						AccountName = @AccountName
+					;
+				", account, transaction);
+
+				executor.Execute(@"
+					INSERT INTO Account (
+						AccountName
+						,Color
+					) VALUES (
+						@AccountName, @Color
+					);
+				", account, transaction);
+
+				transaction.Commit();
+			});
+		}
 	}
 }

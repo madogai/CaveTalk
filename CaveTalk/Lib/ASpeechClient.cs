@@ -6,28 +6,19 @@
 
 	public abstract class ASpeechClient : IDisposable {
 		public static ASpeechClient CreateInstance() {
-			var context = new CaveTalkContext();
-			var config = context.Config.First();
+			var config = Config.GetConfig();
 
-			context.Entry(config).Reload();
-
-			switch ((SpeakApplicationState)config.SpeakApplication) {
-				case SpeakApplicationState.Softalk:
+			switch (config.SpeakApplication) {
+				case Config.SpeakApplicationType.SofTalk:
 					return new SofTalkClient(config.SofTalkPath);
 				default:
 					return new BouyomiClientWrapper();
 			}
 		}
 
-		private CaveTalkContext context;
-
 		public abstract String ApplicationName { get; }
 
 		public virtual Boolean IsConnect { get; private set; }
-
-		protected ASpeechClient() {
-			this.context = new CaveTalkContext();
-		}
 
 		public virtual Boolean Connect() {
 			this.IsConnect = true;
@@ -42,12 +33,12 @@
 
 		protected abstract Boolean Speak(String text);
 
-		public Boolean Speak(Model.Message message) {
+		public Boolean Speak(Message message) {
 			if (this.IsConnect == false) {
 				return false;
 			}
 
-			var config = this.context.Config.First();
+			var config = Config.GetConfig();
 
 			var comment = message.Comment;
 

@@ -7,13 +7,12 @@
 	using Microsoft.Win32;
 
 	public sealed class CommentOptionViewModel : OptionBaseViewModel {
-		private CaveTalkContext context;
 		private Config config;
 
-		public SpeakApplicationState SpeakApplication {
-			get { return (SpeakApplicationState)this.config.SpeakApplication; }
+		public Config.SpeakApplicationType SpeakApplication {
+			get { return this.config.SpeakApplication; }
 			set {
-				this.config.SpeakApplication = (Int32)value;
+				this.config.SpeakApplication = value;
 				base.OnPropertyChanged("SpeakApplication");
 			}
 		}
@@ -26,10 +25,10 @@
 			}
 		}
 
-		public CommentPopupState PopupState {
-			get { return (CommentPopupState)this.config.CommentPopupState; }
+		public Config.CommentPopupDisplayType PopupState {
+			get { return this.config.CommentPopupType; }
 			set {
-				this.config.CommentPopupState = (Int32)value;
+				this.config.CommentPopupType = value;
 				base.OnPropertyChanged("PopupState");
 			}
 		}
@@ -61,8 +60,7 @@
 		public ICommand FindSoftalkExeCommand { get; private set; }
 
 		public CommentOptionViewModel() {
-			this.context = new CaveTalkContext();
-			this.config = this.context.Config.First();
+			this.config = Config.GetConfig();
 
 			this.FindSoftalkExeCommand = new RelayCommand(p => {
 				var dialog = new OpenFileDialog {
@@ -81,7 +79,7 @@
 		}
 
 		internal override void Save() {
-			this.context.SaveChanges();
+			this.config.Save();
 		}
 	}
 }

@@ -1,7 +1,6 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
 	using System.Configuration;
-	using System.Linq;
 	using System.Net;
 	using System.Threading;
 	using System.Threading.Tasks;
@@ -80,12 +79,11 @@
 						return;
 					}
 
-					var context = new CaveTalkContext();
-					var config = context.Config.First();
+					var config = Config.GetConfig();
 					config.ApiKey = apiKey;
 					config.UserId = this.UserId;
 					config.Password = this.Password;
-					context.SaveChanges();
+					config.Save();
 				} catch (ArgumentException e) {
 					var message = "ログインに失敗しました。";
 					this.ErrorMessage = message;

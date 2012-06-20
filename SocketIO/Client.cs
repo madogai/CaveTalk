@@ -127,7 +127,7 @@ namespace SocketIOClient
 						if (this.HandShake == null || string.IsNullOrWhiteSpace(this.HandShake.SID) || this.HandShake.HadError)
 						{
 							this.LastErrorMessage = string.Format("Error initializing handshake with {0}", uri.ToString());
-							this.OnErrorEvent(this, new ErrorEventArgs(this.LastErrorMessage, new Exception()));
+							throw new WebException(this.LastErrorMessage);
 						}
 						else
 						{
@@ -149,7 +149,7 @@ namespace SocketIOClient
 					catch (Exception ex)
 					{
 						Trace.WriteLine(string.Format("Connect threw an exception...{0}", ex.Message));
-						this.OnErrorEvent(this, new ErrorEventArgs("SocketIO.Client.Connect threw an exception", ex));
+						throw new Exception("SocketIO.Client.Connect threw an exception", ex);
 					}
 				}
 			}

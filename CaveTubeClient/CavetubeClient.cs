@@ -1,7 +1,6 @@
 ﻿namespace CaveTube.CaveTubeClient {
 	using System;
 	using System.Collections.Generic;
-	using System.Collections.Specialized;
 	using System.Configuration;
 	using System.Diagnostics;
 	using System.Linq;
@@ -75,6 +74,10 @@
 		/// 入室している部屋のID
 		/// </summary>
 		public String JoinedRoomId { get; private set; }
+		/// <summary>
+		/// 入室している部屋のオーナー名
+		/// </summary>
+		public String JoinedRoomAuthor { get; private set; }
 
 		private Uri webUri;
 		private Uri socketIOUri;
@@ -143,7 +146,12 @@
 		/// </summary>
 		/// <exception cref="System.Net.WebException" />
 		public void Connect() {
-			this.client.Connect();
+			try {
+				this.client.Connect();
+			}
+			catch (Exception ex) {
+				throw new CavetubeException("CaveTubeとの接続に失敗しました。", ex);
+			}
 		}
 
 		/// <summary>
@@ -250,6 +258,7 @@
 			}
 
 			this.JoinedRoomId = null;
+			this.JoinedRoomAuthor = null;
 		}
 
 		/// <summary>
@@ -295,7 +304,6 @@
 
 			var message = DynamicJson.Serialize(new {
 				mode = "ban",
-				room = this.JoinedRoomId,
 				comment_num = commentNum,
 				api_key = apiKey,
 			});
@@ -319,7 +327,6 @@
 
 			var message = DynamicJson.Serialize(new {
 				mode = "unban",
-				room = this.JoinedRoomId,
 				comment_num = commentNum,
 				api_key = apiKey,
 			});
@@ -353,7 +360,6 @@
 
 		/// <summary>
 		/// コメントと視聴人数などの情報を処理します。
-		/// OnMessage以外からは呼ばないでください。
 		/// </summary>
 		/// <param name="json"></param>
 		private void HandleMessage(dynamic json) {
@@ -415,7 +421,6 @@
 
 		/// <summary>
 		/// 配信情報を処理します。
-		/// OnMessage以外からは呼ばないでください。
 		/// </summary>
 		/// <param name="json"></param>
 		private void HandleLiveInfomation(dynamic json) {
@@ -442,7 +447,13 @@
 				return;
 			}
 
-			this.JoinedRoomId = json.room;
+			var summary = this.GetSummary((String)json.room);
+			if (summary.RoomId == null) {
+				return;
+			}
+
+			this.JoinedRoomAuthor = summary.Author;
+			this.JoinedRoomId = summary.RoomId;
 
 			if (this.OnJoin != null) {
 				this.OnJoin(this.JoinedRoomId);
@@ -549,7 +560,7 @@
 			this.Comment = json.IsDefined("message") ? json.message : String.Empty;
 			this.Auth = json.IsDefined("auth") ? json.auth : false;
 			this.IsBan = json.IsDefined("is_ban") ? json.is_ban : false;
-			this.Time = JavaScriptTime.ToDateTime(json.time, TimeZoneKind.Japan);
+			this.Time = json.IsDefined("time") ? JavaScriptTime.ToDateTime(json.time, TimeZoneKind.Japan) : null;
 		}
 
 		public override bool Equals(object obj) {

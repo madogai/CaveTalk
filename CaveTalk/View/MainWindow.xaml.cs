@@ -3,18 +3,13 @@
 	using System.Windows.Controls.Primitives;
 	using System.Windows.Input;
 	using CaveTube.CaveTalk.Control;
-	using CaveTube.CaveTalk.Properties;
 	using CaveTube.CaveTalk.ViewModel;
 	using Microsoft.Windows.Controls.Ribbon;
-	using System.Media;
-	using System.IO;
 	using System.Windows.Media;
-	using System;
-	using System.Net;
-	using System.Configuration;
 	using System.Diagnostics;
 	using System.Windows;
 	using System.Windows.Documents;
+	using CaveTube.CaveTalk.Model;
 
 	/// <summary>
 	/// MainWindow.xaml の相互作用ロジック
@@ -33,31 +28,14 @@
 
 			this.Loaded += (sender, e) => {
 				var context = (MainWindowViewModel)this.DataContext;
-				context.OnNotifyLive += (liveInfo, config) => {
-					var balloon = new NotifyBalloon();
-					balloon.OnClose += () => this.MyNotifyIcon.CloseBalloon();
-					balloon.DataContext = liveInfo;
-					
-					var timeout = config.NotifyPopupTime * 1000;
-					this.MyNotifyIcon.ShowCustomBalloon(balloon, PopupAnimation.Slide, timeout);
-				};
-				context.OnNotifyLive += (liveInfo, config) => {
-					var soundFilePath = config.NotifySoundFilePath;
-					if (File.Exists(soundFilePath) == false) {
-						return;
-					}
-					this.player.Open(new Uri(soundFilePath, UriKind.Absolute));
-					this.player.MediaEnded += (sender2, e2) => this.player.Close();
-					this.player.Play();
-				};
 
 				context.OnMessage += (message, config) => {
-					var commentState = config.CommentPopupState;
-					if ((CommentPopupState)commentState == CommentPopupState.Disable) {
+					var commentState = config.CommentPopupType;
+					if (commentState == Config.CommentPopupDisplayType.None) {
 						return;
 					}
 
-					if ((CommentPopupState)commentState == CommentPopupState.Minimum && this.Root.WindowState != System.Windows.WindowState.Minimized) {
+					if (commentState == Config.CommentPopupDisplayType.Minimize && this.Root.WindowState != System.Windows.WindowState.Minimized) {
 						return;
 					}
 

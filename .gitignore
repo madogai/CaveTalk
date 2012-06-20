@@ -9,10 +9,6 @@
 /CaveTubeClient.Test/obj
 /SocketIO/bin
 /SocketIO/obj
-/SocketIOClient
-/SocketIOClient.Test
-/WebSocketClientTest
-/websocket-sharp
 /TestResults
 /packages
-
+!/packages/repositories.config

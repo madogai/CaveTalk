@@ -7,16 +7,18 @@
 	public sealed class CaveTubeClientWrapper : ACommentClient {
 
 		public override String RoomId {
-			get {
-				return this.client.JoinedRoomId;
-			}
+			get { return this.client.JoinedRoomId; }
+		}
+
+		public override string Author {
+			get { return this.client.JoinedRoomAuthor; }
 		}
 
 		public override Boolean IsConnect {
 			get { return this.client.IsConnect; }
 		}
 
-		public  Boolean IsDisposed { get; private set; }
+		public Boolean IsDisposed { get; private set; }
 
 		private CaveTubeClient.CavetubeClient client;
 
@@ -27,8 +29,18 @@
 		public override event Action<Message> OnUnBan;
 		public override event Action<String> OnJoin;
 		public override event Action<String> OnLeave;
+		public override event Action<Exception> OnError;
 
-		public override Room GetRoomInfo(String url) {
+		public override void Connect() {
+			try {
+				this.client.Connect();
+			}
+			catch (CavetubeException ex) {
+				throw new CommentException(ex.Message, ex);
+			}
+		}
+
+		protected override Room GetRoomInfo(String url) {
 			var summary = this.client.GetSummary(url);
 			var messages = this.client.GetComment(url);
 			return new Room {
@@ -70,8 +82,7 @@
 			this.client.OnUpdateMember += this.UpdateMember;
 			this.client.OnBan += this.Ban;
 			this.client.OnUnBan += this.UnBan;
-
-			this.client.Connect();
+			this.client.OnError += this.Error;
 		}
 
 		~CaveTubeClientWrapper() {
@@ -88,12 +99,14 @@
 			this.client.OnUpdateMember -= this.UpdateMember;
 			this.client.OnBan -= this.Ban;
 			this.client.OnUnBan -= this.UnBan;
+			this.client.OnError -= this.Error;
 			this.OnJoin = null;
 			this.OnLeave = null;
 			this.OnNewMessage = null;
 			this.OnUpdateMember = null;
 			this.OnBan = null;
 			this.OnUnBan = null;
+			this.OnError = null;
 		}
 
 		private void Join(String roomId) {
@@ -137,6 +150,12 @@
 				this.OnUnBan(new Message(message));
 			}
 		}
+
+		private void Error(CaveTubeClient.CavetubeException e) {
+			if (this.OnError != null) {
+				this.OnError(e);
+			}
+		}
 	}
 
 	public partial class Summary {
@@ -152,13 +171,13 @@
 
 	public partial class Message {
 		public Message(CaveTubeClient.Message message) {
-			this.Auth = message.Auth;
+			this.IsAuth = message.Auth;
 			this.Comment = message.Comment;
-			this.Id = message.Id;
+			this.ListenerId = message.Id;
 			this.IsBan = message.IsBan;
 			this.Name = message.Name;
 			this.Number = message.Number;
-			this.Time = message.Time;
+			this.PostTime = message.Time;
 		}
 	}
 }
