@@ -10,6 +10,10 @@
 	using System.Windows;
 	using System.Windows.Documents;
 	using CaveTube.CaveTalk.Model;
+using System;
+	using System.Windows.Controls;
+	using System.Windows.Media.Imaging;
+	using System.Configuration;
 
 	/// <summary>
 	/// MainWindow.xaml の相互作用ロジック
@@ -18,6 +22,7 @@
 		public static readonly ICommand RestoreWindowCommand = new RoutedCommand("RestoreWindow", typeof(MainWindow));
 
 		private MediaPlayer player;
+		private String previewServer;
 
 		public MainWindow() {
 			InitializeComponent();
@@ -25,6 +30,7 @@
 			Focus();
 
 			this.player = new MediaPlayer();
+			this.previewServer = ConfigurationManager.AppSettings["ss_server"] ?? "http://ss.cavelis.net:3001";
 
 			this.Loaded += (sender, e) => {
 				var context = (MainWindowViewModel)this.DataContext;
@@ -51,18 +57,30 @@
 			};
 		}
 
-		private void RestoreWindowExecuted(object sender, ExecutedRoutedEventArgs e) {
+		private void RestoreWindowExecuted(Object sender, ExecutedRoutedEventArgs e) {
 			this.Root.WindowState = System.Windows.WindowState.Normal;
 		}
 
 		// RoutedCommandが上手くいかなかったのでとりあえずイベントハンドラで登録します。
-		private void ResotreWindowButtonClick(object sender, System.Windows.RoutedEventArgs e) {
+		private void ResotreWindowButtonClick(Object sender, System.Windows.RoutedEventArgs e) {
 			this.Root.WindowState = System.Windows.WindowState.Normal;
 		}
 
-		private void OpenUrl(object sender, RoutedEventArgs e) {
+		private void OpenUrl(Object sender, RoutedEventArgs e) {
 			var hyperlink = (Hyperlink)e.Source;
 			Process.Start(hyperlink.NavigateUri.AbsoluteUri);
+		}
+
+		private void LoadPreview(Object sender, ToolTipEventArgs e) {
+			var hyperlink = (Hyperlink)e.Source;
+			if (hyperlink.ToolTip is Image) {
+				return;
+			}
+
+			var uri = String.Format("{0}/?url={1}", previewServer, hyperlink.NavigateUri.AbsoluteUri);
+			var image = new Image();
+			image.Source = new BitmapImage(new Uri(uri));
+			hyperlink.ToolTip = image;
 		}
 	}
 }

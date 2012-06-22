@@ -62,9 +62,9 @@
             <Grid Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <CheckBox x:Name="IsAgree">
                     <TextBlock>
-                <Run>cavelis.net</Run>
-                <Hyperlink NavigateUri="http://gae.cavelis.net/rule" RequestNavigate="OpenUrl">利用規約</Hyperlink>
-                <Run>に同意します。</Run>
+                        <Run>cavelis.net</Run>
+                        <Hyperlink NavigateUri="http://gae.cavelis.net/rule" RequestNavigate="OpenUrl">利用規約</Hyperlink>
+                        <Run>に同意します。</Run>
                     </TextBlock>
                 </CheckBox>
             </Grid>

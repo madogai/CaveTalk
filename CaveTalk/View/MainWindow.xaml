@@ -25,6 +25,10 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="MessageHyperlinkStyle" TargetType="Hyperlink">
+            <EventSetter Event="RequestNavigate" Handler="OpenUrl" />
+            <EventSetter Event="ToolTipOpening" Handler="LoadPreview" />
+        </Style>
     </rb:RibbonWindow.Resources>
     <rb:RibbonWindow.CommandBindings>
         <CommandBinding Command="{x:Static Member=v:MainWindow.RestoreWindowCommand}" Executed="RestoreWindowExecuted" />
@@ -315,9 +319,6 @@
                             <ContentControl Content="{Binding Path=Comment, Converter={StaticResource ResourceKey=AutoLinkConverter}}">
                                 <ContentControl.Style>
                                     <Style TargetType="ContentControl">
-                                        <Style.Setters>
-                                            <EventSetter Event="Hyperlink.RequestNavigate" Handler="OpenUrl" />
-                                        </Style.Setters>
                                         <Style.Resources>
                                             <Style TargetType="TextBlock">
                                                 <Style.Setters>
@@ -343,6 +344,7 @@
                                                     </MultiDataTrigger>
                                                 </Style.Triggers>
                                             </Style>
+                                            <Style TargetType="Hyperlink" BasedOn="{StaticResource ResourceKey=MessageHyperlinkStyle}" />
                                         </Style.Resources>
                                     </Style>
                                 </ContentControl.Style>
