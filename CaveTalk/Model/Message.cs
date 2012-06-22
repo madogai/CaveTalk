@@ -4,8 +4,8 @@
 	using CaveTube.CaveTalk.Utils;
 
 	public sealed class Message {
-		public Int32? Order { get; set; }
-		public Int32 Number { get; set; }
+		public Int64? Order { get; set; }
+		public Int64 Number { get; set; }
 		public String Name { get; set; }
 		public String Comment { get; set; }
 		public DateTime PostTime { get; set; }
@@ -13,6 +13,13 @@
 		public Boolean IsBan { get; set; }
 		public String RoomId { get; set; }
 		public String ListenerId { get; set; }
+		public Listener Listener {
+			get {
+				if(String.IsNullOrWhiteSpace(this.ListenerId)) {
+					return null;
+				};
+				return Listener.GetListener(this.ListenerId); }
+		}
 
 		public override Boolean Equals(Object obj) {
 			var other = obj as Message;
@@ -26,6 +33,10 @@
 
 		public override Int32 GetHashCode() {
 			return this.Order.GetHashCode();
+		}
+
+		public void Save() {
+			UpdateMessage(this);
 		}
 
 		public static IEnumerable<Message> GetMessages(Room room) {

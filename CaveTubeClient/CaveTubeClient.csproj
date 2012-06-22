@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="CavetubeAuth.cs" />
     <Compile Include="CavetubeClient.cs" />
+    <Compile Include="CaveTubeEntry.cs" />
     <Compile Include="CavetubeException.cs" />
     <Compile Include="DynamicJson.cs" />
     <Compile Include="JavaScriptTime.cs" />

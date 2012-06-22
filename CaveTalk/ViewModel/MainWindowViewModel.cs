@@ -3,6 +3,7 @@
 	using System.Collections.Generic;
 	using System.Configuration;
 	using System.Linq;
+	using System.Media;
 	using System.Net;
 	using System.Runtime.InteropServices;
 	using System.Windows;
@@ -165,16 +166,6 @@
 		public ICommand DisconnectSpeakApplicationCommand { get; private set; }
 
 		/// <summary>
-		/// 通知を有効にします。
-		/// </summary>
-		public ICommand EnableNotifyCommand { get; private set; }
-
-		/// <summary>
-		/// 通知を無効にします。
-		/// </summary>
-		public ICommand DisableNotifyCommand { get; private set; }
-
-		/// <summary>
 		/// AboutBoxを表示します。
 		/// </summary>
 		public ICommand AboutBoxCommand { get; private set; }
@@ -184,6 +175,10 @@
 		/// </summary>
 		public ICommand SettingWindowCommand { get; private set; }
 
+		/// <summary>
+		/// 配信開始画面を表示します。
+		/// </summary>
+		public ICommand StartBroadcastWindowCommand { get; private set; }
 		#endregion
 
 		/// <summary>
@@ -214,6 +209,7 @@
 			});
 			this.AboutBoxCommand = new RelayCommand(p => this.ShowVersion());
 			this.SettingWindowCommand = new RelayCommand(p => this.ShowOption());
+			this.StartBroadcastWindowCommand = new RelayCommand(p => this.ShowStartBroadcast());
 
 			#endregion
 
@@ -308,6 +304,7 @@
 				this.commentClient.OnUpdateMember += this.OnUpdateMember;
 				this.commentClient.OnBan += this.OnBanUser;
 				this.commentClient.OnUnBan += this.OnUnBanUser;
+				this.commentClient.OnAdminShout += this.OnAdminShout;
 				this.commentClient.OnError += this.OnError;
 				this.commentClient.Connect();
 
@@ -322,13 +319,18 @@
 				// URLを部屋名に更新します。
 				this.LiveUrl = roomId;
 
-				room.Messages.Select(m => new Message(m, this.BanUser, this.UnBanUser, this.MarkListener)).ForEach(m => {
-					this.MessageList.Insert(0, m);
+				room.Messages.ForEach(m => {
+					var message = new Message(m);
+					message.OnBanUser += this.BanUser;
+					message.OnUnBanUser += this.UnBanUser;
+					message.OnMarkListener += this.MarkListener;
+					message.OnForceIdOn += this.ForceIdOn;
+					message.OnForceIdOff += this.ForceIdOff;
+					this.MessageList.Insert(0, message);
 				});
 
 				this.commentClient.JoinRoom(roomId);
-			}
-			catch (CommentException e) {
+			} catch (CommentException e) {
 				Mouse.OverrideCursor = null;
 				MessageBox.Show(e.Message);
 				logger.Error(e);
@@ -373,8 +375,8 @@
 		/// <summary>
 		/// ユーザーをBANします。
 		/// </summary>
-		/// <param name="commentNum"></param>
-		private void BanUser(Int32 commentNum) {
+		/// <param name="message"></param>
+		private void BanUser(Message message) {
 			if (this.LoginStatus == false) {
 				MessageBox.Show("BANするにはログインが必須です。");
 				return;
@@ -385,22 +387,22 @@
 				return;
 			}
 
-			this.commentClient.BanListener(commentNum, this.config.ApiKey);
-
 			try {
-
-				base.OnPropertyChanged("MessageList");
-			}
-			catch (ArgumentException) {
-				logger.Error("未ログイン状態のため、BANできませんでした。");
+				this.commentClient.BanListener(message.Number, this.config.ApiKey);
+			} catch (ArgumentException ex) {
+				MessageBox.Show(ex.Message);
+				logger.Error(ex);
+			} catch (CavetubeException ex) {
+				MessageBox.Show(ex.Message);
+				logger.Error(ex);
 			}
 		}
 
 		/// <summary>
 		/// ユーザーBANを解除します。
 		/// </summary>
-		/// <param name="commentNum"></param>
-		private void UnBanUser(Int32 commentNum) {
+		/// <param name="message"></param>
+		private void UnBanUser(Message message) {
 			if (this.LoginStatus == false) {
 				MessageBox.Show("BANするにはログインが必須です。");
 				return;
@@ -412,36 +414,73 @@
 			}
 
 			try {
-				this.commentClient.UnBanListener(commentNum, this.config.ApiKey);
-			}
-			catch (ArgumentException) {
-				logger.Error("未ログイン状態のため、BAN解除できませんでした。");
+				this.commentClient.UnBanListener(message.Number, this.config.ApiKey);
+			} catch (ArgumentException ex) {
+				MessageBox.Show(ex.Message);
+				logger.Error(ex);
+			} catch (CavetubeException ex) {
+				MessageBox.Show(ex.Message);
+				logger.Error(ex);
 			}
 		}
 
 		/// <summary>
-		/// Id付きのリスナーに色を付けます。
+		/// リスナーの強制ID表示を有効にします。
 		/// </summary>
-		/// <param name="id"></param>
-		private void MarkListener(Int32 commentNum, String id) {
-			var comment = this.MessageList.FirstOrDefault(m => m.Number == commentNum);
-			if (comment == null) {
+		/// <param name="message"></param>
+		private void ForceIdOn(Message message) {
+			if (this.LoginStatus == false) {
+				MessageBox.Show("ID表示指定するにはログインが必須です。");
 				return;
 			}
 
-			var solidBrush = comment.Color as SolidColorBrush;
-			if (solidBrush.Color != Colors.White) {
-				comment.Color = Brushes.White;
-			}
-			else {
-				var random = new Random();
-				// 暗い色だと文字が見えなくなるので、96以上とします。
-				var red = (byte)random.Next(96, 255);
-				var green = (byte)random.Next(96, 255);
-				var blue = (byte)random.Next(96, 255);
-				comment.Color = new SolidColorBrush(Color.FromRgb(red, green, blue));
+			if (this.config.UserId != this.commentClient.Author) {
+				MessageBox.Show("配信者でないとID表示指定することはできません。");
+				return;
 			}
 
+			try {
+				this.commentClient.ForceIdOn(message.Number, this.config.ApiKey);
+			} catch (ArgumentException ex) {
+				MessageBox.Show(ex.Message);
+				logger.Error(ex);
+			} catch (CavetubeException ex) {
+				MessageBox.Show(ex.Message);
+				logger.Error(ex);
+			}
+		}
+
+		/// <summary>
+		/// リスナーの強制ID表示を解除します。
+		/// </summary>
+		/// <param name="message"></param>
+		private void ForceIdOff(Message message) {
+			if (this.LoginStatus == false) {
+				MessageBox.Show("ID表示解除するにはログインが必須です。");
+				return;
+			}
+
+			if (this.config.UserId != this.commentClient.Author) {
+				MessageBox.Show("配信者でないとID表示解除することはできません。");
+				return;
+			}
+
+			try {
+				this.commentClient.ForceIdOff(message.Number, this.config.ApiKey);
+			} catch (ArgumentException ex) {
+				MessageBox.Show(ex.Message);
+				logger.Error(ex);
+			} catch (CavetubeException ex) {
+				MessageBox.Show(ex.Message);
+				logger.Error(ex);
+			}
+		}
+
+		/// <summary>
+		/// 色が付いたのに合わせて画面を更新します。
+		/// </summary>
+		/// <param name="id"></param>
+		private void MarkListener(Message message) {
 			this.MessageList.Refresh();
 		}
 
@@ -459,8 +498,7 @@
 					throw new ConnectionException("読み上げソフトに接続できませんでした。後から読み上げソフトを立ち上げた場合は、メニューの読み上げアイコンから読み上げソフトに接続を選択してください。");
 				}
 				base.OnPropertyChanged("SpeakApplicationStatus");
-			}
-			catch (ConnectionException e) {
+			} catch (ConnectionException e) {
 				MessageBox.Show(e.Message);
 			}
 		}
@@ -495,7 +533,12 @@
 		/// <param name="mes"></param>
 		private void OnReceiveMessage(Lib.Message mes) {
 			// コメントを追加
-			var message = new Message(mes, this.BanUser, this.UnBanUser, this.MarkListener);
+			var message = new Message(mes);
+			message.OnBanUser += this.BanUser;
+			message.OnUnBanUser += this.UnBanUser;
+			message.OnMarkListener += this.MarkListener;
+			message.OnForceIdOn += this.ForceIdOn;
+			message.OnForceIdOff += this.ForceIdOff;
 			this.MessageList.Insert(0, message);
 
 			// コメントの読み上げ
@@ -528,8 +571,14 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void OnBanUser(Lib.Message message) {
-			var target = this.MessageList.FirstOrDefault(m => m.Number == message.Number);
-			target.IsBan = true;
+			var newMessage = new Message(message);
+			var index = this.MessageList.IndexOf(newMessage);
+			if (index < 0) {
+				return;
+			}
+
+			this.MessageList[index] = newMessage;
+			base.OnPropertyChanged("MessageList");
 		}
 
 		/// <summary>
@@ -537,8 +586,23 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void OnUnBanUser(Lib.Message message) {
-			var target = this.MessageList.FirstOrDefault(m => m.Number == message.Number);
-			target.IsBan = false;
+			var newMessage = new Message(message);
+			var index = this.MessageList.IndexOf(newMessage);
+			if (index < 0) {
+				return;
+			}
+
+			this.MessageList[index] = newMessage;
+			base.OnPropertyChanged("MessageList");
+		}
+
+		/// <summary>
+		/// 管理者メッセージ通知時に実行されるイベントです。
+		/// </summary>
+		/// <param name="message"></param>
+		private void OnAdminShout(String message) {
+			SystemSounds.Asterisk.Play();
+			MessageBox.Show(message, "管理者メッセージ", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
 		}
 
 		/// <summary>
@@ -546,7 +610,7 @@
 		/// </summary>
 		/// <param name="e"></param>
 		private void OnError(Exception e) {
-			MessageBox.Show(e.Message, "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+			MessageBox.Show(e.Message, "エラー", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
 			logger.Error(e);
 		}
 
@@ -590,15 +654,14 @@
 			try {
 				var isSuccess = CavetubeAuth.Logout(userId, password, devKey);
 				if (isSuccess) {
-					this.config.ApiKey = null;
-					this.config.UserId = null;
-					this.config.Password = null;
+					this.config.ApiKey = String.Empty;
+					this.config.UserId = String.Empty;
+					this.config.Password = String.Empty;
 					this.config.Save();
 
 					base.OnPropertyChanged("LoginStatus");
 				}
-			}
-			catch (WebException) {
+			} catch (WebException) {
 				MessageBox.Show("ログアウトに失敗しました。");
 			}
 		}
@@ -633,6 +696,22 @@
 		}
 
 		#endregion
+
+		private void ShowStartBroadcast() {
+			var window = new StartBroadcast();
+			var viewModel = new StartBroadcastViewModel();
+			viewModel.OnClose += roomId => {
+				uiDispatcher.BeginInvoke(new Action(() => {
+					window.Close();
+					if (String.IsNullOrWhiteSpace(roomId)) {
+						return;
+					}
+					this.JoinRoom(roomId);
+				}));
+			};
+			window.DataContext = viewModel;
+			window.ShowDialog();
+		}
 	}
 
 	public sealed class Message : ViewModelBase {
@@ -641,10 +720,6 @@
 
 		public Int32 Number {
 			get { return this.message.Number; }
-			set {
-				this.message.Number = value;
-				base.OnPropertyChanged("Number");
-			}
 		}
 
 		public String ListenerId {
@@ -654,54 +729,26 @@
 				}
 				return this.message.ListenerId;
 			}
-			set {
-				if (this.message.ListenerId == null) {
-					return;
-				}
-
-				this.message.ListenerId = value;
-				base.OnPropertyChanged("ListenerId");
-			}
 		}
 
 		public String Name {
 			get { return this.message.Name; }
-			set {
-				this.message.Name = value;
-				base.OnPropertyChanged("Name");
-			}
 		}
 
 		public String Comment {
 			get { return this.message.Comment; }
-			set {
-				this.message.Comment = value;
-				base.OnPropertyChanged("Comment");
-			}
 		}
 
 		public DateTime PostTime {
 			get { return this.message.PostTime; }
-			set {
-				this.message.PostTime = value;
-				base.OnPropertyChanged("PostTime");
-			}
 		}
 
 		public Boolean IsAuth {
 			get { return this.message.IsAuth; }
-			set {
-				this.message.IsAuth = value;
-				base.OnPropertyChanged("IsAuth");
-			}
 		}
 
 		public Boolean IsBan {
 			get { return this.message.IsBan; }
-			set {
-				this.message.IsBan = value;
-				base.OnPropertyChanged("IsBan");
-			}
 		}
 
 		public Boolean IsAsciiArt {
@@ -712,8 +759,16 @@
 
 		public Brush Color {
 			get {
-				if (this.message.ListenerId == null) {
+				if (this.message.IsAuth == false && String.IsNullOrWhiteSpace(this.message.ListenerId)) {
 					return new SolidColorBrush(Colors.White);
+				}
+
+				if (this.message.IsAuth) {
+					var account = Model.Account.GetAccount(this.Name);
+					if (account == null || String.IsNullOrWhiteSpace(account.Color)) {
+						return new SolidColorBrush(Colors.White);
+					}
+					return (Brush)new BrushConverter().ConvertFrom(account.Color);
 				}
 
 				var listener = Model.Listener.GetListener(this.message.ListenerId);
@@ -722,79 +777,114 @@
 				}
 				return (Brush)new BrushConverter().ConvertFrom(listener.Color);
 			}
-			set {
-				if (this.message.ListenerId == null) {
-					return;
-				}
-
-				var listener = Model.Listener.GetListener(this.message.ListenerId);
-				if (listener == null) {
-					return;
-				}
-
+			private set {
 				var color = value.ToString();
 
-				var account = listener.Account;
-				// アカウントが存在しない場合はリスナーの色のみ変えます。
-				if (account == null) {
+				if (this.IsAuth) {
+					var account = Model.Account.GetAccount(this.Name);
+					if (account == null) {
+						return;
+					}
+
+					// 全コメントの色を変更します。
+					account.Color = color;
+					Model.Account.UpdateAccount(account);
+
+					var listeners = account.Listeners.Select(l => {
+						l.Color = color;
+						return l;
+					});
+					Model.Listener.UpdateListener(listeners);
+					base.OnPropertyChanged("Color");
+				} else if (String.IsNullOrWhiteSpace(this.message.ListenerId) == false) {
+					var listener = Model.Listener.GetListener(this.message.ListenerId);
+					if (listener == null) {
+						return;
+					}
+
 					listener.Color = color;
 					Model.Listener.UpdateListener(listener);
-					base.OnPropertyChanged("Color");
-					return;
-				}
 
-				// 全コメントの色を変更します。
-				account.Color = color;
-				var listeners = account.Listeners.Select(l => {
-					l.Color = color;
-					return l;
-				});
-				Model.Listener.UpdateListener(listeners);
-				base.OnPropertyChanged("Color");
+					var account = listener.Account;
+					if (account == null) {
+						base.OnPropertyChanged("Color");
+						return;
+					}
+
+					account.Color = color;
+					Model.Account.UpdateAccount(account);
+					base.OnPropertyChanged("Color");
+				}
 			}
 		}
 
-		public event Action<Int32> OnBanUser;
-		public event Action<Int32> OnUnBanUser;
-		public event Action<Int32, String> OnMarkListener;
+		public event Action<Message> OnBanUser;
+		public event Action<Message> OnUnBanUser;
+		public event Action<Message> OnMarkListener;
+		public event Action<Message> OnForceIdOn;
+		public event Action<Message> OnForceIdOff;
 
 		public ICommand CopyCommentCommand { get; private set; }
 		public ICommand BanUserCommand { get; private set; }
 		public ICommand UnBanUserCommand { get; private set; }
+		public ICommand ForceIdOnCommand { get; private set; }
+		public ICommand ForceIdOffCommand { get; private set; }
 		public ICommand MarkCommand { get; private set; }
 
-		public Message(Lib.Message message, Action<Int32> OnBan, Action<Int32> OnUnBan, Action<Int32, String> OnMarkListener) {
+		public Message(Lib.Message message) {
 			this.message = message;
-
-			this.OnBanUser += OnBan;
-			this.OnUnBanUser += OnUnBan;
-			this.OnMarkListener += OnMarkListener;
 
 			this.CopyCommentCommand = new RelayCommand(p => {
 				try {
 					Clipboard.SetText(this.Comment);
-				}
-				catch (ExternalException e) {
+				} catch (ExternalException e) {
 					MessageBox.Show("クリップボードへのコピーに失敗しました。");
 					logger.Error("クリップボードのコピーへの失敗しました。", e);
-				}
-				catch (ArgumentException e) {
+				} catch (ArgumentException e) {
 					logger.Error("コメントがnullのためクリップボードにコピーできませんでした。", e);
 				}
 			});
 			this.BanUserCommand = new RelayCommand(p => {
 				if (this.OnBanUser != null) {
-					this.OnBanUser(this.Number);
+					this.OnBanUser(this);
 				}
 			});
 			this.UnBanUserCommand = new RelayCommand(p => {
 				if (this.OnUnBanUser != null) {
-					this.OnUnBanUser(this.Number);
+					this.OnUnBanUser(this);
 				}
 			});
+			this.ForceIdOnCommand = new RelayCommand(p => {
+				if (this.OnForceIdOn != null) {
+					this.OnForceIdOn(this);
+				}
+			});
+			this.ForceIdOffCommand = new RelayCommand(p => {
+				if (this.OnForceIdOff != null) {
+					this.OnForceIdOff(this);
+				}
+			});
+
 			this.MarkCommand = new RelayCommand(p => {
-				if (this.OnMarkListener != null && String.IsNullOrWhiteSpace(this.ListenerId) == false) {
-					this.OnMarkListener(this.Number, this.ListenerId);
+				if (this.IsAuth == false && String.IsNullOrWhiteSpace(this.ListenerId)) {
+					return;
+				}
+
+				var solidBrush = this.Color as SolidColorBrush;
+
+				if (solidBrush.Color != Colors.White) {
+					this.Color = Brushes.White;
+				} else {
+					var random = new Random();
+					// 暗い色だと文字が見えなくなるので、96以上とします。
+					var red = (byte)random.Next(96, 255);
+					var green = (byte)random.Next(96, 255);
+					var blue = (byte)random.Next(96, 255);
+					this.Color = new SolidColorBrush(System.Windows.Media.Color.FromRgb(red, green, blue));
+				}
+
+				if (this.OnMarkListener != null) {
+					this.OnMarkListener(this);
 				}
 			});
 		}

@@ -24,7 +24,7 @@
 		}
 
 		public abstract String RoomId { get; }
-		public abstract String Author { get;  }
+		public abstract String Author { get; }
 		public abstract Boolean IsConnect { get; }
 
 		public abstract event Action<IEnumerable<Message>> OnMessageList;
@@ -34,6 +34,7 @@
 		public abstract event Action<Int32> OnUpdateMember;
 		public abstract event Action<Message> OnBan;
 		public abstract event Action<Message> OnUnBan;
+		public abstract event Action<String> OnAdminShout;
 		public abstract event Action<Exception> OnError;
 
 		public ACommentClient() {
@@ -62,6 +63,10 @@
 			var dbRoom = new Model.Room {
 				RoomId = summary.RoomId,
 				Title = summary.Title,
+				Description = summary.Description,
+				Tags = String.Join(" ", summary.Tags),
+				IdVisible = summary.IdVidible,
+				AnonymousOnly = summary.AnonymousOnly,
 				Author = summary.Author,
 				StartTime = summary.StartTime,
 			};
@@ -97,6 +102,21 @@
 		/// <param name="apiKey"></param>
 		/// <returns></returns>
 		public abstract void UnBanListener(Int32 commentNumber, String apiKey);
+
+		/// <summary>
+		/// リスナーの強制ID表示を有効にします。
+		/// </summary>
+		/// <param name="commentNumber"></param>
+		/// <param name="apiKey"></param>
+		public abstract void ForceIdOn(Int32 commentNumber, String apiKey);
+
+		/// <summary>
+		/// リスナーの強制ID表示を解除します。
+		/// </summary>
+		/// <param name="commentNumber"></param>
+		/// <param name="apiKey"></param>
+		public abstract void ForceIdOff(Int32 commentNumber, String apiKey);
+
 		/// <summary>
 		/// コメントを投稿します。
 		/// </summary>
@@ -113,13 +133,26 @@
 				return;
 			}
 
+			if (message.IsAuth) {
+				// アカウント情報を更新
+				var account = Model.Account.GetAccount(message.Name);
+				if (message.IsAuth && String.IsNullOrWhiteSpace(message.Name) == false) {
+					account = new Model.Account {
+						AccountName = message.Name,
+					};
+					Model.Account.UpdateAccount(account);
+				}
+			}
+
 			if (String.IsNullOrWhiteSpace(message.ListenerId) == false) {
 				// リスナーが存在しなければ追加します。
 				var listener = Model.Listener.GetListener(message.ListenerId);
-				if (listener == null) {
+				if (listener == null || (String.IsNullOrWhiteSpace(listener.ListenerId) == false && message.IsAuth)) {
 					listener = new Model.Listener {
 						ListenerId = message.ListenerId,
+						Name = String.IsNullOrWhiteSpace(message.Name) == false ? message.Name : null,
 						Author = author,
+						AccountName = message.IsAuth ? message.Name : null,
 					};
 					Model.Listener.UpdateListener(listener);
 				}
@@ -133,19 +166,7 @@
 		/// <param name="messages"></param>
 		private void NewMessage(Summary summary, IEnumerable<Message> messages) {
 			foreach (var message in messages) {
-				if (String.IsNullOrWhiteSpace(message.ListenerId) == false) {
-					// リスナーが存在しなければ追加します。
-					var listener = Model.Listener.GetListener(message.ListenerId);
-					if (listener == null) {
-						listener = new Model.Listener {
-							ListenerId = message.ListenerId,
-							Author = summary.Author,
-						};
-						Model.Listener.UpdateListener(listener);
-					}
-				}
-
-				if (message.IsAuth) {
+				if (message.IsAuth && String.IsNullOrWhiteSpace(message.Name) == false) {
 					// アカウント情報を更新
 					var account = Model.Account.GetAccount(message.Name);
 					if (account == null) {
@@ -153,6 +174,20 @@
 							AccountName = message.Name,
 						};
 						Model.Account.UpdateAccount(account);
+					}
+				}
+
+				if (String.IsNullOrWhiteSpace(message.ListenerId) == false) {
+					// リスナーが存在しなければ追加します。
+					var listener = Model.Listener.GetListener(message.ListenerId);
+					if (listener == null || (String.IsNullOrWhiteSpace(listener.ListenerId) == false && message.IsAuth)) {
+						listener = new Model.Listener {
+							ListenerId = message.ListenerId,
+							Name = String.IsNullOrWhiteSpace(message.Name) == false ? message.Name : null,
+							Author = summary.Author,
+							AccountName = message.IsAuth ? message.Name : null,
+						};
+						Model.Listener.UpdateListener(listener);
 					}
 				}
 			}
@@ -173,32 +208,34 @@
 	}
 
 	public partial class Room {
-		public Summary Summary { get; set; }
-		public IEnumerable<Message> Messages { get; set; }
+		public Summary Summary { get; protected set; }
+		public IEnumerable<Message> Messages { get; protected set; }
 	}
 
 	public partial class Summary {
-		public String RoomId { get; set; }
-		public String Title { get; set; }
-		public String Author { get; set; }
-		public Int32 Listener { get; set; }
-		public Int32 PageView { get; set; }
-		public DateTime StartTime { get; set; }
+		public String RoomId { get; protected set; }
+		public String Title { get; protected set; }
+		public String Description { get; protected set; }
+		public IEnumerable<String> Tags { get; protected set; }
+		public Boolean IdVidible { get; protected set; }
+		public Boolean AnonymousOnly { get; protected set; }
+		public String Author { get; protected set; }
+		public Int32 Listener { get; protected set; }
+		public Int32 PageView { get; protected set; }
+		public DateTime StartTime { get; protected set; }
 	}
 
 	public partial class Message {
-		public Int32 Number { get; set; }
-		public String ListenerId { get; set; }
-		public String Name { get; set; }
-		public String Comment { get; set; }
-		public DateTime PostTime { get; set; }
-		public Boolean IsAuth { get; set; }
-		public Boolean IsBan { get; set; }
+		public Int32 Number { get; protected set; }
+		public String ListenerId { get; protected set; }
+		public String Name { get; protected set; }
+		public String Comment { get; protected set; }
+		public DateTime PostTime { get; protected set; }
+		public Boolean IsAuth { get; protected set; }
+		public Boolean IsBan { get; protected set; }
 		public Boolean IsAsciiArt {
 			get { return Regex.IsMatch(this.Comment, "　 (?!<br>|$)"); }
 		}
-
-		public Message() { }
 	}
 
 	[Serializable]

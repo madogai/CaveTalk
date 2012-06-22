@@ -4,6 +4,9 @@
 	using CaveTube.CaveTalk.Utils;
 
 	public sealed class Account {
+		// MEMO Dapperが綺麗にキャッシュする仕様ならば、ここでキャッシュする必要はなくなります。
+		private static IDictionary<String, Account> AccountCache = new Dictionary<String, Account>();
+
 		public String AccountName { get; set; }
 		public String Color { get; set; }
 		public IEnumerable<Listener> Listeners {
@@ -12,8 +15,16 @@
 			}
 		}
 
+		public void Save() {
+			UpdateAccount(this);
+		}
+
 		public static Account GetAccount(String accountName) {
-			var result = DapperUtil.QueryFirst<Account>(@"
+			if (AccountCache.ContainsKey(accountName)) {
+				return AccountCache[accountName];
+			}
+
+			var account = DapperUtil.QueryFirst<Account>(@"
 				SELECT
 					AccountName
 					,Account.Color
@@ -25,7 +36,10 @@
 			", new {
 				 AccountName = accountName,
 			 });
-			return result;
+
+			AccountCache[accountName] = account;
+
+			return account;
 		}
 
 		public static void UpdateAccount(Account account) {
@@ -40,6 +54,8 @@
 						@AccountName, @Color
 					);
 				", account, transaction);
+
+				AccountCache[account.AccountName] = account;
 
 				transaction.Commit();
 			});

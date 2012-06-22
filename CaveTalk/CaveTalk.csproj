@@ -163,6 +163,7 @@
     <Compile Include="ViewModel\OptionBaseViewModel.cs" />
     <Compile Include="ViewModel\OptionWindowViewModel.cs" />
     <Compile Include="ViewModel\GeneralOptionViewModel.cs" />
+    <Compile Include="ViewModel\StartBroadcastViewModel.cs" />
     <Compile Include="View\CommentOptionControl.xaml.cs">
       <DependentUpon>CommentOptionControl.xaml</DependentUpon>
     </Compile>
@@ -179,6 +180,9 @@
     </Compile>
     <Compile Include="View\GeneralOptoinControl.xaml.cs">
       <DependentUpon>GeneralOptoinControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\StartBroadcast.xaml.cs">
+      <DependentUpon>StartBroadcast.xaml</DependentUpon>
     </Compile>
     <Page Include="Control\NotifyBalloon.xaml">
       <SubType>Designer</SubType>
@@ -236,6 +240,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="View\StartBroadcast.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -246,7 +254,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Content Include="CaveTalkDb.sdf" />
+    <Resource Include="Images\webcam.png" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -261,7 +269,6 @@
     <None Include="App.Release.config">
       <DependentUpon>App.config</DependentUpon>
     </None>
-    <Content Include="CaveTalkDb.sqlite" />
     <None Include="NLog.config" />
     <None Include="packages.config" />
     <AppDesigner Include="Properties\" />

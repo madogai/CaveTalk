@@ -7,12 +7,20 @@
 		public String RoomId { get; set; }
 		public String Author { get; set; }
 		public String Title { get; set; }
+		public String Description { get; set; }
+		public String Tags { get; set; }
+		public Boolean IdVisible { get; set; }
+		public Boolean AnonymousOnly { get; set; }
 		public DateTime StartTime { get; set; }
-		public Int32 ListenerCount { get; set; }
+		public Int64 ListenerCount { get; set; }
 		public IEnumerable<Message> Messages {
 			get {
 				return Message.GetMessages(this);
 			}
+		}
+
+		public void Save() {
+			UpdateRoom(this);
 		}
 
 		public static Room GetRoom(String roomId) {
@@ -21,6 +29,10 @@
 					RoomId
 					,Author
 					,Title
+					,Description
+					,Tags
+					,IdVisible
+					,AnonymousOnly
 					,StartTime
 					,ListenerCount
 				FROM
@@ -34,6 +46,31 @@
 			return result;
 		}
 
+		public static IEnumerable<Room> GetRooms(String accountName) {
+			var rooms = DapperUtil.Query<Room>(@"
+				SELECT
+					RoomId
+					,Author
+					,Title
+					,Description
+					,Tags
+					,IdVisible
+					,AnonymousOnly
+					,StartTime
+					,ListenerCount
+				FROM
+					Room
+				WHERE
+					Author = @Author
+				ORDER BY
+					StartTime DESC
+				;
+			", new {
+				 Author = accountName,
+			 });
+			return rooms;
+		}
+
 		public static void UpdateRoom(Room room) {
 			DapperUtil.Execute(executor => {
 				var transaction = executor.BeginTransaction();
@@ -43,10 +80,14 @@
 						RoomId
 						,Author
 						,Title
+						,Description
+						,Tags
+						,IdVisible
+						,AnonymousOnly
 						,StartTime
 						,ListenerCount
 					) VALUES (
-						@RoomId, @Author, @Title, @StartTime, @ListenerCount
+						@RoomId, @Author, @Title, @Description, @Tags, @IdVisible, @AnonymousOnly, @StartTime, @ListenerCount
 					);
 				", room, transaction);
 
@@ -60,6 +101,10 @@
 					RoomId TEXT PRIMARY KEY  NOT NULL
 					,Author TEXT NOT NULL
 					,Title TEXT NOT NULL
+					,Description TEXT
+					,Tags TEXT
+					,IdVisible BOOL NOT NULL
+					,AnonymousOnly BOOL NOT NULL
 					,StartTime DATETIME NOT NULL
 					,ListenerCount INTEGER NOT NULL
 				);

@@ -54,9 +54,21 @@
 		/// </summary>
 		public event Action<Message> OnUnBan;
 		/// <summary>
+		/// リスナーへのID強制表示が行われたときに通知されるイベントです。
+		/// </summary>
+		public event Action<ForceIdNotification> OnForceIdOn;
+		/// <summary>
+		/// リスナーへのID強制表示が解除されたときに通知されるイベントです。
+		/// </summary>
+		public event Action<ForceIdNotification> OnForceIdOff;
+		/// <summary>
 		/// 新しい配信が始まった時に通知されるイベントです。
 		/// </summary>
 		public event Action<LiveNotification> OnNotifyLive;
+		/// <summary>
+		/// 管理者メッセージ通知です。
+		/// </summary>
+		public event Action<AdminShout> OnAdminShout;
 		/// <summary>
 		/// 何かしらのエラーが発生したときに通知されるイベントです。
 		/// </summary>
@@ -148,8 +160,7 @@
 		public void Connect() {
 			try {
 				this.client.Connect();
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				throw new CavetubeException("CaveTubeとの接続に失敗しました。", ex);
 			}
 		}
@@ -183,8 +194,7 @@
 					var summary = new Summary(jsonString);
 					return summary;
 				}
-			}
-			catch (WebException) {
+			} catch (WebException) {
 				return new Summary();
 			}
 		}
@@ -215,8 +225,7 @@
 					var comments = this.ParseMessage(json);
 					return comments;
 				}
-			}
-			catch (WebException) {
+			} catch (WebException) {
 				return new List<Message>();
 			}
 		}
@@ -334,6 +343,52 @@
 		}
 
 		/// <summary>
+		/// リスナーの強制ID表示を有効にします。
+		/// </summary>
+		/// <param name="commentNum">ID表示するコメント番号</param>
+		/// <param name="apiKey">APIキー</param>
+		public void ForceIdOn(Int32 commentNum, String apiKey) {
+			if (String.IsNullOrWhiteSpace(apiKey)) {
+				throw new ArgumentException("APIキーは必須です。");
+			}
+
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
+			var message = DynamicJson.Serialize(new {
+				mode = "forceId",
+				comment_num = commentNum,
+				visibility = true,
+				api_key = apiKey,
+			});
+			client.Send(new TextMessage(message));
+		}
+
+		/// <summary>
+		/// リスナーの強制ID表示を解除します。
+		/// </summary>
+		/// <param name="commentNum">ID表示を解除するコメント番号</param>
+		/// <param name="apiKey">APIキー</param>
+		public void ForceIdOff(Int32 commentNum, String apiKey) {
+			if (String.IsNullOrWhiteSpace(apiKey)) {
+				throw new ArgumentException("APIキーは必須です。");
+			}
+
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
+			var message = DynamicJson.Serialize(new {
+				mode = "forceId",
+				comment_num = commentNum,
+				visibility = false,
+				api_key = apiKey,
+			});
+			client.Send(new TextMessage(message));
+		}
+
+		/// <summary>
 		/// コメントサーバとの接続を閉じます。
 		/// </summary>
 		public void Close() {
@@ -365,6 +420,7 @@
 		private void HandleMessage(dynamic json) {
 			try {
 				String mode = json.mode;
+				Message post;
 				switch (mode) {
 					case "get":
 						if (this.OnMessageList == null) {
@@ -379,7 +435,7 @@
 							break;
 						}
 
-						var post = new Message(json);
+						post = new Message(json);
 						this.OnNewMessage(post);
 						break;
 					case "ban_notify":
@@ -389,10 +445,21 @@
 							if (this.OnBan != null) {
 								this.OnBan(post);
 							}
-						}
-						else {
+						} else {
 							if (this.OnUnBan != null) {
 								this.OnUnBan(post);
+							}
+						}
+						break;
+					case "force_id_notify":
+						var idNotify = new ForceIdNotification(json);
+						if (idNotify.IsVisible) {
+							if (this.OnForceIdOn != null) {
+								this.OnForceIdOn(idNotify);
+							}
+						} else {
+							if (this.OnForceIdOff != null) {
+								this.OnForceIdOff(idNotify);
 							}
 						}
 						break;
@@ -407,14 +474,18 @@
 							this.OnUpdateMember(ipCount);
 						}
 						break;
+					case "admin_yell":
+						if (this.OnAdminShout != null) {
+							var adminShout = new AdminShout(json);
+							this.OnAdminShout(adminShout);
+						}
+						break;
 					default:
 						break;
 				}
-			}
-			catch (XmlException) {
+			} catch (XmlException) {
 				Debug.WriteLine("メッセージのParseに失敗しました。");
-			}
-			catch (RuntimeBinderException) {
+			} catch (RuntimeBinderException) {
 				Debug.WriteLine("Json内にプロパティが見つかりませんでした。");
 			}
 		}
@@ -429,10 +500,7 @@
 			}
 
 			if (this.OnNotifyLive != null) {
-				var author = json.IsDefined("author") ? json.author : String.Empty;
-				var title = json.IsDefined("title") ? json.title : String.Empty;
-				var roomId = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
-				var liveInfo = new LiveNotification(author, title, roomId);
+				var liveInfo = new LiveNotification(json);
 				this.OnNotifyLive(liveInfo);
 			}
 
@@ -497,20 +565,28 @@
 	/// 配信概要
 	/// </summary>
 	public class Summary {
-		public String RoomId { get; set; }
-		public String Title { get; set; }
-		public String Author { get; set; }
-		public Int32 Listener { get; set; }
-		public Int32 PageView { get; set; }
-		public DateTime StartTime { get; set; }
+		public String RoomId { get; internal set; }
+		public String Title { get; internal set; }
+		public String Description { get; internal set; }
+		public IEnumerable<String> Tags { get; internal set; }
+		public Boolean IdVidible { get; internal set; }
+		public Boolean AnonymousOnly { get; internal set; }
+		public String Author { get; internal set; }
+		public Int32 Listener { get; internal set; }
+		public Int32 PageView { get; internal set; }
+		public DateTime StartTime { get; internal set; }
 
-		public Summary() {
+		internal Summary() {
 		}
 
-		public Summary(String jsonString) {
+		internal Summary(String jsonString) {
 			var json = DynamicJson.Parse(jsonString);
 			this.RoomId = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
 			this.Title = json.IsDefined("title") ? json.title : String.Empty;
+			this.Description = json.IsDefined("desc") ? json.desc : String.Empty;
+			this.Tags = json.IsDefined("tags") ? json.tags.Deserialize<String[]>() : new String[0];
+			this.IdVidible = json.IsDefined("id_visible") ? json.id_visible : false;
+			this.AnonymousOnly = json.IsDefined("anonymous_only") ? json.anonymous_only : false;
 			this.Author = json.IsDefined("author") ? json.author : String.Empty;
 			this.Listener = json.IsDefined("listener") ? (Int32)json.listener : 0;
 			this.PageView = json.IsDefined("viewer") ? (Int32)json.viewer : 0;
@@ -539,28 +615,28 @@
 	/// </summary>
 	public class Message {
 
-		public Int32 Number { get; set; }
+		public Int32 Number { get; internal set; }
 
-		public String Id { get; set; }
+		public String Name { get; internal set; }
 
-		public String Name { get; set; }
+		public String Comment { get; internal set; }
 
-		public String Comment { get; set; }
+		public DateTime PostTime { get; internal set; }
 
-		public DateTime Time { get; set; }
+		public String ListenerId { get; internal set; }
 
-		public Boolean Auth { get; set; }
+		public Boolean IsAuth { get; internal set; }
 
-		public Boolean IsBan { get; set; }
+		public Boolean IsBan { get; internal set; }
 
-		public Message(dynamic json) {
+		internal Message(dynamic json) {
 			this.Number = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
-			this.Id = json.IsDefined("user_id") ? (String)json.user_id : String.Empty;
+			this.ListenerId = json.IsDefined("user_id") ? (String)json.user_id : String.Empty;
 			this.Name = json.IsDefined("name") ? json.name : String.Empty;
 			this.Comment = json.IsDefined("message") ? json.message : String.Empty;
-			this.Auth = json.IsDefined("auth") ? json.auth : false;
+			this.IsAuth = json.IsDefined("auth") ? json.auth : false;
 			this.IsBan = json.IsDefined("is_ban") ? json.is_ban : false;
-			this.Time = json.IsDefined("time") ? JavaScriptTime.ToDateTime(json.time, TimeZoneKind.Japan) : null;
+			this.PostTime = json.IsDefined("time") ? JavaScriptTime.ToDateTime(json.time, TimeZoneKind.Japan) : null;
 		}
 
 		public override bool Equals(object obj) {
@@ -584,16 +660,16 @@
 	/// 配信通知情報
 	/// </summary>
 	public class LiveNotification {
-		public String Author { get; private set; }
+		public String Author { get; internal set; }
 
-		public String Title { get; private set; }
+		public String Title { get; internal set; }
 
-		public String RoomId { get; private set; }
+		public String RoomId { get; internal set; }
 
-		public LiveNotification(String author, String title, String roomId) {
-			this.Author = author;
-			this.Title = title;
-			this.RoomId = roomId;
+		public LiveNotification(dynamic json) {
+			this.Author = json.IsDefined("author") ? json.author : String.Empty;
+			this.Title = json.IsDefined("title") ? json.title : String.Empty;
+			this.RoomId = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
 		}
 
 		public override Boolean Equals(object obj) {
@@ -610,6 +686,24 @@
 
 		public override Int32 GetHashCode() {
 			return this.Author.GetHashCode() ^ this.RoomId.GetHashCode();
+		}
+	}
+
+	public class ForceIdNotification {
+		public Boolean IsVisible { get; internal set; }
+		public Int32 Number { get; internal set; }
+
+		public ForceIdNotification(dynamic json) {
+			this.IsVisible = json.IsDefined("force_id") ? json.force_id : false;
+			this.Number = json.IsDefined("comment_num") ? json.comment_num : 0;
+		}
+	}
+
+	public class AdminShout {
+		public String Message { get; internal set; }
+
+		public AdminShout(dynamic json) {
+			this.Message = json.IsDefined("message") ? json.message : String.Empty;
 		}
 	}
 }

@@ -2,11 +2,11 @@
 
 	using System;
 	using System.Windows;
-	using CaveTube.CaveTalk.ViewModel;
-	using NLog;
-	using CaveTube.CaveTalk.View;
 	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Utils;
+	using CaveTube.CaveTalk.View;
+	using CaveTube.CaveTalk.ViewModel;
+	using NLog;
 
 	/// <summary>
 	/// App.xaml の相互作用ロジック

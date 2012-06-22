@@ -8,8 +8,8 @@
 
 	public class EnumBooleanConverter : IValueConverter {
 		#region IValueConverter Members
-		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
-			string parameterString = parameter as string;
+		public object Convert(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
+			var parameterString = parameter as String;
 			if (parameterString == null) {
 				return DependencyProperty.UnsetValue;
 			}
@@ -18,13 +18,13 @@
 				return DependencyProperty.UnsetValue;
 			}
 
-			object parameterValue = Enum.Parse(value.GetType(), parameterString);
+			var parameterValue = Enum.Parse(value.GetType(), parameterString);
 
 			return parameterValue.Equals(value);
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
-			string parameterString = parameter as string;
+		public object ConvertBack(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
+			var parameterString = parameter as String;
 			if (parameterString == null) {
 				return DependencyProperty.UnsetValue;
 			}

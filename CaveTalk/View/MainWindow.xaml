@@ -156,6 +156,7 @@
                             </Style>
                         </rb:RibbonMenuButton.Style>
                     </rb:RibbonMenuButton>
+                    <rb:RibbonButton LargeImageSource="/CaveTalk;component/Images/webcam.png" Label="配信開始" Command="{Binding Path=StartBroadcastWindowCommand}" IsEnabled="{Binding Path=LoginStatus}" />
                 </rb:RibbonGroup>
                 <rb:RibbonGroup Header="読み上げ">
                     <rb:RibbonMenuButton Label="接続状態">
@@ -216,7 +217,7 @@
                         </Label.Background>
                     </Label>
                 </Border>
-                <ComboBox Grid.Column="1" IsEditable="True" Text="{Binding Path=LiveUrl}">
+                <ComboBox Grid.Column="1" IsEditable="True" Text="{Binding Path=LiveUrl}" VerticalContentAlignment="Center">
                     <i:Interaction.Behaviors>
                         <b:ComboBoxPlaceholderBehavior Placeholder="放送URL、またはストリーム番号を入力してください。" />
                         <b:ExecCommandOnEnterKeyDownBehavior Command="JoinRoomCommand" />
@@ -285,6 +286,9 @@
                                                 </Style>
                                             </MenuItem.Style>
                                         </MenuItem>
+                                        <MenuItem Header="ID表示指定" Command="{Binding Path=ForceIdOnCommand}" />
+                                        <MenuItem Header="ID表示解除" Command="{Binding Path=ForceIdOffCommand}" />
+                                        <MenuItem Header="色を付ける" Command="{Binding Path=MarkCommand}" />
                                     </ContextMenu>
                                 </Setter.Value>
                             </Setter>

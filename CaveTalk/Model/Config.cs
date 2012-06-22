@@ -41,6 +41,10 @@
 				return this.configDictionary[apiKey];
 			}
 			set {
+				if (String.IsNullOrWhiteSpace(value)) {
+					this.configDictionary[apiKey] = String.Empty;
+				}
+
 				this.configDictionary[apiKey] = value;
 			}
 		}
@@ -54,6 +58,10 @@
 				return this.configDictionary[userId];
 			}
 			set {
+				if (String.IsNullOrWhiteSpace(value)) {
+					this.configDictionary[userId] = String.Empty;
+				}
+
 				this.configDictionary[userId] = value;
 			}
 		}
@@ -67,6 +75,10 @@
 				return this.configDictionary[password];
 			}
 			set {
+				if (String.IsNullOrWhiteSpace(value)) {
+					this.configDictionary[password] = String.Empty;
+				}
+
 				this.configDictionary[password] = value;
 			}
 		}

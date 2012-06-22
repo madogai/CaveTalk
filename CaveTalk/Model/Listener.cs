@@ -4,13 +4,21 @@
 	using CaveTube.CaveTalk.Utils;
 
 	public sealed class Listener {
+		// MEMO Dapperが綺麗にキャッシュする仕様ならば、ここでキャッシュする必要はなくなります。
+		private static IDictionary<String, Listener> ListenerCache = new Dictionary<String, Listener>();
+
 		public String ListenerId { get; set; }
 		public String Name { get; set; }
 		public String Color { get; set; }
 		public String Author { get; set; }
 		public String AccountName { get; set; }
 		public Account Account {
-			get { return Model.Account.GetAccount(this.AccountName); }
+			get {
+				if (String.IsNullOrWhiteSpace(AccountName)) {
+					return null;
+				}
+				return Model.Account.GetAccount(this.AccountName);
+			}
 		}
 
 		public override Boolean Equals(Object obj) {
@@ -31,13 +39,22 @@
 			return this.ListenerId.GetHashCode();
 		}
 
+		public void Save() {
+			UpdateListener(this);
+		}
+
 		public static Listener GetListener(String listenerId) {
+			if (ListenerCache.ContainsKey(listenerId)) {
+				return ListenerCache[listenerId];
+			};
+
 			var listener = DapperUtil.QueryFirst<Listener>(@"
 				SELECT
 					ListenerId
 					,Name
 					,Color
 					,Author
+					,AccountName
 				FROM
 					Listener
 				WHERE
@@ -46,6 +63,9 @@
 			", new {
 				 ListenerId = listenerId,
 			 });
+
+			ListenerCache[listenerId] = listener;
+
 			return listener;
 		}
 
@@ -88,6 +108,8 @@
 							@ListenerId, @Name, @Color, @Author, @AccountName
 						);
 					", listener, transaction);
+
+					ListenerCache[listener.ListenerId] = listener;
 				}
 
 				transaction.Commit();

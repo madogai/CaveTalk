@@ -29,24 +29,22 @@
 		public override event Action<Message> OnUnBan;
 		public override event Action<String> OnJoin;
 		public override event Action<String> OnLeave;
+		public override event Action<String> OnAdminShout;
 		public override event Action<Exception> OnError;
+		public event Action<LiveNotification> OnNotifyLive;
 
 		public override void Connect() {
 			try {
 				this.client.Connect();
-			}
-			catch (CavetubeException ex) {
+			} catch (CavetubeException ex) {
 				throw new CommentException(ex.Message, ex);
 			}
 		}
 
 		protected override Room GetRoomInfo(String url) {
-			var summary = this.client.GetSummary(url);
-			var messages = this.client.GetComment(url);
-			return new Room {
-				Summary = new Summary(summary),
-				Messages = messages.Select(m => new Message(m)),
-			};
+			var summary = new Summary(this.client.GetSummary(url));
+			var messages = this.client.GetComment(url).Select(m => new Message(m));
+			return new Room(summary, messages);
 		}
 
 		public override void JoinRoom(String url) {
@@ -63,6 +61,14 @@
 
 		public override void UnBanListener(Int32 commentNumber, String apiKey) {
 			this.client.UnBanListener(commentNumber, apiKey);
+		}
+
+		public override void ForceIdOn(Int32 commentNumber, String apiKey) {
+			this.client.ForceIdOn(commentNumber, apiKey);
+		}
+
+		public override void ForceIdOff(Int32 commentNumber, String apiKey) {
+			this.client.ForceIdOff(commentNumber, apiKey);
 		}
 
 		public override void PostComment(String name, String message, String apiKey) {
@@ -82,7 +88,9 @@
 			this.client.OnUpdateMember += this.UpdateMember;
 			this.client.OnBan += this.Ban;
 			this.client.OnUnBan += this.UnBan;
+			this.client.OnAdminShout += this.AdminShout;
 			this.client.OnError += this.Error;
+			this.client.OnNotifyLive += this.NotifyLive;
 		}
 
 		~CaveTubeClientWrapper() {
@@ -99,6 +107,7 @@
 			this.client.OnUpdateMember -= this.UpdateMember;
 			this.client.OnBan -= this.Ban;
 			this.client.OnUnBan -= this.UnBan;
+			this.client.OnAdminShout -= this.AdminShout;
 			this.client.OnError -= this.Error;
 			this.OnJoin = null;
 			this.OnLeave = null;
@@ -151,10 +160,29 @@
 			}
 		}
 
+		private void AdminShout(CaveTubeClient.AdminShout shout) {
+			if (this.OnAdminShout != null) {
+				this.OnAdminShout(shout.Message);
+			}
+		}
+
 		private void Error(CaveTubeClient.CavetubeException e) {
 			if (this.OnError != null) {
 				this.OnError(e);
 			}
+		}
+
+		private void NotifyLive(CaveTubeClient.LiveNotification e) {
+			if (this.OnNotifyLive != null) {
+				this.OnNotifyLive(new LiveNotification(e));
+			}
+		}
+	}
+
+	public partial class Room {
+		public Room(Summary summary, IEnumerable<Message> messages) {
+			this.Summary = summary;
+			this.Messages = messages;
 		}
 	}
 
@@ -162,6 +190,10 @@
 		public Summary(CaveTubeClient.Summary summary) {
 			this.RoomId = summary.RoomId;
 			this.Title = summary.Title;
+			this.Description = summary.Description;
+			this.Tags = summary.Tags;
+			this.IdVidible = summary.IdVidible;
+			this.AnonymousOnly = summary.AnonymousOnly;
 			this.Author = summary.Author;
 			this.PageView = summary.PageView;
 			this.Listener = summary.Listener;
@@ -171,13 +203,25 @@
 
 	public partial class Message {
 		public Message(CaveTubeClient.Message message) {
-			this.IsAuth = message.Auth;
+			this.IsAuth = message.IsAuth;
 			this.Comment = message.Comment;
-			this.ListenerId = message.Id;
+			this.ListenerId = message.ListenerId;
 			this.IsBan = message.IsBan;
 			this.Name = message.Name;
 			this.Number = message.Number;
-			this.PostTime = message.Time;
+			this.PostTime = message.PostTime;
+		}
+	}
+
+	public class LiveNotification {
+		public String Author { get; set; }
+		public String Title { get; set; }
+		public String RoomId { get; set; }
+
+		public LiveNotification(CaveTubeClient.LiveNotification liveInfo) {
+			this.Author = liveInfo.Author;
+			this.Title = liveInfo.Title;
+			this.RoomId = liveInfo.RoomId;
 		}
 	}
 }

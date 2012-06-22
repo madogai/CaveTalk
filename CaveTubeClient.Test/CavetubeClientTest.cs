@@ -42,7 +42,7 @@
 				comment_num = expMessage.Number,
 				name = expMessage.Name,
 				message = expMessage.Comment,
-				time = JavaScriptTime_Accessor.ToDouble(expMessage.Time, TimeZoneKind.Japan),
+				time = JavaScriptTime_Accessor.ToDouble(expMessage.PostTime, TimeZoneKind.Japan),
 				auth = false,
 				is_ban = false,
 			});
@@ -134,9 +134,9 @@
 					message = item.Comment,
 					html = "",
 					name = item.Name,
-					time = JavaScriptTime_Accessor.ToDouble(item.Time, TimeZoneKind.Japan),
+					time = JavaScriptTime_Accessor.ToDouble(item.PostTime, TimeZoneKind.Japan),
 					is_ban = item.IsBan,
-					auth = item.Auth,
+					auth = item.IsAuth,
 				}),
 			});
 

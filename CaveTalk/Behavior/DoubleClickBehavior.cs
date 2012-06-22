@@ -8,7 +8,7 @@
 	using System.Windows.Interactivity;
 
 	public sealed class ExecCommandDoubleClickBehavior : Behavior<DataGrid> {
-		private const int DoubleClickDureationMilliSeconds = 500;
+		private const int DoubleClickDureationMilliSeconds = 800;
 		private LastClickInfo lastClickInfo = LastClickInfo.Empty;
 
 		public String Command {
