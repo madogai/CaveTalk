@@ -116,16 +116,19 @@
 		}
 
 		private void StartEntry(Boolean isTestMode) {
-			Mouse.OverrideCursor = Cursors.Wait;
+			try {
+				Mouse.OverrideCursor = Cursors.Wait;
 
-			var streamName = this.RequestStartBroadcast(isTestMode);
-			if (String.IsNullOrWhiteSpace(streamName)) {
-				MessageBox.Show("配信の開始に失敗しました。", "注意", MessageBoxButton.OK, MessageBoxImage.Warning, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
-				return;
+				var streamName = this.RequestStartBroadcast(isTestMode);
+				if (String.IsNullOrWhiteSpace(streamName)) {
+					MessageBox.Show("配信の開始に失敗しました。", "注意", MessageBoxButton.OK, MessageBoxImage.Warning, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+					return;
+				}
+
+				this.WaitStream(streamName);
+			} finally {
+				Mouse.OverrideCursor = null;
 			}
-
-			this.WaitStream(streamName);
-			Mouse.OverrideCursor = null;
 		}
 
 		private String RequestStartBroadcast(Boolean isTestMode = false) {
