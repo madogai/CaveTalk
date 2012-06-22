@@ -25,7 +25,6 @@
 			this.AssociatedObject.Initialized += this.OnInitialized;
 			this.AssociatedObject.GotFocus += this.OnGotFocus;
 			this.AssociatedObject.LostFocus += this.OnLostFocus;
-			this.AssociatedObject.TextInput += this.OnTextInput;
 		}
 
 		protected override void OnDetaching() {
@@ -33,7 +32,6 @@
 			this.AssociatedObject.Initialized -= this.OnInitialized;
 			this.AssociatedObject.GotFocus -= this.OnGotFocus;
 			this.AssociatedObject.LostFocus -= this.OnLostFocus;
-			this.AssociatedObject.TextInput -= this.OnTextInput;
 		}
 
 		private void OnInitialized(Object sender, EventArgs e) {
@@ -64,19 +62,6 @@
 				return;
 			}
 			control.Background = this.CreateVisualBrush(this.Placeholder);
-		}
-
-		private void OnTextInput(Object sender, EventArgs e) {
-			var control = sender as T;
-			if (control == null) {
-				return;
-			}
-			var content = this.GetContent(control);
-			if (String.IsNullOrEmpty(content) == false) {
-				control.Background = this.CreateVisualBrush(this.Placeholder);
-				return;
-			}
-			control.Background = this.defaultBackground;
 		}
 
 		private VisualBrush CreateVisualBrush(string placeHolder) {
