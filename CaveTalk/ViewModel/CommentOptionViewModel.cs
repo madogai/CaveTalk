@@ -25,6 +25,14 @@
 			}
 		}
 
+		public String UserSoundFilePath {
+			get { return this.config.UserSoundPath; }
+			set {
+				this.config.UserSoundPath = value;
+				base.OnPropertyChanged("UserSoundFilePath");
+			}
+		}
+
 		public Config.CommentPopupDisplayType PopupState {
 			get { return this.config.CommentPopupType; }
 			set {
@@ -58,6 +66,7 @@
 		}
 
 		public ICommand FindSoftalkExeCommand { get; private set; }
+		public ICommand FindSoundFileCommand { get; private set; }
 
 		public CommentOptionViewModel() {
 			this.config = Config.GetConfig();
@@ -76,6 +85,22 @@
 				}
 				this.SoftalkFilePath = dialog.FileName;
 			});
+
+			this.FindSoundFileCommand = new RelayCommand(p => {
+				var dialog = new OpenFileDialog {
+					Filter = "サウンドファイル|*.wav;*.mp3|全てのファイル|*.*",
+					CheckFileExists = true,
+					CheckPathExists = true,
+					Title = "サウンドファイルの選択",
+				};
+				var result = dialog.ShowDialog();
+				result.GetValueOrDefault();
+				if (result.GetValueOrDefault() == false) {
+					return;
+				}
+				this.UserSoundFilePath = dialog.FileName;
+			});
+
 		}
 
 		internal override void Save() {

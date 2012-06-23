@@ -152,6 +152,7 @@
     <Compile Include="Lib\ACommentClient.cs" />
     <Compile Include="Lib\ASpeechClient.cs" />
     <Compile Include="Lib\SofTalkClient.cs" />
+    <Compile Include="Lib\UserSoundClient.cs" />
     <Compile Include="Utils\DapperUtil.cs" />
     <Compile Include="Model\Message.cs" />
     <Compile Include="Model\Room.cs" />

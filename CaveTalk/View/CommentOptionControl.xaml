@@ -16,6 +16,7 @@
                 <StackPanel Orientation="Horizontal" Margin="0,3">
                     <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Bouyomichan}">棒読みちゃん</RadioButton>
                     <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=SofTalk}">SofTalk</RadioButton>
+                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=UserSound}">サウンド</RadioButton>
                 </StackPanel>
                 <Grid>
                     <Grid.Style>
@@ -47,8 +48,9 @@
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition />
+                        <RowDefinition />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0">SofTalkの実行ファイル</TextBlock>
+                    <TextBlock Grid.Row="0" Grid.Column="0">SofTalkの実行ファイル</TextBlock>
                     <Grid Grid.Row="0" Grid.Column="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition />
@@ -56,6 +58,15 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Text="{Binding Path=SoftalkFilePath}" />
                         <Button Grid.Column="1" Content="..." Command="{Binding Path=FindSoftalkExeCommand}" />
+                    </Grid>
+                    <TextBlock Grid.Row="1" Grid.Column="0">再生する音楽ファイル</TextBlock>
+                    <Grid Grid.Row="1" Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="20" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Path=UserSoundFilePath}" />
+                        <Button Grid.Column="1" Content="..." Command="{Binding Path=FindSoundFileCommand}" />
                     </Grid>
                 </Grid>
             </StackPanel>

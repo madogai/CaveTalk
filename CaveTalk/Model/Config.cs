@@ -109,6 +109,19 @@
 			}
 		}
 
+		private const String userSoundPath = "UserSoundPath";
+		public String UserSoundPath {
+			get {
+				if (this.configDictionary.ContainsKey(userSoundPath) == false) {
+					return String.Empty;
+				}
+				return this.configDictionary[userSoundPath];
+			}
+			set {
+				this.configDictionary[userSoundPath] = value;
+			}
+		}
+
 		private const String commentPopupType = "CommentPopupType";
 		public CommentPopupDisplayType CommentPopupType {
 			get {
@@ -214,7 +227,7 @@
 		}
 
 		public enum SpeakApplicationType {
-			Bouyomichan, SofTalk,
+			Bouyomichan, SofTalk, UserSound,
 		}
 
 		public enum CommentPopupDisplayType {
