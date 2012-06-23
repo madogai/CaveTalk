@@ -12,10 +12,11 @@
 	/// App.xaml の相互作用ロジック
 	/// </summary>
 	public partial class App : Application {
-		private Logger logger = LogManager.GetLogger("App");
+		private Logger logger = LogManager.GetCurrentClassLogger();
 
 		protected override void OnStartup(StartupEventArgs e) {
 			try {
+				logger.Debug("test");
 				base.OnStartup(e);
 
 				// 保存用テーブルの作成

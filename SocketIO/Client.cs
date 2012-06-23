@@ -16,18 +16,31 @@ namespace SocketIOClient
 	/// <summary>
 	/// Class to emulate socket.io javascript client capabilities for .net classes
 	/// </summary>
-	/// <exception cref="ArgumentException" for wss or https urls />
+	/// <exception cref = "ArgumentException">Connection for wss or https urls</exception>  
 	public class Client : IDisposable, SocketIOClient.IClient
 	{
 		private Timer socketHeartBeatTimer; // HeartBeat timer 
 		private Task dequeuOutBoundMsgTask;
 		private BlockingCollection<string> outboundQueue;
 		private int retryConnectionCount = 0;
-		private readonly static object padLock = new object(); // alow one connection attempt at a time
+		private int retryConnectionAttempts = 3;
+		private readonly static object padLock = new object(); // allow one connection attempt at a time
 
+		/// <summary>
+		/// Uri of Websocket server
+		/// </summary>
 		protected Uri uri;
+		/// <summary>
+		/// Underlying WebSocket implementation
+		/// </summary>
 		protected WebSocket wsClient;
+		/// <summary>
+		/// RegistrationManager for dynamic events
+		/// </summary>
 		protected RegistrationManager registrationManager;  // allow registration of dynamic events (event names) for client actions
+		/// <summary>
+		/// By Default, use WebSocketVersion.Rfc6455
+		/// </summary>
 		protected WebSocketVersion socketVersion = WebSocketVersion.Rfc6455;
 
 		// Events
@@ -46,10 +59,17 @@ namespace SocketIOClient
 		public event EventHandler SocketConnectionClosed;
 		public event EventHandler<ErrorEventArgs> Error;
 
+		/// <summary>
+		/// ResetEvent for Outbound MessageQueue Empty Event - all pending messages have been sent
+		/// </summary>
 		public ManualResetEvent MessageQueueEmptyEvent = new ManualResetEvent(true);
+
+		/// <summary>
+		/// Connection Open Event
+		/// </summary>
 		public ManualResetEvent ConnectionOpenEvent = new ManualResetEvent(false);
 
-		private int retryConnectionAttempts = 3;
+
 		/// <summary>
 		/// Number of reconnection attempts before raising SocketConnectionClosed event - (default = 3)
 		/// </summary>
@@ -122,12 +142,13 @@ namespace SocketIOClient
 				{
 					try
 					{
+						this.ConnectionOpenEvent.Reset();
 						this.HandShake = this.requestHandshake(uri);// perform an initial HTTP request as a new, non-handshaken connection
 
 						if (this.HandShake == null || string.IsNullOrWhiteSpace(this.HandShake.SID) || this.HandShake.HadError)
 						{
 							this.LastErrorMessage = string.Format("Error initializing handshake with {0}", uri.ToString());
-							throw new WebException(this.LastErrorMessage);
+							this.OnErrorEvent(this, new ErrorEventArgs(this.LastErrorMessage, new Exception()));
 						}
 						else
 						{
@@ -149,7 +170,7 @@ namespace SocketIOClient
 					catch (Exception ex)
 					{
 						Trace.WriteLine(string.Format("Connect threw an exception...{0}", ex.Message));
-						throw new Exception("SocketIO.Client.Connect threw an exception", ex);
+						this.OnErrorEvent(this, new ErrorEventArgs("SocketIO.Client.Connect threw an exception", ex));
 					}
 				}
 			}
@@ -164,27 +185,33 @@ namespace SocketIOClient
 
 		protected void ReConnect()
 		{
-			if (this.ConnectionRetryAttempt != null)
-			{
-				try { this.ConnectionRetryAttempt(this, EventArgs.Empty); }
-				catch (Exception ex) { Trace.WriteLine(ex); }
-			}
-			Trace.WriteLine(string.Format("Attempting to reconnect: {0}", this.retryConnectionCount));
+			this.retryConnectionCount++;
+
+			this.OnConnectionRetryAttemptEvent(this, EventArgs.Empty);
 
 			this.closeHeartBeatTimer(); // stop the heartbeat time
 			this.closeWebSocketClient();// stop websocket
 
 			this.Connect();
 
-			bool connected = this.ConnectionOpenEvent.WaitOne(4000);
-			Trace.WriteLine(string.Format("Retry-Connection successful: {0}", connected));
-			if (connected) {
+			bool connected = this.ConnectionOpenEvent.WaitOne(4000); // block while waiting for connection
+			Trace.WriteLine(string.Format("\tRetry-Connection successful: {0}", connected));
+			if (connected)
 				this.retryConnectionCount = 0;
-			} else {
-				this.wsClient_Closed(this, EventArgs.Empty);
+			else
+			{	// we didn't connect - try again until exhausted
+				if (this.retryConnectionCount < this.RetryConnectionAttempts)
+				{
+					this.ReConnect();
+				}
+				else
+				{
+					this.Close();
+					this.OnSocketConnectionClosedEvent(this, EventArgs.Empty);
+				}
 			}
 		}
-
+		
 		/// <summary>
 		/// <para>Asynchronously calls the action delegate on event message notification</para>
 		/// <para>Mimicks the Socket.IO client 'socket.on('name',function(data){});' pattern</para>
@@ -209,6 +236,7 @@ namespace SocketIOClient
 			string endPoint,
 			Action<IMessage> action)
 		{
+			
 			this.registrationManager.AddOnEvent(eventName, endPoint, action);
 		}
 		/// <summary>
@@ -291,13 +319,18 @@ namespace SocketIOClient
 		/// <param name="msg"></param>
 		protected void OnMessageEvent(IMessage msg)
 		{
+			
+
 			bool skip = false;
 			if (!string.IsNullOrEmpty(msg.Event))
 				skip = this.registrationManager.InvokeOnEvent(msg); // 
 
 			var handler = this.Message;
 			if (handler != null && !skip)
+			{
+				Trace.WriteLine(string.Format("webSocket_OnMessage: {0}", msg.RawMessage));
 				handler(this, new MessageEventArgs(msg));
+			}
 		}
 
 		public void Close()
@@ -349,7 +382,7 @@ namespace SocketIOClient
 				this.wsClient.MessageReceived -= wsClient_MessageReceived;
 				this.wsClient.Error -= wsClient_Error;
 				this.wsClient.Opened -= this.wsClient_OpenEvent;
-
+				
 				if (this.wsClient.State == WebSocketState.Connecting || this.wsClient.State == WebSocketState.Open)
 					this.wsClient.Close();
 				this.wsClient = null;
@@ -378,9 +411,13 @@ namespace SocketIOClient
 		/// <param name="e"></param>
 		private void wsClient_MessageReceived(object sender, MessageReceivedEventArgs e)
 		{
-			Trace.WriteLine(string.Format("webSocket_OnMessage: {0}", e.Message));
+			
 
 			IMessage iMsg = SocketIOClient.Messages.Message.Factory(e.Message);
+
+			if (iMsg.Event == "responseMsg")
+				Trace.WriteLine(string.Format("InvokeOnEvent: {0}", iMsg.RawMessage));
+
 			switch (iMsg.MessageType)
 			{
 				case SocketIOMessageTypes.Disconnect:
@@ -414,20 +451,15 @@ namespace SocketIOClient
 		/// <param name="e"></param>
 		private void wsClient_Closed(object sender, EventArgs e)
 		{
-			if (retryConnectionCount < this.RetryConnectionAttempts)
+			if (this.retryConnectionCount < this.RetryConnectionAttempts   )
 			{
-				retryConnectionCount++;
 				this.ConnectionOpenEvent.Reset();
 				this.ReConnect();
 			}
 			else
 			{
 				this.Close();
-				if (this.SocketConnectionClosed != null)
-				{
-					try { this.SocketConnectionClosed(this, EventArgs.Empty); }
-					catch { }
-				}
+				this.OnSocketConnectionClosedEvent(this, EventArgs.Empty);
 			}
 		}
 
@@ -445,6 +477,24 @@ namespace SocketIOClient
 				catch { }
 			}
 			Trace.WriteLine(string.Format("Error Event: {0}\r\n\t{1}", e.Message, e.Exception));
+		}
+		protected void OnSocketConnectionClosedEvent(object sender, EventArgs e)
+		{
+			if (this.SocketConnectionClosed != null)
+				{
+					try { this.SocketConnectionClosed(sender, e); }
+					catch { }
+				}
+			Trace.WriteLine("SocketConnectionClosedEvent");
+		}
+		protected void OnConnectionRetryAttemptEvent(object sender, EventArgs e)
+		{
+			if (this.ConnectionRetryAttempt != null)
+			{
+				try { this.ConnectionRetryAttempt(sender, e); }
+				catch (Exception ex) { Trace.WriteLine(ex); }
+			}
+			Trace.WriteLine(string.Format("Attempting to reconnect: {0}", this.retryConnectionCount));
 		}
 
 		// Housekeeping
@@ -496,17 +546,20 @@ namespace SocketIOClient
 				if (this.ReadyState == WebSocketState.Open)
 				{
 					string msgString;
-					if (this.outboundQueue.TryTake(out msgString, 500))
+					try
 					{
-						try
+						if (this.outboundQueue.TryTake(out msgString, 500))
 						{
-							Trace.WriteLine(string.Format("webSocket_Send: {0}", msgString));
+							//Trace.WriteLine(string.Format("webSocket_Send: {0}", msgString));
 							this.wsClient.Send(msgString);
 						}
-						catch { }
+						else
+							this.MessageQueueEmptyEvent.Set();
 					}
-					else
-						this.MessageQueueEmptyEvent.Set();
+					catch(Exception)
+					{
+						Trace.WriteLine("The outboundQueue is no longer open...");
+					}
 				}
 				else
 				{
@@ -557,9 +610,21 @@ namespace SocketIOClient
 
 		public void Dispose()
 		{
-			this.Close();
-			this.MessageQueueEmptyEvent.Dispose();
-			this.ConnectionOpenEvent.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		// The bulk of the clean-up code 
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				// free managed resources
+				this.Close();
+				this.MessageQueueEmptyEvent.Dispose();
+				this.ConnectionOpenEvent.Dispose();
+			}
+			
 		}
 	}
 

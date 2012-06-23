@@ -166,10 +166,10 @@
                     <rb:RibbonMenuButton Label="接続状態">
                         <rb:RibbonMenuButton.Style>
                             <Style TargetType="{x:Type rb:RibbonMenuButton}">
-                                <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/connect_no.png" />
+                                <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/speak_off.png" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Path=SpeakApplicationStatus}" Value="True">
-                                        <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/connect_established.png" />
+                                        <Setter Property="LargeImageSource" Value="/CaveTalk;component/Images/speak_on.png" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace SocketIOClient.Messages
 {
-	public class AckMessage : Message
+	public sealed class AckMessage : Message
 	{
 		private static Regex reAckId = new Regex(@"^(\d{1,})");
  		private static Regex reAckPayload = new Regex(@"(?:[\d\+]*)(?<data>.*)$");
@@ -30,7 +30,8 @@ namespace SocketIOClient.Messages
 
 		public Action<dynamic> Callback;
 
-		public AckMessage() :base()
+		public AckMessage()
+			: base()
         {
             this.MessageType = SocketIOMessageTypes.ACK;
         }
@@ -59,8 +60,8 @@ namespace SocketIOClient.Messages
 
 						if (payloadMatch.Success)
 						{
-							msg.JsonEncodedMessage = new JsonEncodedEventMessage();
-							msg.JsonEncodedMessage.Args = new string[]  {payloadMatch.Groups["payload"].Value};
+							msg.Json = new JsonEncodedEventMessage();
+							msg.Json.Args = new string[]  {payloadMatch.Groups["payload"].Value};
 						}
 					}
 				}

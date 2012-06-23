@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using SocketIOClient.Messages;
@@ -47,7 +48,8 @@ namespace SocketIOClient.Eventing
 			{
 				if (this.callBackRegistry.TryRemove(ackId.Value, out target))
 				{
-					target.BeginInvoke(value, target.EndInvoke, null);
+					target.Invoke(value);
+					//target.BeginInvoke(value, target.EndInvoke, null);
 				}
 			}
 		}
@@ -68,20 +70,39 @@ namespace SocketIOClient.Eventing
 		/// <returns></returns>
 		public bool InvokeOnEvent(IMessage value)
 		{
-			Action<IMessage> target;
 			bool foundEvent = false;
-			string eventName = value.Event;
-			if (!string.IsNullOrWhiteSpace(value.Endpoint))
-				eventName = string.Format("{0}::{1}", value.Event, value.Endpoint);
-			if (this.eventNameRegistry.TryGetValue(eventName, out target)) // use TryGet - do not destroy event name registration
+			try
 			{
-				foundEvent = true;
-				target.BeginInvoke(value, target.EndInvoke, null);
+				Action<IMessage> target;
+				
+				string eventName = value.Event;
+				if (!string.IsNullOrWhiteSpace(value.Endpoint))
+					eventName = string.Format("{0}::{1}", value.Event, value.Endpoint);
+				
+				if (this.eventNameRegistry.TryGetValue(eventName, out target)) // use TryGet - do not destroy event name registration
+				{
+					foundEvent = true;
+					target.Invoke(value);
+					//target.BeginInvoke(value, target.EndInvoke, null);
+					//Trace.WriteLine(string.Format("webSocket_{0}: {1}", value.Event, value.MessageText));
+				}
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine("Exception on InvokeOnEvent: " + ex.Message);
 			}
 			return foundEvent;
 		}
+
+		// Dispose() calls Dispose(true)
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
 		
-		public void  Dispose()
+		// The bulk of the clean-up code is implemented in Dispose(bool)
+		protected virtual void Dispose(bool disposing)
 		{
 			this.callBackRegistry.Clear();
 			this.eventNameRegistry.Clear();

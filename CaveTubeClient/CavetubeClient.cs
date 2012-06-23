@@ -12,6 +12,7 @@
 	using Microsoft.CSharp.RuntimeBinder;
 	using SocketIOClient;
 	using SocketIOClient.Messages;
+	using System.Threading;
 
 	public sealed class CavetubeClient : IDisposable {
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
@@ -94,6 +95,7 @@
 		private Uri webUri;
 		private Uri socketIOUri;
 		private Client client;
+		private ManualResetEvent connectionOpenEvent;
 
 		/// <summary>
 		/// コンストラクタ
@@ -102,9 +104,12 @@
 		public CavetubeClient() {
 			this.webUri = new Uri(webUrl);
 			this.socketIOUri = new Uri(socketIOUrl);
+			this.connectionOpenEvent = new ManualResetEvent(false);
 			this.client = new Client(socketIOUrl);
-
 			this.client.RetryConnectionAttempts = 15;
+			this.client.Opened += (sender, e) => {
+				this.connectionOpenEvent.Set();
+			};
 
 			// 配信情報関係
 			this.client.On("message", message => {
@@ -158,10 +163,11 @@
 		/// </summary>
 		/// <exception cref="System.Net.WebException" />
 		public void Connect() {
-			try {
-				this.client.Connect();
-			} catch (Exception ex) {
-				throw new CavetubeException("CaveTubeとの接続に失敗しました。", ex);
+			this.connectionOpenEvent.Reset();
+			this.client.Connect();
+			var isConnect = this.connectionOpenEvent.WaitOne(4000);
+			if (isConnect == false) {
+				throw new CavetubeException("CaveTubeとの接続に失敗しました。");
 			}
 		}
 
@@ -411,6 +417,8 @@
 			}
 			this.client.Dispose();
 			this.client = null;
+
+			this.connectionOpenEvent.Dispose();
 		}
 
 		/// <summary>

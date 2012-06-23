@@ -38,7 +38,7 @@ namespace SocketIOClient.Messages
                 if (firstArg != null)
                     return JsonConvert.DeserializeObject<T>(firstArg.ToString());
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // add error logging here
                 throw;

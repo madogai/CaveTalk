@@ -542,7 +542,7 @@
 			this.MessageList.Insert(0, message);
 
 			// コメントの読み上げ
-			if (this.speechClient != null || this.speechClient.IsConnect == false) {
+			if (this.SpeakApplicationStatus && (this.speechClient != null || this.speechClient.IsConnect == false)) {
 				var isSpeech = this.speechClient.Speak(mes);
 				if (isSpeech == false) {
 					base.OnPropertyChanged("SpeakApplicationStatus");
@@ -610,7 +610,6 @@
 		/// </summary>
 		/// <param name="e"></param>
 		private void OnError(Exception e) {
-			MessageBox.Show(e.Message, "エラー", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
 			logger.Error(e);
 		}
 

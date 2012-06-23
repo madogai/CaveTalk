@@ -24,6 +24,19 @@ LGPL License Version 3
 <http://www.gnu.org/copyleft/lesser.html>
 
 
+WebSocket4Net  
+<http://websocket4net.codeplex.com/>
+
+Apache License, Version 2.0  
+<http://www.apache.org/licenses/>
+
+
+SocketIO4Net.Client  
+<http://socketio4net.codeplex.com/>
+
+MIT-style License.  
+<http://www.opensource.org/licenses/mit-license.php>
+
 概要
 ----
 
@@ -92,4 +105,5 @@ PR
 * WebSocketとSocketIOのライブラリをSocketIO4Netに変更しました。それに伴いWebSocketのバージョンもRFC 6455に変更されています。
 * URLのプレビュー機能を追加しました。
 * CaveTalkから配信が開始できるようにしました。
+* 管理者メッセージを受け取れるようにしました。
 * 大幅なリファクタリングを行いました。

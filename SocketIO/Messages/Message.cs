@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,35 +22,41 @@ namespace SocketIOClient.Messages
 		/// <summary>
 		/// The message type represents a single digit integer [0-8].
 		/// </summary>
-        public virtual SocketIOMessageTypes MessageType { get; protected set; }
+        public SocketIOMessageTypes MessageType { get; protected set; }
 
 		/// <summary>
 		/// The message id is an incremental integer, required for ACKs (can be ommitted). 
 		/// If the message id is followed by a +, the ACK is not handled by socket.io, but by the user instead.
 		/// </summary>
-		public virtual int? AckId { get; set; }
+		public int? AckId { get; set; }
 
 		/// <summary>
 		/// Socket.IO has built-in support for multiple channels of communication (which we call "multiple sockets"). 
 		/// Each socket is identified by an endpoint (can be omitted).
 		/// </summary>
-		public virtual string Endpoint { get; set; }
+		public string Endpoint { get; set; }
 
 		/// <summary>
 		/// String value of the message
 		/// </summary>
-        public virtual string MessageText { get; set; }
+        public string MessageText { get; set; }
 
 		private JsonEncodedEventMessage _json;
 		[ObsoleteAttribute(".JsonEncodedMessage has been deprecated. Please use .Json instead.")]
 		public JsonEncodedEventMessage JsonEncodedMessage
 		{
+			get { return this.Json; }
+			set { this._json = value; }
+		}
+		
+		public JsonEncodedEventMessage Json
+		{
 			get
 			{
 				if (_json == null)
 				{
-					if (!string.IsNullOrEmpty(this.MessageText) && 
-						this.MessageText.Contains("name") && 
+					if (!string.IsNullOrEmpty(this.MessageText) &&
+						this.MessageText.Contains("name") &&
 						this.MessageText.Contains("args"))
 					{
 						this._json = JsonEncodedEventMessage.Deserialize(this.MessageText);
@@ -61,11 +68,6 @@ namespace SocketIOClient.Messages
 
 			}
 			set { this._json = value; }
-		}
-		
-		public JsonEncodedEventMessage Json
-		{
-			get { return this.JsonEncodedMessage; }
 		}
 		
 		/// <summary>
@@ -89,10 +91,9 @@ namespace SocketIOClient.Messages
                     return string.Format("{0}::{1}:{2}", msgId, this.Endpoint, this.MessageText);
             }
         }
+       
 
-        
-
-        public Message()
+        public Message() 
         {
             this.MessageType = SocketIOMessageTypes.Message;
         }
@@ -142,11 +143,15 @@ namespace SocketIOClient.Messages
 					case '8':
 						return new NoopMessage();
 					default:
+						Trace.WriteLine(string.Format("Message.Factory undetermined message: {0}", rawMessage));
 						return new TextMessage();
 				}
 			}
 			else
+			{
+				Trace.WriteLine(string.Format("Message.Factory did not find matching message type: {0}", rawMessage));
 				return new NoopMessage();
+			}
 		}
     }
 }

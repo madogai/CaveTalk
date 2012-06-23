@@ -50,5 +50,6 @@ namespace SocketIOClient.Messages
 		/// <para>[message type] ':' [message id ('+')] ':' [message endpoint] (':' [message data]) </para>
 		/// </summary>
         string Encoded { get; }
+
     }
 }

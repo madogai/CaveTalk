@@ -17,7 +17,7 @@ namespace SocketIOClient.Messages
         public virtual T Message<T>()
         {
             try { return JsonConvert.DeserializeObject<T>(this.MessageText); }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // add error logging here
                 throw;

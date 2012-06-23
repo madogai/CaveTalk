@@ -52,7 +52,7 @@ namespace SocketIOClient.Messages
 		{
 			get
 			{
-				return string.Format("1::{0}", this.Endpoint, string.IsNullOrEmpty(this.Query) ? string.Empty: string.Format("?{0}",this.Query));
+				return string.Format("1::{0}{1}", this.Endpoint, string.IsNullOrEmpty(this.Query) ? string.Empty: string.Format("?{0}",this.Query));
 			}
 		}
 	}

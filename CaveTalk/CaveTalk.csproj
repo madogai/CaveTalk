@@ -269,7 +269,11 @@
     <None Include="App.Release.config">
       <DependentUpon>App.config</DependentUpon>
     </None>
-    <None Include="NLog.config" />
+    <Resource Include="Images\speak_on.png" />
+    <Resource Include="Images\speak_off.png" />
+    <Content Include="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
     <AppDesigner Include="Properties\" />
   </ItemGroup>
@@ -277,8 +281,6 @@
     <Resource Include="Images\cavelis.ico" />
     <Resource Include="Images\close.png" />
     <Resource Include="Images\error.png" />
-    <Resource Include="Images\flag_green.png" />
-    <Resource Include="Images\flag_red.png" />
     <Resource Include="Images\floppy_disk.png" />
     <Resource Include="Images\folder.png" />
     <Resource Include="Images\folder_open.png" />

@@ -24,7 +24,7 @@ namespace SocketIOClient.Messages
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="rawMesage">'7::' [endpoint] ':' [reason] '+' [advice]</param>
+		/// <param name="rawMessage">'7::' [endpoint] ':' [reason] '+' [advice]</param>
 		/// <returns>ErrorMessage</returns>
 		public static ErrorMessage Deserialize(string rawMessage)
 		{
