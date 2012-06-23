@@ -16,7 +16,6 @@
 
 		protected override void OnStartup(StartupEventArgs e) {
 			try {
-				logger.Debug("test");
 				base.OnStartup(e);
 
 				// 保存用テーブルの作成
