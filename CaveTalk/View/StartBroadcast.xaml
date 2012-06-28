@@ -4,7 +4,7 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:b="clr-namespace:CaveTube.CaveTalk.Behavior"
         xmlns:cv="clr-namespace:CaveTube.CaveTalk.Converter"
-        Title="配信開始" Height="340" Width="350" x:Name="Root" WindowStyle="ToolWindow">
+        Title="配信開始" Height="340" Width="350" x:Name="Root" WindowStyle="ToolWindow" Topmost="True">
     <Window.Resources>
         <cv:EnumBooleanConverter x:Key="enumBooleanConverter" />
     </Window.Resources>
