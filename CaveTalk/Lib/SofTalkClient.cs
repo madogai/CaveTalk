@@ -62,8 +62,7 @@
 				this.taskCount -= 1;
 			};
 			process.Start();
-			var isSuccess = process.WaitForExit(1000);
-			return isSuccess;
+			return true;
 		}
 
 		public override void Dispose() {
