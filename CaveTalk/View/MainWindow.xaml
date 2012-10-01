@@ -33,20 +33,6 @@
     <rb:RibbonWindow.CommandBindings>
         <CommandBinding Command="{x:Static Member=v:MainWindow.RestoreWindowCommand}" Executed="RestoreWindowExecuted" />
     </rb:RibbonWindow.CommandBindings>
-    <rb:RibbonWindow.Style>
-        <Style TargetType="{x:Type rb:RibbonWindow}">
-            <Setter Property="ShowInTaskbar" Value="True" />
-            <Style.Triggers>
-                <MultiDataTrigger>
-                    <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding ElementName=Root, Path=WindowState}" Value="Minimized" />
-                        <Condition Binding="{Binding Path=RoomJoinStatus}" Value="False" />
-                    </MultiDataTrigger.Conditions>
-                    <Setter Property="ShowInTaskbar" Value="False" />
-                </MultiDataTrigger>
-            </Style.Triggers>
-        </Style>
-    </rb:RibbonWindow.Style>
     <DockPanel>
         <tb:TaskbarIcon x:Name="MyNotifyIcon" IconSource="/CaveTalk;component/Images/cavelis.ico" MenuActivation="RightClick" LeftClickCommand="{x:Static Member=v:MainWindow.RestoreWindowCommand}">
             <tb:TaskbarIcon.Style>
