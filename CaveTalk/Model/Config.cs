@@ -122,6 +122,25 @@
 			}
 		}
 
+		private const String userSoundTimeout = "UserSoundTimeout";
+		public Decimal UserSoundTimeout {
+			get {
+				if (this.configDictionary.ContainsKey(userSoundTimeout) == false) {
+					return 1.0m;
+				}
+				try {
+					return Decimal.Parse(this.configDictionary[userSoundTimeout]);
+				} catch (FormatException) {
+					return 1.0m;
+				}
+
+				
+			}
+			set {
+				this.configDictionary[userSoundTimeout] = value.ToString();
+			}
+		}
+
 		private const String commentPopupType = "CommentPopupType";
 		public CommentPopupDisplayType CommentPopupType {
 			get {

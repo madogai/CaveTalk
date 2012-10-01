@@ -6,18 +6,30 @@
 	using CaveTube.CaveTalk.Model;
 	using System.Windows.Media;
 	using System.Windows.Threading;
+	using System.Threading.Tasks;
 
 	public sealed class UserSoundClient : ASpeechClient {
 		private String soundFilePath;
 		private Config config;
 		private MediaPlayer player;
 		private Dispatcher dispatcher;
+		private DispatcherTimer timer;
 
 		public UserSoundClient() {
 			this.config = Config.GetConfig();
 			this.soundFilePath = config.UserSoundPath;
 			this.player = new MediaPlayer();
 			this.dispatcher = Dispatcher.CurrentDispatcher;
+			if (File.Exists(this.soundFilePath)) {
+				this.player.Open(new Uri(this.soundFilePath, UriKind.Absolute));
+			}
+			this.timer = new DispatcherTimer(DispatcherPriority.Normal, dispatcher) {
+				Interval = TimeSpan.FromSeconds(Decimal.ToDouble(config.UserSoundTimeout)),
+			};
+			this.timer.Tick += (e, sender) => {
+				this.player.Stop();
+				this.timer.Stop();
+			};
 		}
 
 		#region ASpeechClient メンバー
@@ -51,14 +63,17 @@
 			}
 
 			dispatcher.BeginInvoke(new Action(() => {
-				this.player.Open(new Uri(soundFilePath, UriKind.Absolute));
-				this.player.MediaEnded += (sender2, e2) => this.player.Close();
+				this.player.Stop();
 				this.player.Play();
+				this.timer.Start();
 			}));
 			return true;
 		}
 
 		public override void Dispose() {
+			if (this.player.Source != null) {
+				this.player.Close();
+			}
 		}
 
 		#endregion

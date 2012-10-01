@@ -9,6 +9,16 @@
              d:DesignHeight="300" d:DesignWidth="400" Padding="5">
     <UserControl.Resources>
         <cv:EnumBooleanConverter x:Key="enumBooleanConverter" />
+        <Style x:Key="SpeakApplicationOptionGridStyle" TargetType="Grid">
+            <Style.Resources>
+                <Style TargetType="TextBlock">
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                </Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Margin" Value="3" />
+                </Style>
+            </Style.Resources>
+        </Style>
     </UserControl.Resources>
     <StackPanel>
         <GroupBox Header="読み上げソフト">
@@ -19,55 +29,73 @@
                     <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=UserSound}">サウンド</RadioButton>
                 </StackPanel>
                 <Grid>
-                    <Grid.Style>
-                        <Style TargetType="Grid">
-                            <Style.Resources>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Grid.Column" Value="0" />
-                                    <Setter Property="VerticalAlignment" Value="Center" />
-                                </Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Grid.Column" Value="1" />
-                                    <Setter Property="Orientation" Value="Horizontal" />
-                                    <Setter Property="Margin" Value="3" />
-                                    <Style.Resources>
-                                        <Style TargetType="RadioButton">
-                                            <Setter Property="Margin" Value="0, 0, 5, 0" />
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
-                                <Style TargetType="Grid">
-                                    <Setter Property="Margin" Value="3" />
-                                </Style>
-                            </Style.Resources>
-                        </Style>
-                    </Grid.Style>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="140" />
                         <ColumnDefinition />
+                        <ColumnDefinition Width="20" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.Style>
+                        <Style TargetType="Grid" BasedOn="{StaticResource ResourceKey=SpeakApplicationOptionGridStyle}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=SpeakApplication}" Value="SofTalk">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
+                    <TextBlock Grid.Row="0" Grid.Column="0">SofTalkの実行ファイル</TextBlock>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Path=SoftalkFilePath}" />
+                    <Button Grid.Row="0" Grid.Column="2" Content="..." Command="{Binding Path=FindSoftalkExeCommand}" />
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="20" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="5" />
+                        <RowDefinition />
+                        <RowDefinition Height="5" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0">SofTalkの実行ファイル</TextBlock>
-                    <Grid Grid.Row="0" Grid.Column="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                            <ColumnDefinition Width="20" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding Path=SoftalkFilePath}" />
-                        <Button Grid.Column="1" Content="..." Command="{Binding Path=FindSoftalkExeCommand}" />
-                    </Grid>
-                    <TextBlock Grid.Row="1" Grid.Column="0">再生する音楽ファイル</TextBlock>
-                    <Grid Grid.Row="1" Grid.Column="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                            <ColumnDefinition Width="20" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding Path=UserSoundFilePath}" />
-                        <Button Grid.Column="1" Content="..." Command="{Binding Path=FindSoundFileCommand}" />
-                    </Grid>
+                    <Grid.Style>
+                        <Style TargetType="Grid" BasedOn="{StaticResource ResourceKey=SpeakApplicationOptionGridStyle}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=SpeakApplication}" Value="UserSound">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
+                    <TextBlock Grid.Row="0" Grid.Column="0">再生する音楽ファイル</TextBlock>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Path=UserSoundFilePath}" />
+                    <Button Grid.Row="0" Grid.Column="2" Content="..." Command="{Binding Path=FindSoundFileCommand}" />
+                    <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+                        <Button Command="{Binding Path=PlaySoundFileCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/Images/play_small.png" />
+                                <TextBlock Text="Play" Margin="0,0,5,0" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding Path=StopSoundFileCommand}" Margin="5,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/Images/stop_small.png" />
+                                <TextBlock Text="Stop" Margin="0,0,5,0" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Grid.Row="4" Grid.Column="0">ファイル再生時間</TextBlock>
+                    <StackPanel Orientation="Horizontal" Grid.Row="4" Grid.Column="1">
+                        <extToolkit:DecimalUpDown Width="70" Increment="0.1" Maximum="10" Minimum="0.1" Value="{Binding UserSoundTimeout}" />
+                        <TextBlock Text="秒" Margin="5,0,0,0" />
+                    </StackPanel>
                 </Grid>
             </StackPanel>
         </GroupBox>
