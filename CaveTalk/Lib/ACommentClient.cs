@@ -108,14 +108,14 @@
 		/// </summary>
 		/// <param name="commentNumber"></param>
 		/// <param name="apiKey"></param>
-		public abstract void ForceIdOn(Int32 commentNumber, String apiKey);
+		public abstract void ShowId(Int32 commentNumber, String apiKey);
 
 		/// <summary>
 		/// リスナーの強制ID表示を解除します。
 		/// </summary>
 		/// <param name="commentNumber"></param>
 		/// <param name="apiKey"></param>
-		public abstract void ForceIdOff(Int32 commentNumber, String apiKey);
+		public abstract void HideId(Int32 commentNumber, String apiKey);
 
 		/// <summary>
 		/// コメントを投稿します。

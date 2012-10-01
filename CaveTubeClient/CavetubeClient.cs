@@ -7,12 +7,12 @@
 	using System.Net;
 	using System.Text;
 	using System.Text.RegularExpressions;
+	using System.Threading;
 	using System.Xml;
 	using Codeplex.Data;
 	using Microsoft.CSharp.RuntimeBinder;
 	using SocketIOClient;
 	using SocketIOClient.Messages;
-	using System.Threading;
 
 	public sealed class CavetubeClient : IDisposable {
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
@@ -26,6 +26,10 @@
 		/// 新しいコメントを受信した時に通知されるイベントです。
 		/// </summary>
 		public event Action<Message> OnNewMessage;
+		/// <summary>
+		/// コメント投稿の結果を受信したときに通知されるイベントです。
+		/// </summary>
+		public event Action<Boolean> OnPostResult;
 		/// <summary>
 		/// リスナー人数が更新された時に通知されるイベントです。
 		/// </summary>
@@ -55,13 +59,17 @@
 		/// </summary>
 		public event Action<Message> OnUnBan;
 		/// <summary>
+		/// BAN操作に失敗したときに通知されるイベントです。
+		/// </summary>
+		public event Action<BanFail> OnBanFail;
+		/// <summary>
 		/// リスナーへのID強制表示が行われたときに通知されるイベントです。
 		/// </summary>
-		public event Action<ForceIdNotification> OnForceIdOn;
+		public event Action<IdNotification> OnShowId;
 		/// <summary>
 		/// リスナーへのID強制表示が解除されたときに通知されるイベントです。
 		/// </summary>
-		public event Action<ForceIdNotification> OnForceIdOff;
+		public event Action<IdNotification> OnHideId;
 		/// <summary>
 		/// 新しい配信が始まった時に通知されるイベントです。
 		/// </summary>
@@ -215,7 +223,6 @@
 
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
-					client.Headers.Add(HttpRequestHeader.ContentType, "application/json");
 					var url = String.Format("{0}://{1}:{2}/comment/{3}", this.socketIOUri.Scheme, this.socketIOUri.Host, this.socketIOUri.Port, streamName);
 
 					var jsonString = client.DownloadString(url);
@@ -293,7 +300,6 @@
 
 			var jsonString = DynamicJson.Serialize(new {
 				mode = "post",
-				stream_name = this.JoinedRoomId,
 				name = name,
 				message = message,
 				apikey = apiKey,
@@ -305,10 +311,10 @@
 		/// <summary>
 		/// リスナーをBANします。
 		/// </summary>
-		/// <param name="commentNum">BANするコメント番号</param>
+		/// <param name="commentNumber">BANするコメント番号</param>
 		/// <param name="apiKey">APIキー</param>
 		/// <exception cref="System.ArgumentException"></exception>
-		public void BanListener(Int32 commentNum, String apiKey) {
+		public void BanListener(Int32 commentNumber, String apiKey) {
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				throw new ArgumentException("APIキーは必須です。");
 			}
@@ -319,8 +325,8 @@
 
 			var message = DynamicJson.Serialize(new {
 				mode = "ban",
-				comment_num = commentNum,
-				api_key = apiKey,
+				commentNumber = commentNumber,
+				apikey = apiKey,
 			});
 			client.Send(new TextMessage(message));
 		}
@@ -328,10 +334,10 @@
 		/// <summary>
 		/// リスナーのBANを解除します。
 		/// </summary>
-		/// <param name="commentNum">BAN解除するコメント番号</param>
+		/// <param name="commentNumber">BAN解除するコメント番号</param>
 		/// <param name="apiKey">APIキー</param>
 		/// <exception cref="System.ArgumentException"></exception>
-		public void UnBanListener(Int32 commentNum, String apiKey) {
+		public void UnBanListener(Int32 commentNumber, String apiKey) {
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				throw new ArgumentException("APIキーは必須です。");
 			}
@@ -342,8 +348,9 @@
 
 			var message = DynamicJson.Serialize(new {
 				mode = "unban",
-				comment_num = commentNum,
-				api_key = apiKey,
+				roomId = this.JoinedRoomId,
+				commentNumber = commentNumber,
+				apikey = apiKey,
 			});
 			client.Send(new TextMessage(message));
 		}
@@ -351,9 +358,9 @@
 		/// <summary>
 		/// リスナーの強制ID表示を有効にします。
 		/// </summary>
-		/// <param name="commentNum">ID表示するコメント番号</param>
+		/// <param name="commentNumber">ID表示するコメント番号</param>
 		/// <param name="apiKey">APIキー</param>
-		public void ForceIdOn(Int32 commentNum, String apiKey) {
+		public void ShowId(Int32 commentNumber, String apiKey) {
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				throw new ArgumentException("APIキーは必須です。");
 			}
@@ -363,10 +370,9 @@
 			}
 
 			var message = DynamicJson.Serialize(new {
-				mode = "forceId",
-				comment_num = commentNum,
-				visibility = true,
-				api_key = apiKey,
+				mode = "show_id",
+				commentNumber = commentNumber,
+				apikey = apiKey,
 			});
 			client.Send(new TextMessage(message));
 		}
@@ -374,9 +380,9 @@
 		/// <summary>
 		/// リスナーの強制ID表示を解除します。
 		/// </summary>
-		/// <param name="commentNum">ID表示を解除するコメント番号</param>
+		/// <param name="commentNumber">ID表示を解除するコメント番号</param>
 		/// <param name="apiKey">APIキー</param>
-		public void ForceIdOff(Int32 commentNum, String apiKey) {
+		public void HideId(Int32 commentNumber, String apiKey) {
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				throw new ArgumentException("APIキーは必須です。");
 			}
@@ -386,10 +392,10 @@
 			}
 
 			var message = DynamicJson.Serialize(new {
-				mode = "forceId",
-				comment_num = commentNum,
-				visibility = false,
-				api_key = apiKey,
+				mode = "hide_id",
+				roomId = this.JoinedRoomId,
+				commentNumber = commentNumber,
+				apikey = apiKey,
 			});
 			client.Send(new TextMessage(message));
 		}
@@ -428,7 +434,6 @@
 		private void HandleMessage(dynamic json) {
 			try {
 				String mode = json.mode;
-				Message post;
 				switch (mode) {
 					case "get":
 						if (this.OnMessageList == null) {
@@ -439,47 +444,56 @@
 						this.OnMessageList(messages);
 						break;
 					case "post":
-						if (this.OnNewMessage == null) {
+						if (this.OnNewMessage != null) {
+							var post = new Message(json);
+							this.OnNewMessage(post);
 							break;
 						}
-
-						post = new Message(json);
-						this.OnNewMessage(post);
+						break;
+					case "post_result":
+						if (this.OnPostResult != null) {
+							var result = json.IsDefined("result") ? json.result : false;
+							this.OnPostResult(result);
+						}
 						break;
 					case "ban_notify":
-						post = new Message(json);
+						var banMessage = new Message(json);
 
-						if (post.IsBan) {
+						if (banMessage.IsBan) {
 							if (this.OnBan != null) {
-								this.OnBan(post);
+								this.OnBan(banMessage);
 							}
 						} else {
 							if (this.OnUnBan != null) {
-								this.OnUnBan(post);
+								this.OnUnBan(banMessage);
 							}
 						}
 						break;
-					case "force_id_notify":
-						var idNotify = new ForceIdNotification(json);
-						if (idNotify.IsVisible) {
-							if (this.OnForceIdOn != null) {
-								this.OnForceIdOn(idNotify);
-							}
-						} else {
-							if (this.OnForceIdOff != null) {
-								this.OnForceIdOff(idNotify);
-							}
+					case "ban_fail":
+						if (this.OnBanFail != null) {
+							var banFail = new BanFail(json);
+							this.OnBanFail(banFail);
+						}
+						break;
+					case "show_id":
+						if (this.OnShowId != null) {
+							var idNotify = new IdNotification(json);
+							this.OnShowId(idNotify);
+						}
+						break;
+					case "hide_id":
+						if (this.OnHideId != null) {
+							var idNotify = new IdNotification(json);
+							this.OnHideId(idNotify);
 						}
 						break;
 					case "join":
 					case "leave":
-						if (this.OnUpdateMember == null) {
-							break;
-						}
-
-						var ipCount = (Int32)json.ipcount;
 						if (this.OnUpdateMember != null) {
-							this.OnUpdateMember(ipCount);
+							var ipCount = (Int32)json.ipcount;
+							if (this.OnUpdateMember != null) {
+								this.OnUpdateMember(ipCount);
+							}
 						}
 						break;
 					case "admin_yell":
@@ -511,7 +525,6 @@
 				var liveInfo = new LiveNotification(json);
 				this.OnNotifyLive(liveInfo);
 			}
-
 		}
 
 		/// <summary>
@@ -610,7 +623,7 @@
 			var isRoomIdSame = this.RoomId == other.RoomId;
 			var isListenerSame = this.Listener == other.Listener;
 			var isPageViewSame = this.PageView == other.PageView;
-			return isListenerSame && isPageViewSame;
+			return isRoomIdSame && isListenerSame && isPageViewSame;
 		}
 
 		public override int GetHashCode() {
@@ -697,12 +710,20 @@
 		}
 	}
 
-	public class ForceIdNotification {
-		public Boolean IsVisible { get; internal set; }
+	public class BanFail {
+		public Int32 Number { get; internal set; }
+		public String Message { get; internal set; }
+
+		public BanFail(dynamic json) {
+			this.Number = json.IsDefined("comment_num") ? json.comment_num : 0;
+			this.Message = json.IsDefined("message") ? json.message : String.Empty;
+		}
+	}
+
+	public class IdNotification {
 		public Int32 Number { get; internal set; }
 
-		public ForceIdNotification(dynamic json) {
-			this.IsVisible = json.IsDefined("force_id") ? json.force_id : false;
+		public IdNotification(dynamic json) {
 			this.Number = json.IsDefined("comment_num") ? json.comment_num : 0;
 		}
 	}

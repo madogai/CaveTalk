@@ -63,12 +63,12 @@
 			this.client.UnBanListener(commentNumber, apiKey);
 		}
 
-		public override void ForceIdOn(Int32 commentNumber, String apiKey) {
-			this.client.ForceIdOn(commentNumber, apiKey);
+		public override void ShowId(Int32 commentNumber, String apiKey) {
+			this.client.ShowId(commentNumber, apiKey);
 		}
 
-		public override void ForceIdOff(Int32 commentNumber, String apiKey) {
-			this.client.ForceIdOff(commentNumber, apiKey);
+		public override void HideId(Int32 commentNumber, String apiKey) {
+			this.client.HideId(commentNumber, apiKey);
 		}
 
 		public override void PostComment(String name, String message, String apiKey) {

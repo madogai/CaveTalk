@@ -1,8 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTalk", "CaveTalk\CaveTalk.csproj", "{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}"
-EndProject
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder", "SolutionFolder", "{E46822AE-C279-4439-AB62-1FFF1B915508}"
 	ProjectSection(SolutionItems) = preProject
 		CommentSpecification.md = CommentSpecification.md
@@ -15,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Local.testsettings = Local.testsettings
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTalk", "CaveTalk\CaveTalk.csproj", "{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTubeClient", "CaveTubeClient\CaveTubeClient.csproj", "{9E3E1E57-073E-4181-BB36-3536E195577E}"
 EndProject
@@ -58,18 +58,18 @@ Global
 		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.DebugILMerge|x64.ActiveCfg = Debug|x86
 		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.DebugILMerge|x86.ActiveCfg = Debug|x86
 		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.DebugILMerge|x86.Build.0 = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|Any CPU.ActiveCfg = Release|x64
+		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|Any CPU.ActiveCfg = Release|x86
 		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|Mixed Platforms.ActiveCfg = Release|x86
 		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|Mixed Platforms.Build.0 = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|x64.ActiveCfg = Release|x64
+		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|x64.ActiveCfg = Release|x86
 		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|x86.ActiveCfg = Release|x86
 		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|x86.Build.0 = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|Any CPU.ActiveCfg = Release|x64
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|Mixed Platforms.ActiveCfg = Release|x64
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|Mixed Platforms.Build.0 = Release|x64
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|x64.ActiveCfg = Release|x64
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|x64.Build.0 = Release|x64
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|x86.ActiveCfg = Release|x64
+		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|Any CPU.ActiveCfg = Release|x86
+		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|Mixed Platforms.ActiveCfg = Release|x86
+		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|Mixed Platforms.Build.0 = Release|x86
+		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|x64.ActiveCfg = Release|x86
+		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|x86.ActiveCfg = Release|x86
+		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|x86.Build.0 = Release|x86
 		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E3E1E57-073E-4181-BB36-3536E195577E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

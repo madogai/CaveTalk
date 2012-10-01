@@ -241,6 +241,8 @@
 		/// オブジェクトを破棄します。
 		/// </summary>
 		protected override void OnDispose() {
+			base.OnDispose();
+
 			if (this.commentClient != null) {
 				this.commentClient.Dispose();
 			}
@@ -324,8 +326,8 @@
 					message.OnBanUser += this.BanUser;
 					message.OnUnBanUser += this.UnBanUser;
 					message.OnMarkListener += this.MarkListener;
-					message.OnForceIdOn += this.ForceIdOn;
-					message.OnForceIdOff += this.ForceIdOff;
+					message.OnShowId += this.ShowId;
+					message.OnHideId += this.HideId;
 					this.MessageList.Insert(0, message);
 				});
 
@@ -428,7 +430,7 @@
 		/// リスナーの強制ID表示を有効にします。
 		/// </summary>
 		/// <param name="message"></param>
-		private void ForceIdOn(Message message) {
+		private void ShowId(Message message) {
 			if (this.LoginStatus == false) {
 				MessageBox.Show("ID表示指定するにはログインが必須です。");
 				return;
@@ -440,7 +442,7 @@
 			}
 
 			try {
-				this.commentClient.ForceIdOn(message.Number, this.config.ApiKey);
+				this.commentClient.ShowId(message.Number, this.config.ApiKey);
 			} catch (ArgumentException ex) {
 				MessageBox.Show(ex.Message);
 				logger.Error(ex);
@@ -454,7 +456,7 @@
 		/// リスナーの強制ID表示を解除します。
 		/// </summary>
 		/// <param name="message"></param>
-		private void ForceIdOff(Message message) {
+		private void HideId(Message message) {
 			if (this.LoginStatus == false) {
 				MessageBox.Show("ID表示解除するにはログインが必須です。");
 				return;
@@ -466,7 +468,7 @@
 			}
 
 			try {
-				this.commentClient.ForceIdOff(message.Number, this.config.ApiKey);
+				this.commentClient.HideId(message.Number, this.config.ApiKey);
 			} catch (ArgumentException ex) {
 				MessageBox.Show(ex.Message);
 				logger.Error(ex);
@@ -537,8 +539,8 @@
 			message.OnBanUser += this.BanUser;
 			message.OnUnBanUser += this.UnBanUser;
 			message.OnMarkListener += this.MarkListener;
-			message.OnForceIdOn += this.ForceIdOn;
-			message.OnForceIdOff += this.ForceIdOff;
+			message.OnShowId += this.ShowId;
+			message.OnHideId += this.HideId;
 			this.MessageList.Insert(0, message);
 
 			// コメントの読み上げ
@@ -572,13 +574,19 @@
 		/// <param name="message"></param>
 		private void OnBanUser(Lib.Message message) {
 			var newMessage = new Message(message);
+			newMessage.OnBanUser += this.BanUser;
+			newMessage.OnUnBanUser += this.UnBanUser;
+			newMessage.OnMarkListener += this.MarkListener;
+			newMessage.OnShowId += this.ShowId;
+			newMessage.OnHideId += this.HideId;
+
 			var index = this.MessageList.IndexOf(newMessage);
 			if (index < 0) {
 				return;
 			}
 
 			this.MessageList[index] = newMessage;
-			base.OnPropertyChanged("MessageList");
+			this.MessageList.Refresh();
 		}
 
 		/// <summary>
@@ -587,13 +595,18 @@
 		/// <param name="message"></param>
 		private void OnUnBanUser(Lib.Message message) {
 			var newMessage = new Message(message);
+			newMessage.OnBanUser += this.BanUser;
+			newMessage.OnUnBanUser += this.UnBanUser;
+			newMessage.OnMarkListener += this.MarkListener;
+			newMessage.OnShowId += this.ShowId;
+			newMessage.OnHideId += this.HideId;
 			var index = this.MessageList.IndexOf(newMessage);
 			if (index < 0) {
 				return;
 			}
 
 			this.MessageList[index] = newMessage;
-			base.OnPropertyChanged("MessageList");
+			this.MessageList.Refresh();
 		}
 
 		/// <summary>
@@ -820,14 +833,14 @@
 		public event Action<Message> OnBanUser;
 		public event Action<Message> OnUnBanUser;
 		public event Action<Message> OnMarkListener;
-		public event Action<Message> OnForceIdOn;
-		public event Action<Message> OnForceIdOff;
+		public event Action<Message> OnShowId;
+		public event Action<Message> OnHideId;
 
 		public ICommand CopyCommentCommand { get; private set; }
 		public ICommand BanUserCommand { get; private set; }
 		public ICommand UnBanUserCommand { get; private set; }
-		public ICommand ForceIdOnCommand { get; private set; }
-		public ICommand ForceIdOffCommand { get; private set; }
+		public ICommand ShowIdCommand { get; private set; }
+		public ICommand HideIdCommand { get; private set; }
 		public ICommand MarkCommand { get; private set; }
 
 		public Message(Lib.Message message) {
@@ -853,14 +866,14 @@
 					this.OnUnBanUser(this);
 				}
 			});
-			this.ForceIdOnCommand = new RelayCommand(p => {
-				if (this.OnForceIdOn != null) {
-					this.OnForceIdOn(this);
+			this.ShowIdCommand = new RelayCommand(p => {
+				if (this.OnShowId != null) {
+					this.OnShowId(this);
 				}
 			});
-			this.ForceIdOffCommand = new RelayCommand(p => {
-				if (this.OnForceIdOff != null) {
-					this.OnForceIdOff(this);
+			this.HideIdCommand = new RelayCommand(p => {
+				if (this.OnHideId != null) {
+					this.OnHideId(this);
 				}
 			});
 
@@ -886,6 +899,22 @@
 					this.OnMarkListener(this);
 				}
 			});
+		}
+
+		public override bool Equals(object obj) {
+			var other = obj as Message;
+			if (other == null) {
+				return false;
+			}
+
+			var isNumberSame = this.Number == other.Number;
+			var isNameSame = this.Name == other.Name;
+			var isCommentSame = this.Comment == other.Comment;
+			return isNumberSame && isNameSame && isCommentSame;
+		}
+
+		public override int GetHashCode() {
+			return this.Number.GetHashCode() ^ this.Name.GetHashCode() ^ this.Comment.GetHashCode();
 		}
 	}
 }
