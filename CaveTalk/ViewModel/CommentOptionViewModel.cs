@@ -31,10 +31,12 @@
 		}
 
 		public String UserSoundFilePath {
-			get { return this.config.UserSoundPath; }
+			get { return this.config.UserSoundFilePath; }
 			set {
-				this.config.UserSoundPath = value;
-				this.player.Open(new Uri(this.UserSoundFilePath));
+				this.config.UserSoundFilePath = value;
+				if (File.Exists(value)) {
+					this.player.Open(new Uri(value));
+				}
 				base.OnPropertyChanged("UserSoundFilePath");
 			}
 		}
@@ -45,6 +47,16 @@
 					this.config.UserSoundTimeout = value;
 					this.timer.Interval = TimeSpan.FromSeconds(Decimal.ToDouble(value));
 					base.OnPropertyChanged("UserSoundTimeout");
+			}
+		}
+
+		public Double UserSoundVolume {
+			get { return Math.Floor(this.config.UserSoundVolume * 100); }
+			set {
+				Double val = value / 100;
+				this.config.UserSoundVolume = val;
+				this.player.Volume = val;
+				base.OnPropertyChanged("UserSoundVolume");
 			}
 		}
 
@@ -80,6 +92,14 @@
 			}
 		}
 
+		public Boolean ReadLiveClose {
+			get { return this.config.ReadLiveClose; }
+			set {
+				this.config.ReadLiveClose = value;
+				base.OnPropertyChanged("ReadLiveClose");
+			}
+		}
+
 		public ICommand FindSoftalkExeCommand { get; private set; }
 		public ICommand FindSoundFileCommand { get; private set; }
 		public ICommand PlaySoundFileCommand { get; private set; }
@@ -90,7 +110,7 @@
 
 			this.config = Config.GetConfig();
 			this.SoftalkFilePath = config.SofTalkPath;
-			this.UserSoundFilePath = config.UserSoundPath;
+			this.UserSoundFilePath = config.UserSoundFilePath;
 			this.timer = new DispatcherTimer(DispatcherPriority.Normal, Dispatcher.CurrentDispatcher) {
 				Interval = TimeSpan.FromSeconds(Decimal.ToDouble(this.UserSoundTimeout)),
 			};

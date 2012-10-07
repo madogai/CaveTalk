@@ -39,7 +39,7 @@
 			return true;
 		}
 
-		protected override Boolean Speak(String text) {
+		public override Boolean Speak(String text) {
 			try {
 				this.client.AddTalkTask(text);
 				return true;

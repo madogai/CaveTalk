@@ -9,7 +9,7 @@
         xmlns:cv="clr-namespace:CaveTube.CaveTalk.Converter"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         x:Name="Root"
-        Title="CaveTalk" Height="350" Width="525" MinWidth="400" MinHeight="350" Icon="/CaveTalk;component/Images/cavelis.ico" Topmost="{Binding Path=TopMost}">
+        Title="CaveTalk" Width="{Binding Path=WindowWidth, Mode=TwoWay}" Height="{Binding Path=WindowHeight, Mode=TwoWay}" MinWidth="450" MinHeight="350" Icon="/CaveTalk;component/Images/cavelis.ico" Topmost="{Binding Path=TopMost}" Top="{Binding Path=WindowTop, Mode=TwoWay}" Left="{Binding Path=WindowLeft, Mode=TwoWay}">
     <rb:RibbonWindow.Resources>
         <cv:ConnectingStatusConverter x:Key="ConnectingStatusConverter" />
         <cv:AutoLinkConverter x:Key="AutoLinkConverter" />
@@ -52,28 +52,6 @@
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="開く" Click="ResotreWindowButtonClick" />
-                    <MenuItem Header="通知を有効にする" Command="{Binding Path=EnableNotifyCommand}">
-                        <MenuItem.Style>
-                            <Style TargetType="MenuItem">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=NotifyStatus}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </MenuItem.Style>
-                    </MenuItem>
-                    <MenuItem Header="通知を無効にする"  Command="{Binding Path=DisableNotifyCommand}">
-                        <MenuItem.Style>
-                            <Style TargetType="MenuItem">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=NotifyStatus}" Value="False">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </MenuItem.Style>
-                    </MenuItem>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>

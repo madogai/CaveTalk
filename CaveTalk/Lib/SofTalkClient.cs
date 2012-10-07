@@ -44,7 +44,7 @@
 			return true;
 		}
 
-		protected override Boolean Speak(string text) {
+		public override Boolean Speak(String text) {
 			if (this.IsConnect == false) {
 				return false;
 			}

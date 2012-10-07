@@ -17,8 +17,9 @@
 
 		public UserSoundClient() {
 			this.config = Config.GetConfig();
-			this.soundFilePath = config.UserSoundPath;
+			this.soundFilePath = this.config.UserSoundFilePath;
 			this.player = new MediaPlayer();
+			this.player.Volume = this.config.UserSoundVolume;
 			this.dispatcher = Dispatcher.CurrentDispatcher;
 			if (File.Exists(this.soundFilePath)) {
 				this.player.Open(new Uri(this.soundFilePath, UriKind.Absolute));
@@ -57,7 +58,7 @@
 			return true;
 		}
 
-		protected override Boolean Speak(string text) {
+		public override Boolean Speak(String text) {
 			if (this.IsConnect == false) {
 				return false;
 			}

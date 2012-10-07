@@ -116,6 +116,50 @@
 			get { return this.config.TopMost; }
 		}
 
+		public Double WindowTop {
+			get {
+				var top = this.config.WindowTop;
+				top = Math.Max(top, SystemParameters.VirtualScreenTop);
+				top = Math.Min(top, SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight);
+				return top;
+			}
+			set {
+				this.config.WindowTop = value;
+				base.OnPropertyChanged("WindowTop");
+			}
+		}
+
+		public Double WindowLeft {
+			get {
+				var left = this.config.WindowLeft;
+				left = Math.Max(left, SystemParameters.VirtualScreenLeft);
+				left = Math.Min(left, SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth);
+				return left;
+			}
+			set {
+				this.config.WindowLeft = value;
+				base.OnPropertyChanged("WindowLeft");
+			}
+		}
+
+		public Double WindowHeight {
+			get { return this.config.WindowHeight; }
+			set {
+				this.config.WindowHeight = value;
+				base.OnPropertyChanged("WindowHeight");
+			}
+		}
+
+		public Double WindowWidth {
+			get {
+				return this.config.WindowWidth;
+			}
+			set {
+				this.config.WindowWidth = value;
+				base.OnPropertyChanged("WindowWidth");
+			}
+		}
+
 		#endregion
 
 		#region コマンド
@@ -250,6 +294,8 @@
 			if (this.speechClient != null) {
 				this.speechClient.Dispose();
 			}
+
+			this.config.Save();
 		}
 
 		/// <summary>
@@ -307,6 +353,7 @@
 				this.commentClient.OnBan += this.OnBanUser;
 				this.commentClient.OnUnBan += this.OnUnBanUser;
 				this.commentClient.OnAdminShout += this.OnAdminShout;
+				this.commentClient.OnNotifyLiveClose += this.OnNotifyLiveClose;
 				this.commentClient.OnError += this.OnError;
 				this.commentClient.Connect();
 
@@ -532,21 +579,22 @@
 		/// コメント受信時に実行されるイベントです。
 		/// </summary>
 		/// <param name="summary"></param>
-		/// <param name="mes"></param>
-		private void OnReceiveMessage(Lib.Message mes) {
+		/// <param name="message"></param>
+		private void OnReceiveMessage(Lib.Message message) {
 			// コメントを追加
-			var message = new Message(mes);
-			message.OnBanUser += this.BanUser;
-			message.OnUnBanUser += this.UnBanUser;
-			message.OnMarkListener += this.MarkListener;
-			message.OnShowId += this.ShowId;
-			message.OnHideId += this.HideId;
-			this.MessageList.Insert(0, message);
+			var newMessage = new Message(message);
+			newMessage.OnBanUser += this.BanUser;
+			newMessage.OnUnBanUser += this.UnBanUser;
+			newMessage.OnMarkListener += this.MarkListener;
+			newMessage.OnShowId += this.ShowId;
+			newMessage.OnHideId += this.HideId;
+			this.MessageList.Insert(0, newMessage);
 
 			// コメントの読み上げ
-			if (this.SpeakApplicationStatus && (this.speechClient != null || this.speechClient.IsConnect == false)) {
-				var isSpeech = this.speechClient.Speak(mes);
-				if (isSpeech == false) {
+			var isConnect = this.speechClient != null || this.speechClient.IsConnect == false;
+			if (this.SpeakApplicationStatus && isConnect) {
+				var speechResult = this.speechClient.Speak(message);
+				if (speechResult == false) {
 					base.OnPropertyChanged("SpeakApplicationStatus");
 					MessageBox.Show("読み上げに失敗しました。");
 				}
@@ -555,7 +603,7 @@
 			// コードビハインドのイベントを実行
 			if (this.OnMessage != null) {
 				uiDispatcher.BeginInvoke(new Action(() => {
-					this.OnMessage(mes, this.config);
+					this.OnMessage(message, this.config);
 				}));
 			}
 		}
@@ -616,6 +664,23 @@
 		private void OnAdminShout(String message) {
 			SystemSounds.Asterisk.Play();
 			MessageBox.Show(message, "管理者メッセージ", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+		}
+
+		/// <summary>
+		/// 配信終了通知時に実行されるイベントです。
+		/// </summary>
+		/// <param name="liveEntry"></param>
+		private void OnNotifyLiveClose(Lib.LiveNotification liveEntry) {
+			if (liveEntry.RoomId != this.commentClient.RoomId) {
+				return;
+			}
+
+			var isConnect = this.speechClient != null || this.speechClient.IsConnect == false;
+			if ((this.config.ReadLiveClose && this.SpeakApplicationStatus && isConnect && this.config.ReadLiveClose) == false) {
+				return;
+			}
+
+			this.speechClient.Speak("システム通知。配信が終了しました。");
 		}
 
 		/// <summary>

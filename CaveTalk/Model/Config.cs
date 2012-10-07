@@ -32,6 +32,7 @@
 			configDictionary = new Dictionary<String, String>();
 		}
 
+		// APIキー
 		private const String apiKey = "ApiKey";
 		public String ApiKey {
 			get {
@@ -49,6 +50,7 @@
 			}
 		}
 
+		// ユーザーID
 		private const String userId = "UserId";
 		public String UserId {
 			get {
@@ -66,6 +68,7 @@
 			}
 		}
 
+		// パスワード
 		private const String password = "Password";
 		public String Password {
 			get {
@@ -83,19 +86,22 @@
 			}
 		}
 
+		// 読み上げアプリケーション
 		private const String speakApplication = "SpeakApplication";
 		public SpeakApplicationType SpeakApplication {
 			get {
-				if (this.configDictionary.ContainsKey(speakApplication) == false) {
-					return SpeakApplicationType.Bouyomichan;
+				SpeakApplicationType val;
+				if (this.configDictionary.ContainsKey(speakApplication) && Enum.TryParse(this.configDictionary[speakApplication], out val)) {
+					return val;
 				}
-				return (SpeakApplicationType)Enum.Parse(typeof(SpeakApplicationType), this.configDictionary[speakApplication]);
+				return SpeakApplicationType.Bouyomichan;
 			}
 			set {
 				this.configDictionary[speakApplication] = value.ToString();
 			}
 		}
 
+		// SofTalkのパス
 		private const String sofTalkPath = "SofTalkPath";
 		public String SofTalkPath {
 			get {
@@ -109,8 +115,9 @@
 			}
 		}
 
+		// ユーザーサウンドのパス
 		private const String userSoundPath = "UserSoundPath";
-		public String UserSoundPath {
+		public String UserSoundFilePath {
 			get {
 				if (this.configDictionary.ContainsKey(userSoundPath) == false) {
 					return String.Empty;
@@ -122,105 +129,198 @@
 			}
 		}
 
+		// ユーザーサウンドの再生時間
 		private const String userSoundTimeout = "UserSoundTimeout";
 		public Decimal UserSoundTimeout {
 			get {
-				if (this.configDictionary.ContainsKey(userSoundTimeout) == false) {
-					return 1.0m;
+				Decimal val;
+				if (this.configDictionary.ContainsKey(userSoundTimeout) && Decimal.TryParse(this.configDictionary[userSoundTimeout], out val)) {
+					return val;
 				}
-				try {
-					return Decimal.Parse(this.configDictionary[userSoundTimeout]);
-				} catch (FormatException) {
-					return 1.0m;
-				}
-
-				
+				return 1.0m;
 			}
 			set {
 				this.configDictionary[userSoundTimeout] = value.ToString();
 			}
 		}
 
+		// ユーザーサウンドのボリューム
+		private const String userSoundVolume = "UserSoundVolume";
+		public Double UserSoundVolume {
+			get {
+				Double val;
+				if (this.configDictionary.ContainsKey(userSoundVolume) && Double.TryParse(this.configDictionary[userSoundVolume], out val)) {
+					return val;
+				}
+				return 0.5;
+			}
+			set {
+				this.configDictionary[userSoundVolume] = value.ToString();
+			}
+		}
+
+		// コメントのポップアップ種別
 		private const String commentPopupType = "CommentPopupType";
 		public CommentPopupDisplayType CommentPopupType {
 			get {
-				if (this.configDictionary.ContainsKey(commentPopupType) == false) {
-					return CommentPopupDisplayType.None;
+				CommentPopupDisplayType val;
+				if (this.configDictionary.ContainsKey(commentPopupType) && Enum.TryParse(this.configDictionary[commentPopupType], out val)) {
+					return val;
 				}
-				return (CommentPopupDisplayType)Enum.Parse(typeof(CommentPopupDisplayType), this.configDictionary[commentPopupType]);
+				return CommentPopupDisplayType.None;
 			}
 			set {
 				this.configDictionary[commentPopupType] = value.ToString();
 			}
 		}
 
+		// コメントポップアップ時間
 		private const String commentPopupTime = "CommentPopupTime";
 		public Int32 CommentPopupTime {
 			get {
-				if (this.configDictionary.ContainsKey(commentPopupTime) == false) {
-					return 5;
+				Int32 val;
+				if (this.configDictionary.ContainsKey(commentPopupTime) && Int32.TryParse(this.configDictionary[commentPopupTime], out val)) {
+					return val;
 				}
-				return Int32.Parse(this.configDictionary[commentPopupTime]);
+				return 5;
 			}
 			set {
 				this.configDictionary[commentPopupTime] = value.ToString();
 			}
 		}
 
+		// 名前の読み上げ
 		private const String readCommentName = "ReadCommentName";
 		public Boolean ReadCommentName {
 			get {
-				if (this.configDictionary.ContainsKey(readCommentName) == false) {
-					return false;
+				Boolean val;
+				if (this.configDictionary.ContainsKey(readCommentName) && Boolean.TryParse(this.configDictionary[readCommentName], out val)) {
+					return val;
 				}
-				return Boolean.Parse(this.configDictionary[readCommentName]);
+				return false;
 			}
 			set {
 				this.configDictionary[readCommentName] = value.ToString();
 			}
 		}
 
+		// コメント番号の読み上げ
 		private const String readCommentNumber = "ReadCommentNumber";
 		public Boolean ReadCommentNumber {
 			get {
-				if (this.configDictionary.ContainsKey(readCommentNumber) == false) {
-					return false;
+				Boolean val;
+				if (this.configDictionary.ContainsKey(readCommentNumber) && Boolean.TryParse(this.configDictionary[readCommentNumber], out val)) {
+					return val;
 				}
-				return Boolean.Parse(this.configDictionary[readCommentNumber]);
+				return false;
 			}
 			set {
 				this.configDictionary[readCommentNumber] = value.ToString();
 			}
 		}
 
+		// 配信終了時の読み上げ
+		private const String readLiveClose = "ReadLiveClose";
+		public Boolean ReadLiveClose {
+			get {
+				Boolean val;
+				if (this.configDictionary.ContainsKey(readLiveClose) && Boolean.TryParse(this.configDictionary[readLiveClose], out val)) {
+					return val;
+				}
+				return false;
+			}
+			set {
+				this.configDictionary[readLiveClose] = value.ToString();
+			}
+		}
+
+		// フォントサイズ
 		private const String fontSize = "FontSize";
 		public Int32 FontSize {
 			get {
-				if (this.configDictionary.ContainsKey(fontSize) == false) {
-					return 12;
+				Int32 val;
+				if (this.configDictionary.ContainsKey(fontSize) && Int32.TryParse(this.configDictionary[fontSize], out val)) {
+					return val;
 				}
-				try {
-					return Int32.Parse(this.configDictionary[fontSize]);
-				}
-				catch (FormatException) {
-					return 12;
-				}
+				return 12;
 			}
 			set {
 				this.configDictionary[fontSize] = value.ToString();
 			}
 		}
 
+		// ウィンドウトップ固定
 		private const String topMost = "TopMost";
 		public Boolean TopMost {
 			get {
-				if (this.configDictionary.ContainsKey(topMost) == false) {
-					return false;
+				Boolean val;
+				if (this.configDictionary.ContainsKey(topMost) && Boolean.TryParse(this.configDictionary[topMost], out val)) {
+					return val;
 				}
-				return Boolean.Parse(this.configDictionary[topMost]);
+				return false;
 			}
 			set {
 				this.configDictionary[topMost] = value.ToString();
+			}
+		}
+
+		// ウィンドウTop
+		private const String windowTop = "WindowTop";
+		public Double WindowTop {
+			get {
+				Double val;
+				if (this.configDictionary.ContainsKey(windowTop) && Double.TryParse(this.configDictionary[windowTop], out val)) {
+					return val;
+				}
+				return Double.NaN;
+			}
+			set {
+				this.configDictionary[windowTop] = value.ToString();
+			}
+		}
+
+		// ウィンドウLeft
+		private const String windowLeft = "WindowLeft";
+		public Double WindowLeft {
+			get {
+				Double val;
+				if (this.configDictionary.ContainsKey(windowLeft) && Double.TryParse(this.configDictionary[windowLeft], out val)) {
+					return val;
+				}
+				return Double.NaN;
+			}
+			set {
+				this.configDictionary[windowLeft] = value.ToString();
+			}
+		}
+
+		// ウィンドウの高さ
+		private const String windowHeight = "WindowHeight";
+		public Double WindowHeight {
+			get {
+				Double val;
+				if (this.configDictionary.ContainsKey(windowHeight) && Double.TryParse(this.configDictionary[windowHeight], out val)) {
+					return val;
+				}
+				return 450;
+			}
+			set {
+				this.configDictionary[windowHeight] = value.ToString();
+			}
+		}
+
+		// ウィンドウの横幅
+		private const String windowWidth = "WindowWidth";
+		public Double WindowWidth {
+			get {
+				Double val;
+				if (this.configDictionary.ContainsKey(windowWidth) && Double.TryParse(this.configDictionary[windowWidth], out val)) {
+					return val;
+				}
+				return 525;
+			}
+			set {
+				this.configDictionary[windowWidth] = value.ToString();
 			}
 		}
 
@@ -236,9 +336,9 @@
 							@ConfigKey, @Value
 						);
 					", new {
-						ConfigKey = item.Key,
-						Value = item.Value
-					}, transaction);
+						 ConfigKey = item.Key,
+						 Value = item.Value
+					 }, transaction);
 				}
 
 				transaction.Commit();

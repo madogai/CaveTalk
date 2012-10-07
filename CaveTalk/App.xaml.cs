@@ -31,6 +31,10 @@
 					model.Initialize();
 				};
 
+				window.Closed += (e2, args) => {
+					model.Dispose();
+				};
+
 				window.Show();
 			} catch(Exception ex) {
 				logger.Error(ex.ToString());
@@ -40,7 +44,6 @@
 
 		protected override void OnExit(ExitEventArgs e) {
 			DapperUtil.Vacuum();
-
 			base.OnExit(e);
 		}
 

@@ -10,7 +10,7 @@
 	public static class CaveTubeEntry {
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
 
-		public static String RequestStartBroadcast(String title, String apiKey, String description, IEnumerable<String> tags, Boolean idVisible, Boolean anonymousOnly, Boolean testMode) {
+		public static String RequestStartBroadcast(String title, String apiKey, String description, IEnumerable<String> tags, Boolean idVisible, Boolean anonymousOnly, Boolean testMode, String socketId) {
 			try {
 				using (var client = new WebClient()) {
 					var data = new NameValueCollection {
@@ -21,6 +21,7 @@
 						{"id_visible", idVisible ? "true" : "false"},
 						{"anonymous_only", anonymousOnly ? "true" : "false"},
 						{"test_mode", testMode ? "true" : "false"},
+						{"socket_id", socketId},
 						{"thumbnail", "false"},
 					};
 

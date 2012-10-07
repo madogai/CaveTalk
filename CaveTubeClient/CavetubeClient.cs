@@ -73,7 +73,11 @@
 		/// <summary>
 		/// 新しい配信が始まった時に通知されるイベントです。
 		/// </summary>
-		public event Action<LiveNotification> OnNotifyLive;
+		public event Action<LiveNotification> OnNotifyLiveStart;
+		/// <summary>
+		/// 配信が終了したときに通知されるイベントです。
+		/// </summary>
+		public event Action<LiveNotification> OnNotifyLiveClose;
 		/// <summary>
 		/// 管理者メッセージ通知です。
 		/// </summary>
@@ -86,11 +90,20 @@
 		private event Action<dynamic> OnMessage;
 
 		/// <summary>
+		/// ソケットID
+		/// </summary>
+		public String SocketId {
+			get {
+				if (this.IsConnect == false) {
+					return String.Empty;
+				}
+				return this.client.HandShake.SID;
+			}
+		}
+		/// <summary>
 		/// コメントサーバとの接続状態
 		/// </summary>
-		public Boolean IsConnect {
-			get { return this.client.IsConnected; }
-		}
+		public Boolean IsConnect { get { return this.client.IsConnected; } }
 		/// <summary>
 		/// 入室している部屋のID
 		/// </summary>
@@ -158,7 +171,8 @@
 			};
 
 			this.OnMessage += this.HandleMessage;
-			this.OnMessage += this.HandleLiveInfomation;
+			this.OnMessage += this.HandleLiveStartInfomation;
+			this.OnMessage += this.HandleLiveCloseInfomation;
 			this.OnMessage += this.HandleJoin;
 		}
 
@@ -415,7 +429,8 @@
 		/// </summary>
 		public void Dispose() {
 			this.OnMessage -= this.HandleMessage;
-			this.OnMessage -= this.HandleLiveInfomation;
+			this.OnMessage -= this.HandleLiveStartInfomation;
+			this.OnMessage -= this.HandleLiveCloseInfomation;
 			this.OnMessage -= this.HandleJoin;
 
 			if (this.client == null) {
@@ -516,14 +531,25 @@
 		/// 配信情報を処理します。
 		/// </summary>
 		/// <param name="json"></param>
-		private void HandleLiveInfomation(dynamic json) {
+		private void HandleLiveStartInfomation(dynamic json) {
 			if (json.mode != "start_entry") {
 				return;
 			}
 
-			if (this.OnNotifyLive != null) {
+			if (this.OnNotifyLiveStart != null) {
 				var liveInfo = new LiveNotification(json);
-				this.OnNotifyLive(liveInfo);
+				this.OnNotifyLiveStart(liveInfo);
+			}
+		}
+
+		private void HandleLiveCloseInfomation(dynamic json) {
+			if (json.mode != "close_entry") {
+				return;
+			}
+
+			if (this.OnNotifyLiveClose != null) {
+				var liveInfo = new LiveNotification(json);
+				this.OnNotifyLiveClose(liveInfo);
 			}
 		}
 

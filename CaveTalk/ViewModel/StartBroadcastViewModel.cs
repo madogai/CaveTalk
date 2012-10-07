@@ -66,6 +66,7 @@
 			}
 		}
 
+		private CaveTubeClientWrapper client;
 		private Config config;
 		private Int32 previousCount;
 
@@ -94,6 +95,9 @@
 			this.LoadPreviousSettingCommand = new RelayCommand(p => {
 				this.LoadPreviousSetting();
 			});
+
+			this.client = new CaveTubeClientWrapper();
+			client.Connect();
 		}
 
 		private void LoadPreviousSetting() {
@@ -119,7 +123,7 @@
 			try {
 				Mouse.OverrideCursor = Cursors.Wait;
 
-				var streamName = this.RequestStartBroadcast(isTestMode);
+				var streamName = this.RequestStartBroadcast(isTestMode, this.client.SocketId);
 				if (String.IsNullOrWhiteSpace(streamName)) {
 					MessageBox.Show("配信の開始に失敗しました。", "注意", MessageBoxButton.OK, MessageBoxImage.Warning, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
 					return;
@@ -131,7 +135,7 @@
 			}
 		}
 
-		private String RequestStartBroadcast(Boolean isTestMode = false) {
+		private String RequestStartBroadcast(Boolean isTestMode = false, String socketId = "") {
 			var apiKey = config.ApiKey;
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				return String.Empty;
@@ -141,14 +145,13 @@
 			this.Description = this.Description ?? String.Empty;
 			var tags = String.IsNullOrWhiteSpace(this.Tags) ? new String[0] : Regex.Split(this.Tags, "\\s+");
 
-			var streamName = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, isTestMode);
+			var streamName = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, isTestMode, socketId);
 			return streamName;
 		}
 
 		private void WaitStream(String streamName) {
 			this.FrontLayerVisibility = Visibility.Visible;
-			var client = new CaveTubeClientWrapper();
-			client.OnNotifyLive += liveInfo => {
+			client.OnNotifyLiveStart += liveInfo => {
 				if (liveInfo.RoomId != streamName) {
 					return;
 				}
@@ -158,7 +161,6 @@
 					this.OnClose(streamName);
 				}
 			};
-			client.Connect();
 		}
 
 		public enum BooleanType {

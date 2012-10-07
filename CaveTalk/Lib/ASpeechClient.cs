@@ -33,7 +33,7 @@
 
 		public abstract void Dispose();
 
-		protected abstract Boolean Speak(String text);
+		public abstract Boolean Speak(String text);
 
 		public Boolean Speak(Message message) {
 			if (this.IsConnect == false) {

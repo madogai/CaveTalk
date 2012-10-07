@@ -18,6 +18,8 @@
 			get { return this.client.IsConnect; }
 		}
 
+		public String SocketId { get { return this.client.SocketId; } }
+
 		public Boolean IsDisposed { get; private set; }
 
 		private CaveTubeClient.CavetubeClient client;
@@ -31,7 +33,8 @@
 		public override event Action<String> OnLeave;
 		public override event Action<String> OnAdminShout;
 		public override event Action<Exception> OnError;
-		public event Action<LiveNotification> OnNotifyLive;
+		public override event Action<LiveNotification> OnNotifyLiveStart;
+		public override event Action<LiveNotification> OnNotifyLiveClose;
 
 		public override void Connect() {
 			try {
@@ -90,7 +93,8 @@
 			this.client.OnUnBan += this.UnBan;
 			this.client.OnAdminShout += this.AdminShout;
 			this.client.OnError += this.Error;
-			this.client.OnNotifyLive += this.NotifyLive;
+			this.client.OnNotifyLiveStart += this.NotifyLiveStart;
+			this.client.OnNotifyLiveClose += this.NotifyLiveClose;
 		}
 
 		~CaveTubeClientWrapper() {
@@ -109,6 +113,8 @@
 			this.client.OnUnBan -= this.UnBan;
 			this.client.OnAdminShout -= this.AdminShout;
 			this.client.OnError -= this.Error;
+			this.client.OnNotifyLiveStart -= this.NotifyLiveStart;
+			this.client.OnNotifyLiveClose -= this.NotifyLiveClose;
 			this.OnJoin = null;
 			this.OnLeave = null;
 			this.OnNewMessage = null;
@@ -172,9 +178,15 @@
 			}
 		}
 
-		private void NotifyLive(CaveTubeClient.LiveNotification e) {
-			if (this.OnNotifyLive != null) {
-				this.OnNotifyLive(new LiveNotification(e));
+		private void NotifyLiveStart(CaveTubeClient.LiveNotification e) {
+			if (this.OnNotifyLiveStart != null) {
+				this.OnNotifyLiveStart(new LiveNotification(e));
+			}
+		}
+
+		private void NotifyLiveClose(CaveTubeClient.LiveNotification e) {
+			if (this.OnNotifyLiveClose != null) {
+				this.OnNotifyLiveClose (new LiveNotification(e));
 			}
 		}
 	}
@@ -213,11 +225,7 @@
 		}
 	}
 
-	public class LiveNotification {
-		public String Author { get; set; }
-		public String Title { get; set; }
-		public String RoomId { get; set; }
-
+	public partial class LiveNotification {
 		public LiveNotification(CaveTubeClient.LiveNotification liveInfo) {
 			this.Author = liveInfo.Author;
 			this.Title = liveInfo.Title;

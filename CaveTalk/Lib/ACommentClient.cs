@@ -36,6 +36,8 @@
 		public abstract event Action<Message> OnUnBan;
 		public abstract event Action<String> OnAdminShout;
 		public abstract event Action<Exception> OnError;
+		public abstract event Action<LiveNotification> OnNotifyLiveStart;
+		public abstract event Action<LiveNotification> OnNotifyLiveClose;
 
 		public ACommentClient() {
 			this.OnNewMessage += this.NewMessage;
@@ -236,6 +238,12 @@
 		public Boolean IsAsciiArt {
 			get { return Regex.IsMatch(this.Comment, "　 (?!<br>|$)"); }
 		}
+	}
+
+	public partial class LiveNotification {
+		public String Author { get; set; }
+		public String Title { get; set; }
+		public String RoomId { get; set; }
 	}
 
 	[Serializable]
