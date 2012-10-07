@@ -324,6 +324,51 @@
 			}
 		}
 
+		// Idカラムの表示
+		private const String displayIdColumn = "DisplayIdColumn";
+		public Boolean DisplayIdColumn {
+			get {
+				Boolean val;
+				if (this.configDictionary.ContainsKey(displayIdColumn) && Boolean.TryParse(this.configDictionary[displayIdColumn], out val)) {
+					return val;
+				}
+				return true;
+			}
+			set {
+				this.configDictionary[displayIdColumn] = value.ToString();
+			}
+		}
+
+		// 投稿時間カラムの表示
+		private const String displayPostTimeColumn = "DisplayPostTimeColumn";
+		public Boolean DisplayPostTimeColumn {
+			get {
+				Boolean val;
+				if (this.configDictionary.ContainsKey(displayPostTimeColumn) && Boolean.TryParse(this.configDictionary[displayPostTimeColumn], out val)) {
+					return val;
+				}
+				return true;
+			}
+			set {
+				this.configDictionary[displayPostTimeColumn] = value.ToString();
+			}
+		}
+
+		// 経過時間カラムの表示
+		private const String displayElapsedPostTimeColumn = "DisplayElapsedPostTimeColumn";
+		public Boolean DisplayElapsedPostTimeColumn {
+			get {
+				Boolean val;
+				if (this.configDictionary.ContainsKey(displayElapsedPostTimeColumn) && Boolean.TryParse(this.configDictionary[displayElapsedPostTimeColumn], out val)) {
+					return val;
+				}
+				return true;
+			}
+			set {
+				this.configDictionary[displayElapsedPostTimeColumn] = value.ToString();
+			}
+		}
+
 		public void Save() {
 			DapperUtil.Execute(executor => {
 				var transaction = executor.BeginTransaction();

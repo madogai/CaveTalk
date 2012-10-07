@@ -6,12 +6,13 @@
 
 	public sealed class CaveTubeClientWrapper : ACommentClient {
 
-		public override String RoomId {
-			get { return this.client.JoinedRoomId; }
-		}
-
-		public override string Author {
-			get { return this.client.JoinedRoomAuthor; }
+		public override Summary JoinedRoomSummary {
+			get {
+				if (this.client.JoinedRoom == null) {
+					return null;
+				}
+				return new Summary(this.client.JoinedRoom);
+			}
 		}
 
 		public override Boolean IsConnect {

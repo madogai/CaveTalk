@@ -23,8 +23,7 @@
 			return null;
 		}
 
-		public abstract String RoomId { get; }
-		public abstract String Author { get; }
+		public abstract Summary JoinedRoomSummary { get; }
 		public abstract Boolean IsConnect { get; }
 
 		public abstract event Action<IEnumerable<Message>> OnMessageList;
@@ -130,7 +129,11 @@
 		public abstract void Dispose();
 
 		private void NewMessage(Message message) {
-			var author = this.Author;
+			if (this.JoinedRoomSummary == null) {
+				return;
+			}
+
+			var author = this.JoinedRoomSummary.Author;
 			if (String.IsNullOrWhiteSpace(author) == true) {
 				return;
 			}

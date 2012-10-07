@@ -105,13 +105,9 @@
 		/// </summary>
 		public Boolean IsConnect { get { return this.client.IsConnected; } }
 		/// <summary>
-		/// 入室している部屋のID
+		/// 入室している部屋のサマリー
 		/// </summary>
-		public String JoinedRoomId { get; private set; }
-		/// <summary>
-		/// 入室している部屋のオーナー名
-		/// </summary>
-		public String JoinedRoomAuthor { get; private set; }
+		public Summary JoinedRoom { get; private set; }
 
 		private Uri webUri;
 		private Uri socketIOUri;
@@ -153,8 +149,8 @@
 					this.OnConnect();
 				}
 
-				if (String.IsNullOrWhiteSpace(this.JoinedRoomId) == false) {
-					this.JoinRoom(this.JoinedRoomId);
+				if (this.JoinedRoom != null && String.IsNullOrWhiteSpace(this.JoinedRoom.RoomId) == false) {
+					this.JoinRoom(this.JoinedRoom.RoomId);
 				}
 			};
 
@@ -279,22 +275,22 @@
 		/// コメントルームから退出します。
 		/// </summary>
 		public void LeaveRoom() {
-			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+			var roomId = this.JoinedRoom.RoomId;
+			if (String.IsNullOrWhiteSpace(roomId)) {
 				return;
 			}
 
 			var message = DynamicJson.Serialize(new {
 				mode = "leave",
-				room = this.JoinedRoomId,
+				room = roomId,
 			});
 			client.Send(new TextMessage(message));
 
 			if (this.OnLeave != null) {
-				this.OnLeave(this.JoinedRoomId);
+				this.OnLeave(roomId);
 			}
 
-			this.JoinedRoomId = null;
-			this.JoinedRoomAuthor = null;
+			this.JoinedRoom = null;
 		}
 
 		/// <summary>
@@ -304,7 +300,7 @@
 		/// <param name="message">メッセージ</param>
 		/// <param name="apiKey">APIキー</param>
 		public void PostComment(String name, String message, String apiKey = "") {
-			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+			if (this.JoinedRoom == null) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
@@ -333,7 +329,7 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+			if (this.JoinedRoom == null) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
@@ -356,13 +352,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+			if (this.JoinedRoom == null) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			var message = DynamicJson.Serialize(new {
 				mode = "unban",
-				roomId = this.JoinedRoomId,
+				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			});
@@ -379,7 +375,7 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+			if (this.JoinedRoom == null) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
@@ -401,13 +397,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+			if (this.JoinedRoom == null) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			var message = DynamicJson.Serialize(new {
 				mode = "hide_id",
-				roomId = this.JoinedRoomId,
+				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			});
@@ -567,11 +563,10 @@
 				return;
 			}
 
-			this.JoinedRoomAuthor = summary.Author;
-			this.JoinedRoomId = summary.RoomId;
+			this.JoinedRoom = summary;
 
 			if (this.OnJoin != null) {
-				this.OnJoin(this.JoinedRoomId);
+				this.OnJoin(this.JoinedRoom.RoomId);
 			}
 		}
 

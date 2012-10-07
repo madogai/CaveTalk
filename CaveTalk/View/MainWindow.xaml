@@ -13,6 +13,10 @@
     <rb:RibbonWindow.Resources>
         <cv:ConnectingStatusConverter x:Key="ConnectingStatusConverter" />
         <cv:AutoLinkConverter x:Key="AutoLinkConverter" />
+        <cv:TimeSpanToTotalHoursConverter x:Key="TimeSpanToTotalHoursConverter" />
+        <cv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <!-- DataGridのバインディング用のプロキシ -->
+        <FrameworkElement x:Key="ProxyElement" DataContext="{Binding}"/>
         <Style x:Key="DefaultCellStyle" TargetType="DataGridCell">
             <Style.Triggers>
                 <Trigger Property="DataGridCell.IsSelected" Value="True">
@@ -217,10 +221,27 @@
                 <Button Grid.Column="4" x:Name="PostKey" Content="書き込み" Command="{Binding Path=PostCommentCommand}" IsEnabled="{Binding Path=RoomJoinStatus}" />
             </Grid>
         </Border>
+        <!-- DataGrid用のプロキシ -->
+        <ContentControl Visibility="Collapsed" Content="{StaticResource ProxyElement}"/>
         <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True" SelectedIndex="{Binding Path=MessageIndex}" HorizontalScrollBarVisibility="Disabled" FontSize="{Binding Path=FontSize}">
             <i:Interaction.Behaviors>
                 <b:ExecCommandDoubleClickBehavior Command="MarkCommand" />
             </i:Interaction.Behaviors>
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Style.Setters>
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
+                                    <MenuItem Header="Id" IsCheckable="True" IsChecked="{Binding Path=DataContext.DisplayIdColumn, Source={StaticResource ResourceKey=ProxyElement}, Mode=TwoWay}" />
+                                    <MenuItem Header="投稿時間" IsCheckable="True" IsChecked="{Binding Path=DataContext.DisplayPostTimeColumn, Source={StaticResource ResourceKey=ProxyElement}, Mode=TwoWay}" />
+                                    <MenuItem Header="経過時間" IsCheckable="True" IsChecked="{Binding Path=DataContext.DisplayElapsedPostTimeColumn, Source={StaticResource ResourceKey=ProxyElement}, Mode=TwoWay}" />
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style.Setters>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
                     <Style.Setters>
@@ -296,8 +317,9 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Binding="{Binding Path=ListenerId}" Header="Id" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" />
-                <DataGridTextColumn Binding="{Binding Path=PostTime, StringFormat=HH:mm:ss}" Header="Time" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" />
+                <DataGridTextColumn Binding="{Binding Path=ListenerId}" Header="Id" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayIdColumn, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
+                <DataGridTextColumn Binding="{Binding Path=PostTime, StringFormat=HH:mm:ss}" Header="投稿時間" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayPostTimeColumn, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
+                <DataGridTextColumn Binding="{Binding Path=ElapsedPostTime, Converter={StaticResource ResourceKey=TimeSpanToTotalHoursConverter}}" Header="経過時間" Width="90" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayElapsedPostTimeColumn, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
             </DataGrid.Columns>
         </DataGrid>
     </DockPanel>

@@ -154,6 +154,8 @@
     <Compile Include="Converter\ConnectingStatusConverter.cs" />
     <Compile Include="Converter\EnumBooleanConverter.cs" />
     <Compile Include="Converter\AutoLinkConverter.cs" />
+    <Compile Include="Converter\TimeSpanToTotalHoursConverter.cs" />
+    <Compile Include="Converter\BooleanToVisibilityConverter.cs" />
     <Compile Include="Lib\BouyomiClientWrapper.cs" />
     <Compile Include="Lib\CaveTubeClientWrapper.cs" />
     <Compile Include="Lib\Exception.cs" />

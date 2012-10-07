@@ -78,7 +78,15 @@
 					return false;
 				}
 
-				return String.IsNullOrEmpty(this.commentClient.RoomId) == false;
+				if (this.commentClient.JoinedRoomSummary == null) {
+					return false;
+				}
+
+				if (String.IsNullOrEmpty(this.commentClient.JoinedRoomSummary.RoomId)) {
+					return false;
+				}
+
+				return true;
 			}
 		}
 
@@ -157,6 +165,30 @@
 			set {
 				this.config.WindowWidth = value;
 				base.OnPropertyChanged("WindowWidth");
+			}
+		}
+
+		public Boolean DisplayIdColumn {
+			get { return this.config.DisplayIdColumn; }
+			set {
+				this.config.DisplayIdColumn = value;
+				base.OnPropertyChanged("DisplayIdColumn");
+			}
+		}
+
+		public Boolean DisplayPostTimeColumn {
+			get { return this.config.DisplayPostTimeColumn; }
+			set {
+				this.config.DisplayPostTimeColumn = value;
+				base.OnPropertyChanged("DisplayPostTimeColumn");
+			}
+		}
+
+		public Boolean DisplayElapsedPostTimeColumn {
+			get { return this.config.DisplayElapsedPostTimeColumn; }
+			set {
+				this.config.DisplayElapsedPostTimeColumn = value;
+				base.OnPropertyChanged("DisplayElapsedPostTimeColumn");
 			}
 		}
 
@@ -369,7 +401,7 @@
 				this.LiveUrl = roomId;
 
 				room.Messages.ForEach(m => {
-					var message = new Message(m);
+					var message = new Message(room.Summary, m);
 					message.OnBanUser += this.BanUser;
 					message.OnUnBanUser += this.UnBanUser;
 					message.OnMarkListener += this.MarkListener;
@@ -395,8 +427,11 @@
 				return;
 			}
 
-			var roomId = this.commentClient.RoomId;
-			if (String.IsNullOrEmpty(this.commentClient.RoomId)) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				return;
+			}
+
+			if (String.IsNullOrEmpty(this.commentClient.JoinedRoomSummary.RoomId)) {
 				return;
 			}
 
@@ -413,7 +448,11 @@
 		/// <param name="postMessage"></param>
 		/// <param name="apiKey"></param>
 		private void PostComment(String postName, String postMessage, String apiKey) {
-			if (String.IsNullOrEmpty(this.commentClient.RoomId)) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				return;
+			}
+
+			if (String.IsNullOrEmpty(this.commentClient.JoinedRoomSummary.RoomId)) {
 				return;
 			}
 
@@ -431,7 +470,12 @@
 				return;
 			}
 
-			if (this.config.UserId != this.commentClient.Author) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				MessageBox.Show("部屋に所属していません。");
+				return;
+			}
+
+			if (this.config.UserId != this.commentClient.JoinedRoomSummary.Author) {
 				MessageBox.Show("配信者でないとBANすることはできません。");
 				return;
 			}
@@ -457,7 +501,12 @@
 				return;
 			}
 
-			if (this.config.UserId != this.commentClient.Author) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				MessageBox.Show("部屋に所属していません。");
+				return;
+			}
+
+			if (this.config.UserId != this.commentClient.JoinedRoomSummary.Author) {
 				MessageBox.Show("配信者でないとBANすることはできません。");
 				return;
 			}
@@ -483,7 +532,12 @@
 				return;
 			}
 
-			if (this.config.UserId != this.commentClient.Author) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				MessageBox.Show("部屋に所属していません。");
+				return;
+			}
+
+			if (this.config.UserId != this.commentClient.JoinedRoomSummary.Author) {
 				MessageBox.Show("配信者でないとID表示指定することはできません。");
 				return;
 			}
@@ -509,7 +563,12 @@
 				return;
 			}
 
-			if (this.config.UserId != this.commentClient.Author) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				MessageBox.Show("部屋に所属していません。");
+				return;
+			}
+
+			if (this.config.UserId != this.commentClient.JoinedRoomSummary.Author) {
 				MessageBox.Show("配信者でないとID表示解除することはできません。");
 				return;
 			}
@@ -581,8 +640,12 @@
 		/// <param name="summary"></param>
 		/// <param name="message"></param>
 		private void OnReceiveMessage(Lib.Message message) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				return;
+			}
+
 			// コメントを追加
-			var newMessage = new Message(message);
+			var newMessage = new Message(this.commentClient.JoinedRoomSummary, message);
 			newMessage.OnBanUser += this.BanUser;
 			newMessage.OnUnBanUser += this.UnBanUser;
 			newMessage.OnMarkListener += this.MarkListener;
@@ -621,7 +684,11 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void OnBanUser(Lib.Message message) {
-			var newMessage = new Message(message);
+			if (this.commentClient.JoinedRoomSummary == null) {
+				return;
+			}
+
+			var newMessage = new Message(this.commentClient.JoinedRoomSummary, message);
 			newMessage.OnBanUser += this.BanUser;
 			newMessage.OnUnBanUser += this.UnBanUser;
 			newMessage.OnMarkListener += this.MarkListener;
@@ -642,7 +709,11 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void OnUnBanUser(Lib.Message message) {
-			var newMessage = new Message(message);
+			if (this.commentClient.JoinedRoomSummary == null) {
+				return;
+			}
+
+			var newMessage = new Message(this.commentClient.JoinedRoomSummary, message);
 			newMessage.OnBanUser += this.BanUser;
 			newMessage.OnUnBanUser += this.UnBanUser;
 			newMessage.OnMarkListener += this.MarkListener;
@@ -671,7 +742,11 @@
 		/// </summary>
 		/// <param name="liveEntry"></param>
 		private void OnNotifyLiveClose(Lib.LiveNotification liveEntry) {
-			if (liveEntry.RoomId != this.commentClient.RoomId) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				return;
+			}
+
+			if (liveEntry.RoomId != this.commentClient.JoinedRoomSummary.RoomId) {
 				return;
 			}
 
@@ -794,6 +869,7 @@
 	public sealed class Message : ViewModelBase {
 		private Logger logger = LogManager.GetCurrentClassLogger();
 		private Lib.Message message;
+		private Lib.Summary summary;
 
 		public Int32 Number {
 			get { return this.message.Number; }
@@ -818,6 +894,12 @@
 
 		public DateTime PostTime {
 			get { return this.message.PostTime; }
+		}
+
+		public TimeSpan ElapsedPostTime {
+			get {
+				return this.PostTime - this.summary.StartTime;
+			}
 		}
 
 		public Boolean IsAuth {
@@ -908,7 +990,8 @@
 		public ICommand HideIdCommand { get; private set; }
 		public ICommand MarkCommand { get; private set; }
 
-		public Message(Lib.Message message) {
+		public Message(Lib.Summary summary, Lib.Message message) {
+			this.summary = summary;
 			this.message = message;
 
 			this.CopyCommentCommand = new RelayCommand(p => {
