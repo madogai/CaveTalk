@@ -296,14 +296,9 @@
 		/// 初期化を行います。
 		/// </summary>
 		public void Initialize() {
-			#region バージョン確認
 
-			//using (var client = new WebClient()) {
-			//    var version = client.DownloadString(ConfigurationManager.AppSettings["version_check_url"]);
-			//    var fileInfo = FileVersionInfo.GetVersionInfo(Environment.GetCommandLineArgs()[0]);
-			//}
-
-			#endregion
+			// バージョンチェック
+			this.UpdateCheck();
 
 			#region 読み上げソフト
 
@@ -617,6 +612,23 @@
 		private void DisconnectSpeakApplication() {
 			this.speechClient.Disconnect();
 			base.OnPropertyChanged("SpeakApplicationStatus");
+		}
+
+		/// <summary>
+		/// アプリケーションのアップデートをチェックします。
+		/// </summary>
+		private void UpdateCheck() {
+			using (var client = new WebClient()) {
+				try {
+					var serverVersion = DateTime.Parse(client.DownloadString(ConfigurationManager.AppSettings["version_check_url"]));
+					var localVersion = DateTime.Parse(ConfigurationManager.AppSettings["version"]);
+					if (serverVersion > localVersion) {
+						new NotifyUpdateBox().ShowDialog();
+					}
+				} catch (Exception ex) {
+					logger.Warn(ex);
+				}
+			}
 		}
 
 		#region CommentClientに登録するイベント

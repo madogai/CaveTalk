@@ -1,8 +1,7 @@
 ﻿namespace CaveTube.CaveTalk.View {
 
-	using System;
-	using System.Diagnostics;
 	using System.Windows;
+	using CaveTube.CaveTalk.ViewModel;
 
 	/// <summary>
 	/// Version.xaml の相互作用ロジック
@@ -11,17 +10,7 @@
 
 		public AboutBox() {
 			InitializeComponent();
-			this.DataContext = this;
-			this.FileVersionInfo =
-				FileVersionInfo.GetVersionInfo(Environment.GetCommandLineArgs()[0]);
+			this.DataContext = new AboutBoxViewModel();
 		}
-
-		public FileVersionInfo FileVersionInfo {
-			get { return (FileVersionInfo)GetValue(FileVersionInfoProperty); }
-			set { SetValue(FileVersionInfoProperty, value); }
-		}
-
-		public static readonly DependencyProperty FileVersionInfoProperty =
-			DependencyProperty.Register("FileVersionInfo", typeof(FileVersionInfo), typeof(AboutBox), new UIPropertyMetadata(null));
 	}
 }

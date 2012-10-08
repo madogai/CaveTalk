@@ -37,7 +37,7 @@
 
 				window.Show();
 			} catch(Exception ex) {
-				logger.Error(ex.ToString());
+				logger.Error(ex);
 				throw;
 			}
 		}

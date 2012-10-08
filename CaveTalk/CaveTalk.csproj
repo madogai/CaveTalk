@@ -175,6 +175,7 @@
     <Compile Include="ViewModel\OptionWindowViewModel.cs" />
     <Compile Include="ViewModel\GeneralOptionViewModel.cs" />
     <Compile Include="ViewModel\StartBroadcastViewModel.cs" />
+    <Compile Include="ViewModel\AboutBoxViewModel.cs" />
     <Compile Include="View\CommentOptionControl.xaml.cs">
       <DependentUpon>CommentOptionControl.xaml</DependentUpon>
     </Compile>
@@ -194,6 +195,9 @@
     </Compile>
     <Compile Include="View\StartBroadcast.xaml.cs">
       <DependentUpon>StartBroadcast.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\NotifyUpdateBox.xaml.cs">
+      <DependentUpon>NotifyUpdateBox.xaml</DependentUpon>
     </Compile>
     <Page Include="Control\NotifyBalloon.xaml">
       <SubType>Designer</SubType>
@@ -255,12 +259,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="View\NotifyUpdate.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="View\OptionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -276,6 +274,10 @@
     <Page Include="View\StartBroadcast.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\NotifyUpdateBox.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
