@@ -29,8 +29,12 @@
 			this.commentOption = new CommentOptionViewModel();
 			this.OptionWindow = this.commentOption;
 
-			this.GeneralOptionOpenCommand = new RelayCommand(p => this.OptionWindow = this.generalOption);
-			this.CommentOptionOpenCommand = new RelayCommand(p => this.OptionWindow = this.commentOption);
+			this.GeneralOptionOpenCommand = new RelayCommand(p => {
+				this.OptionWindow = this.generalOption;
+			});
+			this.CommentOptionOpenCommand = new RelayCommand(p => {
+				this.OptionWindow = this.commentOption;
+			});
 			this.SaveCommand = new RelayCommand(p => {
 				this.generalOption.Save();
 				this.commentOption.Save();
