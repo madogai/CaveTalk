@@ -8,7 +8,7 @@
 
 	public class EnumBooleanConverter : IValueConverter {
 		#region IValueConverter Members
-		public object Convert(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
+		public Object Convert(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
 			var parameterString = parameter as String;
 			if (parameterString == null) {
 				return DependencyProperty.UnsetValue;
@@ -23,7 +23,7 @@
 			return parameterValue.Equals(value);
 		}
 
-		public object ConvertBack(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
+		public Object ConvertBack(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
 			var parameterString = parameter as String;
 			if (parameterString == null) {
 				return DependencyProperty.UnsetValue;

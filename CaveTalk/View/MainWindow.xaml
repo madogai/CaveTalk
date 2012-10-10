@@ -317,9 +317,9 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Binding="{Binding Path=ListenerId}" Header="Id" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayIdColumn, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
-                <DataGridTextColumn Binding="{Binding Path=PostTime, StringFormat=HH:mm:ss}" Header="投稿時間" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayPostTimeColumn, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
-                <DataGridTextColumn Binding="{Binding Path=ElapsedPostTime, Converter={StaticResource ResourceKey=TimeSpanToTotalHoursConverter}}" Header="経過時間" Width="90" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayElapsedPostTimeColumn, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
+                <DataGridTextColumn Binding="{Binding Path=ListenerId}" Header="Id" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayIdColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
+                <DataGridTextColumn Binding="{Binding Path=PostTime, StringFormat=HH:mm:ss}" Header="投稿時間" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayPostTimeColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
+                <DataGridTextColumn Binding="{Binding Path=ElapsedPostTime, Converter={StaticResource ResourceKey=TimeSpanToTotalHoursConverter}}" Header="経過時間" Width="90" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayElapsedPostTimeColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
             </DataGrid.Columns>
         </DataGrid>
     </DockPanel>

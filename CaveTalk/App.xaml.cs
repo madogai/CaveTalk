@@ -27,7 +27,7 @@
 					DataContext = model,
 				};
 
-				window.Loaded += (e2, args) => {
+				window.ContentRendered += (e2, args) => {
 					model.Initialize();
 				};
 

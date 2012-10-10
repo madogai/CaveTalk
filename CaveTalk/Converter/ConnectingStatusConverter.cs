@@ -5,7 +5,7 @@
 	public sealed class ConnectingStatusConverter : IValueConverter {
 		#region IValueConverter メンバー
 
-		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+		public Object Convert(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
 			if (value is Boolean == false) {
 				return String.Empty;
 			}
@@ -16,7 +16,7 @@
 			return text;
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+		public Object ConvertBack(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
 			throw new NotImplementedException();
 		}
 

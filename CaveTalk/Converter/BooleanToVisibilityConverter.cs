@@ -6,7 +6,7 @@
 	public sealed class BooleanToVisibilityConverter : IValueConverter {
 		#region IValueConverter メンバー
 
-		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+		public Object Convert(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
 			if (value is Boolean == false) {
 				return Visibility.Collapsed;
 			}
@@ -18,7 +18,7 @@
 			}
 		}
 
-		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+		public Object ConvertBack(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {
 			throw new NotImplementedException();
 		}
 

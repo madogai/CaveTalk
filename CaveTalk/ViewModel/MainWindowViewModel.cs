@@ -296,15 +296,11 @@
 		/// 初期化を行います。
 		/// </summary>
 		public void Initialize() {
-
 			// バージョンチェック
 			this.UpdateCheck();
 
-			#region 読み上げソフト
-
+			// 読み上げソフトとの接続
 			this.ConnectSpeakApplication();
-
-			#endregion
 		}
 
 		/// <summary>
@@ -600,10 +596,11 @@
 				if (isConnect == false) {
 					throw new ConnectionException("読み上げソフトに接続できませんでした。後から読み上げソフトを立ち上げた場合は、メニューの読み上げアイコンから読み上げソフトに接続を選択してください。");
 				}
-				base.OnPropertyChanged("SpeakApplicationStatus");
 			} catch (ConnectionException e) {
 				MessageBox.Show(e.Message);
 			}
+
+			base.OnPropertyChanged("SpeakApplicationStatus");
 		}
 
 		/// <summary>
@@ -620,11 +617,18 @@
 		private void UpdateCheck() {
 			using (var client = new WebClient()) {
 				try {
-					var serverVersion = DateTime.Parse(client.DownloadString(ConfigurationManager.AppSettings["version_check_url"]));
-					var localVersion = DateTime.Parse(ConfigurationManager.AppSettings["version"]);
-					if (serverVersion > localVersion) {
-						new NotifyUpdateBox().ShowDialog();
-					}
+					client.DownloadStringCompleted += (e, sender) => {
+						var result = sender.Result as String;
+						if (String.IsNullOrEmpty(result)) {
+							return;
+						}
+						var serverVersion = DateTime.Parse(result);
+						var localVersion = DateTime.Parse(ConfigurationManager.AppSettings["version"]);
+						if (serverVersion > localVersion) {
+							new NotifyUpdateBox().ShowDialog();
+						}
+					};
+					client.DownloadStringAsync(new Uri(ConfigurationManager.AppSettings["version_check_url"]));
 				} catch (Exception ex) {
 					logger.Warn(ex);
 				}

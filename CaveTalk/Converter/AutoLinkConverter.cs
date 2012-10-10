@@ -12,7 +12,7 @@
 	public class AutoLinkConverter : IValueConverter {
 		private const String textBlockFormat = @"<TextBlock xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">{0}</TextBlock>";
 
-		public object Convert(Object value, Type targetType, Object parameter, CultureInfo culture) {
+		public Object Convert(Object value, Type targetType, Object parameter, CultureInfo culture) {
 			var text = value as String;
 			if (text == null) {
 				return Binding.DoNothing;
