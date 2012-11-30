@@ -387,10 +387,16 @@
 				this.commentClient.Connect();
 
 				var room = this.commentClient.GetRoom(liveUrl);
+				if (room == null) {
+					Mouse.OverrideCursor = null;
+					MessageBox.Show("接続に失敗しました。");
+					return;
+				}
+
 				var roomId = room.Summary.RoomId;
 				if (String.IsNullOrWhiteSpace(roomId)) {
 					Mouse.OverrideCursor = null;
-					MessageBox.Show("不正なURLです。");
+					MessageBox.Show("接続に失敗しました。");
 					return;
 				}
 
