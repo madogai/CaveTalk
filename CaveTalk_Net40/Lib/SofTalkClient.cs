@@ -65,7 +65,7 @@
 			return true;
 		}
 
-		public override void Dispose() {
+		public sealed override void Dispose() {
 			var ps = Process.GetProcessesByName("softalk");
 			ps.ForEach(p => p.CloseMainWindow());
 		}

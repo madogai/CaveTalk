@@ -77,7 +77,7 @@
 			return true;
 		}
 
-		public override void Dispose() {
+		public sealed override void Dispose() {
 			if (this.player.Source != null) {
 				this.player.Close();
 			}

@@ -1,6 +1,10 @@
 /bin
 /CaveTalk/bin
 /CaveTalk/obj
+/CaveTalk_Net40/bin
+/CaveTalk_Net40/obj
+/CaveTalk_Net45/bin
+/CaveTalk_Net45/obj
 /CaveTalk.Test/bin
 /CaveTalk.Test/obj
 /CaveTubeClient/bin
