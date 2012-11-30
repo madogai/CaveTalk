@@ -58,7 +58,7 @@
 		}
 
 		/// <summary>
-		/// CaveTuneからログアウトします。
+		/// CaveTubeからログアウトします。
 		/// </summary>
 		/// <param name="userId">ユーザーID</param>
 		/// <param name="password">パスワード</param>
@@ -93,11 +93,6 @@
 				};
 
 				var response = client.UploadValues(String.Format("{0}/api/auth", webUrl), "POST", data);
-				var jsonString = Encoding.UTF8.GetString(response);
-				var json = DynamicJson.Parse(jsonString);
-				if (json.IsDefined("ret") && json.ret == false) {
-					return false;
-				}
 				return true;
 			}
 		}

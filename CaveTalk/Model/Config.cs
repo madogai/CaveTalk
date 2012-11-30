@@ -219,18 +219,18 @@
 			}
 		}
 
-		// 配信終了時の読み上げ
-		private const String readLiveClose = "ReadLiveClose";
-		public Boolean ReadLiveClose {
+		// 配信終了時の通知
+		private const String noticeLiveClose = "NoticeLiveClose";
+		public Boolean NoticeLiveClose {
 			get {
 				Boolean val;
-				if (this.configDictionary.ContainsKey(readLiveClose) && Boolean.TryParse(this.configDictionary[readLiveClose], out val)) {
+				if (this.configDictionary.ContainsKey(noticeLiveClose) && Boolean.TryParse(this.configDictionary[noticeLiveClose], out val)) {
 					return val;
 				}
 				return false;
 			}
 			set {
-				this.configDictionary[readLiveClose] = value.ToString();
+				this.configDictionary[noticeLiveClose] = value.ToString();
 			}
 		}
 

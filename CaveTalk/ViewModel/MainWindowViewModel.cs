@@ -45,7 +45,13 @@
 		private String liveUrl;
 
 		public String LiveUrl {
-			get { return this.liveUrl; }
+			get {
+				if (this.LoginStatus == true && String.IsNullOrWhiteSpace(this.liveUrl)) {
+					return String.Format("{0}/live/{1}", ConfigurationManager.AppSettings["web_server"], this.config.UserId);
+				} else {
+					return this.liveUrl;
+				}
+			}
 			set {
 				this.liveUrl = value;
 				base.OnPropertyChanged("LiveUrl");
@@ -767,11 +773,11 @@
 			}
 
 			var isConnect = this.speechClient != null || this.speechClient.IsConnect == false;
-			if ((this.config.ReadLiveClose && this.SpeakApplicationStatus && isConnect && this.config.ReadLiveClose) == false) {
+			if ((this.config.NoticeLiveClose && this.SpeakApplicationStatus && isConnect && this.config.NoticeLiveClose) == false) {
 				return;
 			}
 
-			this.speechClient.Speak("システム通知。配信が終了しました。");
+			MessageBox.Show("配信が終了しました。");
 		}
 
 		/// <summary>

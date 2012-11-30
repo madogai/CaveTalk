@@ -39,7 +39,7 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Images\cavelis.ico</ApplicationIcon>
+    <ApplicationIcon>cavetalk.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\Release\x86\</OutputPath>
@@ -311,6 +311,7 @@
     <Resource Include="Images\play_small.png" />
     <Resource Include="Images\pause_small.png" />
     <Resource Include="Images\stop_small.png" />
+    <Resource Include="cavetalk.ico" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -318,7 +319,6 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\cavelis.ico" />
     <Resource Include="Images\close.png" />
     <Resource Include="Images\error.png" />
     <Resource Include="Images\floppy_disk.png" />

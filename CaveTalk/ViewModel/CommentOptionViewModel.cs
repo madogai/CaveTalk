@@ -92,14 +92,6 @@
 			}
 		}
 
-		public Boolean ReadLiveClose {
-			get { return this.config.ReadLiveClose; }
-			set {
-				this.config.ReadLiveClose = value;
-				base.OnPropertyChanged("ReadLiveClose");
-			}
-		}
-
 		public ICommand FindSoftalkExeCommand { get; private set; }
 		public ICommand FindSoundFileCommand { get; private set; }
 		public ICommand PlaySoundFileCommand { get; private set; }
@@ -116,6 +108,9 @@
 			};
 			this.timer.Tick += (e, sender) => {
 				this.player.Stop();
+				this.timer.Stop();
+			};
+			this.player.MediaEnded += (e, sender) => {
 				this.timer.Stop();
 			};
 
@@ -155,7 +150,9 @@
 				}
 				this.player.Stop();
 				this.player.Play();
-				this.timer.Start();
+				if (this.timer.Interval > TimeSpan.Zero) {
+					this.timer.Start();
+				}
 			});
 
 			this.StopSoundFileCommand = new RelayCommand(p => {

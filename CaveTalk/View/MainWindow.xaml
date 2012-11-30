@@ -9,7 +9,7 @@
         xmlns:cv="clr-namespace:CaveTube.CaveTalk.Converter"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         x:Name="Root"
-        Title="CaveTalk" Width="{Binding Path=WindowWidth, Mode=TwoWay}" Height="{Binding Path=WindowHeight, Mode=TwoWay}" MinWidth="450" MinHeight="350" Icon="/CaveTalk;component/Images/cavelis.ico" Topmost="{Binding Path=TopMost}" Top="{Binding Path=WindowTop, Mode=TwoWay}" Left="{Binding Path=WindowLeft, Mode=TwoWay}">
+        Title="CaveTalk" Width="{Binding Path=WindowWidth, Mode=TwoWay}" Height="{Binding Path=WindowHeight, Mode=TwoWay}" MinWidth="450" MinHeight="350" Icon="/CaveTalk;component/cavetalk.ico" Topmost="{Binding Path=TopMost}" Top="{Binding Path=WindowTop, Mode=TwoWay}" Left="{Binding Path=WindowLeft, Mode=TwoWay}">
     <rb:RibbonWindow.Resources>
         <cv:ConnectingStatusConverter x:Key="ConnectingStatusConverter" />
         <cv:AutoLinkConverter x:Key="AutoLinkConverter" />
@@ -38,7 +38,7 @@
         <CommandBinding Command="{x:Static Member=v:MainWindow.RestoreWindowCommand}" Executed="RestoreWindowExecuted" />
     </rb:RibbonWindow.CommandBindings>
     <DockPanel>
-        <tb:TaskbarIcon x:Name="MyNotifyIcon" IconSource="/CaveTalk;component/Images/cavelis.ico" MenuActivation="RightClick" LeftClickCommand="{x:Static Member=v:MainWindow.RestoreWindowCommand}">
+        <tb:TaskbarIcon x:Name="MyNotifyIcon" IconSource="/CaveTalk;component/cavetalk.ico" MenuActivation="RightClick" LeftClickCommand="{x:Static Member=v:MainWindow.RestoreWindowCommand}">
             <tb:TaskbarIcon.Style>
                 <Style TargetType="{x:Type tb:TaskbarIcon}">
                     <Setter Property="Visibility" Value="Collapsed" />

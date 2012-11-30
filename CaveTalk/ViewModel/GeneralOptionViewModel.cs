@@ -27,11 +27,19 @@
 			}
 		}
 
+		public Boolean NoticeLiveClose {
+			get { return this.config.NoticeLiveClose; }
+			set {
+				this.config.NoticeLiveClose = value;
+				base.OnPropertyChanged("NoticeLiveClose");
+			}
+		}
+
 		public GeneralOptionViewModel() {
 			this.config = Config.GetConfig();
 
 			this.FontSizeList = new SafeObservable<Int32>();
-			new[] { 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20 }.ForEach(size => {
+			new[] { 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 30, 36, 42 }.ForEach(size => {
 				this.FontSizeList.Add(size);
 			});
 		}

@@ -31,6 +31,9 @@
 				this.player.Stop();
 				this.timer.Stop();
 			};
+			this.player.MediaEnded += (e, sender) => {
+				this.timer.Stop();
+			};
 		}
 
 		#region ASpeechClient メンバー
@@ -66,7 +69,10 @@
 			dispatcher.BeginInvoke(new Action(() => {
 				this.player.Stop();
 				this.player.Play();
-				this.timer.Start();
+
+				if (this.timer.Interval > TimeSpan.Zero) {
+					this.timer.Start();
+				}
 			}));
 			return true;
 		}

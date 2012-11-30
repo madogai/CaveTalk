@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="400" Padding="5">
     <StackPanel>
-        <GroupBox Header="通知設定">
+        <GroupBox Header="設定">
             <Grid>
                 <Grid.Style>
                     <Style TargetType="Grid">
@@ -38,6 +38,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition />
+                    <RowDefinition />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0">フォントサイズ</TextBlock>
                 <StackPanel Grid.Row="0">
@@ -47,6 +48,10 @@
                 <TextBlock Grid.Row="1">常に最前面に表示する</TextBlock>
                 <StackPanel Grid.Row="1">
                     <CheckBox IsChecked="{Binding Path=TopMost}" />
+                </StackPanel>
+                <TextBlock Grid.Row="2">配信終了時に通知する</TextBlock>
+                <StackPanel Grid.Row="2">
+                    <CheckBox IsChecked="{Binding Path=NoticeLiveClose}" />
                 </StackPanel>
             </Grid>
         </GroupBox>

@@ -93,8 +93,8 @@
                         </Button>
                     </StackPanel>
                     <TextBlock Grid.Row="4" Grid.Column="0">ファイル再生時間</TextBlock>
-                    <StackPanel Orientation="Horizontal" Grid.Row="4" Grid.Column="1">
-                        <extToolkit:DecimalUpDown Width="70" Increment="0.1" Maximum="10" Minimum="0.1" Value="{Binding UserSoundTimeout}" />
+                    <StackPanel Orientation="Horizontal" Grid.Row="4" Grid.Column="1" ToolTip="0秒にすると最後まで再生します。">
+                        <extToolkit:DecimalUpDown Width="70" Increment="0.1" Maximum="10" Minimum="0" Value="{Binding UserSoundTimeout}" />
                         <TextBlock Text="秒" Margin="5,0,0,0" />
                     </StackPanel>
                     <TextBlock Grid.Row="5" Grid.Column="0" Text="音量"></TextBlock>
@@ -137,38 +137,6 @@
                 <TextBlock Grid.Row="1" Text="リスナー名の読み上げ" />
                 <StackPanel Grid.Row="1" Grid.Column="1">
                     <CheckBox IsChecked="{Binding Path=ReadName}"></CheckBox>
-                </StackPanel>
-            </Grid>
-        </GroupBox>
-        <GroupBox Header="特殊な読み上げ">
-            <Grid>
-                <Grid.Style>
-                    <Style TargetType="Grid">
-                        <Style.Resources>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Grid.Column" Value="0" />
-                                <Setter Property="VerticalAlignment" Value="Center" />
-                            </Style>
-                            <Style TargetType="StackPanel">
-                                <Setter Property="Orientation" Value="Horizontal" />
-                                <Setter Property="Margin" Value="3" />
-                            </Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Margin" Value="3" />
-                            </Style>
-                        </Style.Resources>
-                    </Style>
-                </Grid.Style>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="140" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0">配信終了時に読み上げる</TextBlock>
-                <StackPanel Grid.Row="0" Grid.Column="1">
-                    <CheckBox IsChecked="{Binding Path=ReadLiveClose}"></CheckBox>
                 </StackPanel>
             </Grid>
         </GroupBox>

@@ -17,7 +17,7 @@
 						{"title", title},
 						{"apikey", apiKey},
 						{"description", description},
-						{"tags", String.Join(" ", tags)},
+						{"tag", String.Join(" ", tags)},
 						{"id_visible", idVisible ? "true" : "false"},
 						{"anonymous_only", anonymousOnly ? "true" : "false"},
 						{"test_mode", testMode ? "true" : "false"},
