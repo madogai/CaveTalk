@@ -374,12 +374,6 @@
     <Resource Include="Images\connect_no.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\notify.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\notify_no.png" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\CaveTubeClient\CaveTubeClient.csproj">
       <Project>{9E3E1E57-073E-4181-BB36-3536E195577E}</Project>
       <Name>CaveTubeClient</Name>
