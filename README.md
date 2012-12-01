@@ -48,7 +48,7 @@ MIT-style License.
 
 以下の環境が必要です。
 
-* [.NET Framework 4](http://www.microsoft.com/downloads/ja-jp/details.aspx?FamilyID=9cfb2d51-5ff4-4491-b0e5-b386f32c0992)
+* [.NET Framework 4.5](http://www.microsoft.com/ja-jp/download/details.aspx?id=30653)
 * [棒読みちゃん](http://chi.usamimi.info/Program/Application/BouyomiChan/)
 
 ※ 棒読みちゃんの代わりに[SofTalk](http://www35.atwiki.jp/softalk/)に読ませることも可能です。
@@ -81,6 +81,7 @@ CaveTubeの新規配信やコメントをポップアップ表示する機能な
 * 配信開始時にタグが反映されない問題を修正しました。
 * コメント通知音を停止しないオプションを追加しました。
 * アイコンを変更しました。
+* 依存する.NET Frameworkのバージョンを4.5に変更しました。
 
 2012/10/08
 * コメントサーバの仕様変更に対応しました。以下の機能が再度使用できるようになりました。
