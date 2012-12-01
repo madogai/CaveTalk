@@ -1,7 +1,7 @@
 ﻿namespace CaveTube.CaveTalk.Control {
 	using System;
 	using System.Windows;
-	using Microsoft.Windows.Controls.Ribbon;
+	using System.Windows.Controls.Ribbon;
 
 	public class RibbonTextBlock : System.Windows.Controls.Control {
 

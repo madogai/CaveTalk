@@ -1,12 +1,15 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
 	using System.Collections.Generic;
+	using System.Collections.ObjectModel;
 	using System.Configuration;
 	using System.Linq;
 	using System.Media;
 	using System.Net;
 	using System.Runtime.InteropServices;
+	using System.Threading.Tasks;
 	using System.Windows;
+	using System.Windows.Data;
 	using System.Windows.Input;
 	using System.Windows.Media;
 	using System.Windows.Threading;
@@ -40,7 +43,7 @@
 			}
 		}
 
-		public SafeObservable<Message> MessageList { get; private set; }
+		public ObservableCollection<Message> MessageList { get; private set; }
 
 		private String liveUrl;
 
@@ -267,7 +270,8 @@
 		/// コンストラクタ
 		/// </summary>
 		public MainWindowViewModel() {
-			this.MessageList = new SafeObservable<Message>();
+			this.MessageList = new ObservableCollection<Message>();
+			BindingOperations.EnableCollectionSynchronization(this.MessageList, new Object());
 			this.uiDispatcher = Dispatcher.CurrentDispatcher;
 
 			// 設定データの取得
@@ -407,7 +411,6 @@
 					var message = new Message(room.Summary, m);
 					message.OnBanUser += this.BanUser;
 					message.OnUnBanUser += this.UnBanUser;
-					message.OnMarkListener += this.MarkListener;
 					message.OnShowId += this.ShowId;
 					message.OnHideId += this.HideId;
 					this.MessageList.Insert(0, message);
@@ -588,14 +591,6 @@
 		}
 
 		/// <summary>
-		/// 色が付いたのに合わせて画面を更新します。
-		/// </summary>
-		/// <param name="id"></param>
-		private void MarkListener(Message message) {
-			this.MessageList.Refresh();
-		}
-
-		/// <summary>
 		/// 読み上げソフトに接続します。
 		/// </summary>
 		private void ConnectSpeakApplication() {
@@ -676,7 +671,6 @@
 			var newMessage = new Message(this.commentClient.JoinedRoomSummary, message);
 			newMessage.OnBanUser += this.BanUser;
 			newMessage.OnUnBanUser += this.UnBanUser;
-			newMessage.OnMarkListener += this.MarkListener;
 			newMessage.OnShowId += this.ShowId;
 			newMessage.OnHideId += this.HideId;
 			this.MessageList.Insert(0, newMessage);
@@ -719,7 +713,6 @@
 			var newMessage = new Message(this.commentClient.JoinedRoomSummary, message);
 			newMessage.OnBanUser += this.BanUser;
 			newMessage.OnUnBanUser += this.UnBanUser;
-			newMessage.OnMarkListener += this.MarkListener;
 			newMessage.OnShowId += this.ShowId;
 			newMessage.OnHideId += this.HideId;
 
@@ -729,7 +722,6 @@
 			}
 
 			this.MessageList[index] = newMessage;
-			this.MessageList.Refresh();
 		}
 
 		/// <summary>
@@ -744,7 +736,6 @@
 			var newMessage = new Message(this.commentClient.JoinedRoomSummary, message);
 			newMessage.OnBanUser += this.BanUser;
 			newMessage.OnUnBanUser += this.UnBanUser;
-			newMessage.OnMarkListener += this.MarkListener;
 			newMessage.OnShowId += this.ShowId;
 			newMessage.OnHideId += this.HideId;
 			var index = this.MessageList.IndexOf(newMessage);
@@ -753,7 +744,6 @@
 			}
 
 			this.MessageList[index] = newMessage;
-			this.MessageList.Refresh();
 		}
 
 		/// <summary>
@@ -1023,15 +1013,19 @@
 			this.message = message;
 
 			this.CopyCommentCommand = new RelayCommand(p => {
-				try {
-					Clipboard.SetText(this.Comment);
-				} catch (ExternalException e) {
-					MessageBox.Show("クリップボードへのコピーに失敗しました。");
-					logger.Error("クリップボードのコピーへの失敗しました。", e);
-				} catch (ArgumentException e) {
-					logger.Error("コメントがnullのためクリップボードにコピーできませんでした。", e);
+				if (String.IsNullOrEmpty(this.Comment)) {
+					return;
+				}
+
+				for (var i = 0; i < 3; i++) {
+					try {
+						Clipboard.SetText(this.Comment);
+					} catch (ExternalException) {
+						System.Threading.Thread.Sleep(0);
+					}
 				}
 			});
+
 			this.BanUserCommand = new RelayCommand(p => {
 				if (this.OnBanUser != null) {
 					this.OnBanUser(this);

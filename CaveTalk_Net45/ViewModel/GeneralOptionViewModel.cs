@@ -1,6 +1,8 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
+	using System.Collections.ObjectModel;
 	using System.Linq;
+	using System.Windows.Data;
 	using System.Windows.Input;
 	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Utils;
@@ -9,7 +11,7 @@
 	public sealed class GeneralOptionViewModel : OptionBaseViewModel {
 		private Config config;
 
-		public SafeObservable<Int32> FontSizeList { get; private set; }
+		public ObservableCollection<Int32> FontSizeList { get; private set; }
 
 		public Int32 FontSize {
 			get { return this.config.FontSize; }
@@ -38,7 +40,8 @@
 		public GeneralOptionViewModel() {
 			this.config = Config.GetConfig();
 
-			this.FontSizeList = new SafeObservable<Int32>();
+			this.FontSizeList = new ObservableCollection<Int32>();
+			BindingOperations.EnableCollectionSynchronization(this.FontSizeList, new Object());
 			new[] { 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 30, 36, 42 }.ForEach(size => {
 				this.FontSizeList.Add(size);
 			});

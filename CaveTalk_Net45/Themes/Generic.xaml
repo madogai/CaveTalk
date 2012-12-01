@@ -2,7 +2,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:CaveTube.CaveTalk"
-    xmlns:rb="http://schemas.microsoft.com/winfx/2006/xaml/presentation/ribbon"
     xmlns:rbc="clr-namespace:CaveTube.CaveTalk.Control"
     >
     <Style TargetType="{x:Type rbc:RibbonTextBlock}">
@@ -12,13 +11,9 @@
         <Setter Property="CornerRadius" Value="2" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
-        <Setter Property="ToolTipService.InitialShowDelay" Value="{StaticResource &#224;}" />
-        <Setter Property="ToolTipService.ShowDuration" Value="{StaticResource &#225;}" />
-        <Setter Property="ToolTipService.BetweenShowDelay" Value="{StaticResource &#226;}" />
-        <Setter Property="Template" Value="{StaticResource &#251;}" />
         <Setter Property="QuickAccessToolBarControlSizeDefinition">
             <Setter.Value>
-                <rb:RibbonControlSizeDefinition ImageSize="Small" IsLabelVisible="False" />
+                <RibbonControlSizeDefinition ImageSize="Small" IsLabelVisible="False" />
             </Setter.Value>
         </Setter>
         <Setter Property="Template">
@@ -39,7 +34,7 @@
                                 <Viewbox
                                         Width="32"
                                         Height="32"
-                                        Margin="{DynamicResource {ComponentResourceKey TypeInTargetAssembly={x:Type rb:Ribbon}, ResourceId=LargeImageMargin}}"
+                                        Margin="{DynamicResource {ComponentResourceKey TypeInTargetAssembly={x:Type Ribbon}, ResourceId=LargeImageMargin}}"
                                         VerticalAlignment="Center"
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
                                     <TextBlock
@@ -48,7 +43,7 @@
                                 <Grid x:Name="Grid"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Center">
-                                    <rb:RibbonTwoLineText x:Name="TwoLineText"
+                                    <RibbonTwoLineText x:Name="TwoLineText"
                                         Text="{TemplateBinding Label}"
                                         TextAlignment="Center"
                                         VerticalAlignment="Top"
@@ -64,7 +59,7 @@
             </Setter.Value>
         </Setter>
         <Style.Resources>
-            <Thickness x:Key="{ComponentResourceKey TypeInTargetAssembly={x:Type rb:Ribbon}, ResourceId=LargeImageMargin}"
+            <Thickness x:Key="{ComponentResourceKey TypeInTargetAssembly={x:Type Ribbon}, ResourceId=LargeImageMargin}"
                         Left="1"
                         Top="1"
                         Right="1"

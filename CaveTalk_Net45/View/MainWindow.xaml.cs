@@ -6,18 +6,18 @@
 	using System.Windows;
 	using System.Windows.Controls;
 	using System.Windows.Controls.Primitives;
+	using System.Windows.Controls.Ribbon;
 	using System.Windows.Documents;
 	using System.Windows.Input;
 	using System.Windows.Media.Imaging;
 	using CaveTube.CaveTalk.Control;
 	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.ViewModel;
-	using Microsoft.Windows.Controls.Ribbon;
 
 	/// <summary>
 	/// MainWindow.xaml の相互作用ロジック
 	/// </summary>
-	public partial class MainWindow : RibbonWindow {
+	public partial class MainWindow {
 		public static readonly ICommand RestoreWindowCommand = new RoutedCommand("RestoreWindow", typeof(MainWindow));
 		private String previewServer;
 
@@ -77,6 +77,14 @@
 			var image = new Image();
 			image.Source = new BitmapImage(new Uri(uri));
 			hyperlink.ToolTip = image;
+		}
+
+		private void Close(object sender, RoutedEventArgs e) {
+			this.Close();
+		}
+
+		private void MenuItem_Click_1(object sender, RoutedEventArgs e) {
+			Console.WriteLine("hoge");
 		}
 	}
 }

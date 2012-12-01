@@ -1023,13 +1023,16 @@
 			this.message = message;
 
 			this.CopyCommentCommand = new RelayCommand(p => {
-				try {
-					Clipboard.SetText(this.Comment);
-				} catch (ExternalException e) {
-					MessageBox.Show("クリップボードへのコピーに失敗しました。");
-					logger.Error("クリップボードのコピーへの失敗しました。", e);
-				} catch (ArgumentException e) {
-					logger.Error("コメントがnullのためクリップボードにコピーできませんでした。", e);
+				if (String.IsNullOrEmpty(this.Comment)) {
+					return;
+				}
+
+				for (var i = 0; i < 3; i++) {
+					try {
+						Clipboard.SetText(this.Comment);
+					} catch (ExternalException) {
+						System.Threading.Thread.Sleep(0);
+					}
 				}
 			});
 			this.BanUserCommand = new RelayCommand(p => {
