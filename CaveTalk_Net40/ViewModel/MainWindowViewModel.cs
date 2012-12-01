@@ -302,6 +302,9 @@
 		/// 初期化を行います。
 		/// </summary>
 		public void Initialize() {
+			// バージョンチェック
+			this.UpdateCheck();
+
 			// 読み上げソフトとの接続
 			this.ConnectSpeakApplication();
 		}
@@ -618,6 +621,30 @@
 		private void DisconnectSpeakApplication() {
 			this.speechClient.Disconnect();
 			base.OnPropertyChanged("SpeakApplicationStatus");
+		}
+
+		/// <summary>
+		/// アプリケーションのアップデートをチェックします。
+		/// </summary>
+		private void UpdateCheck() {
+			using (var client = new WebClient()) {
+				try {
+					client.DownloadStringCompleted += (e, sender) => {
+						var result = sender.Result as String;
+						if (String.IsNullOrEmpty(result)) {
+							return;
+						}
+						var serverVersion = DateTime.Parse(result);
+						var localVersion = DateTime.Parse(ConfigurationManager.AppSettings["version"]);
+						if (serverVersion > localVersion) {
+							new NotifyUpdateBox().ShowDialog();
+						}
+					};
+					client.DownloadStringAsync(new Uri(ConfigurationManager.AppSettings["version_check_url"]));
+				} catch (Exception ex) {
+					logger.Warn(ex);
+				}
+			}
 		}
 
 		#region CommentClientに登録するイベント
