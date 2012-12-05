@@ -197,6 +197,9 @@
 		public Summary GetSummary(String liveUrl) {
 			try {
 				var streamName = this.ParseStreamUrl(liveUrl);
+				if (String.IsNullOrWhiteSpace(streamName)) {
+					throw new CavetubeException("サマリーの取得に失敗しました。");
+				}
 
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
@@ -219,6 +222,8 @@
 					return summary;
 				}
 			} catch (WebException) {
+				return new Summary();
+			} catch (CavetubeException) {
 				return new Summary();
 			}
 		}
