@@ -628,8 +628,8 @@
 		/// </summary>
 		private void UpdateCheck() {
 			using (var client = new WebClient()) {
-				try {
-					client.DownloadStringCompleted += (e, sender) => {
+				client.DownloadStringCompleted += (e, sender) => {
+					try {
 						var result = sender.Result as String;
 						if (String.IsNullOrEmpty(result)) {
 							return;
@@ -639,11 +639,12 @@
 						if (serverVersion > localVersion) {
 							new NotifyUpdateBox().ShowDialog();
 						}
-					};
-					client.DownloadStringAsync(new Uri(ConfigurationManager.AppSettings["version_check_url"]));
-				} catch (Exception ex) {
-					logger.Warn(ex);
-				}
+					} catch (Exception ex) {
+						logger.Warn(ex);
+					}
+				};
+
+				client.DownloadStringAsync(new Uri(ConfigurationManager.AppSettings["version_check_url"]));
 			}
 		}
 

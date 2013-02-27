@@ -621,22 +621,19 @@
 		/// <summary>
 		/// アプリケーションのアップデートをチェックします。
 		/// </summary>
-		private void UpdateCheck() {
+		private async void UpdateCheck() {
 			using (var client = new WebClient()) {
 				try {
-					client.DownloadStringCompleted += (e, sender) => {
-						var result = sender.Result as String;
-						if (String.IsNullOrEmpty(result)) {
-							return;
-						}
-						var serverVersion = DateTime.Parse(result);
-						var localVersion = DateTime.Parse(ConfigurationManager.AppSettings["version"]);
-						if (serverVersion > localVersion) {
-							new NotifyUpdateBox().ShowDialog();
-						}
-					};
-					client.DownloadStringAsync(new Uri(ConfigurationManager.AppSettings["version_check_url"]));
-				} catch (Exception ex) {
+					var result = await client.DownloadStringTaskAsync(new Uri(ConfigurationManager.AppSettings["version_check_url"]));
+					if (String.IsNullOrEmpty(result)) {
+						return;
+					}
+					var serverVersion = DateTime.Parse(result);
+					var localVersion = DateTime.Parse(ConfigurationManager.AppSettings["version"]);
+					if (serverVersion > localVersion) {
+						new NotifyUpdateBox().ShowDialog();
+					}
+				} catch (WebException ex) {
 					logger.Warn(ex);
 				}
 			}

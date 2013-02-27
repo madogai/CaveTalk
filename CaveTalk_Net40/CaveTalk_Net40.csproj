@@ -314,6 +314,7 @@
     <Resource Include="cavetalk.ico" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <None Include="packages.config" />
     <AppDesigner Include="Properties\" />
