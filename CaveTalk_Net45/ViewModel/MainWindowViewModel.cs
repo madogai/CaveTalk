@@ -1,13 +1,11 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
-	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
 	using System.Configuration;
 	using System.Linq;
 	using System.Media;
 	using System.Net;
 	using System.Runtime.InteropServices;
-	using System.Threading.Tasks;
 	using System.Windows;
 	using System.Windows.Data;
 	using System.Windows.Input;
@@ -332,20 +330,6 @@
 		}
 
 		/// <summary>
-		/// メッセージをDBに保存します。
-		/// </summary>
-		/// <param name="messages"></param>
-		private void SaveMessage(IEnumerable<Model.Message> messages) {
-			//var dbMessages = this.context.Messages.Where(message => message.Room.RoomId == room.RoomId);
-
-			//messages.Where(m => dbMessages.All(dm => dm.Number != m.Number && dm.PostTime != m.PostTime)).ForEach(m => {
-			//    this.context.Messages.Add(m);
-			//});
-
-			//this.context.SaveChanges();
-		}
-
-		/// <summary>
 		/// 接続人数やコメント一覧をクリアして初期状態に戻します。
 		/// </summary>
 		private void ResetStatus() {
@@ -383,8 +367,10 @@
 				this.commentClient.OnJoin += this.OnJoin;
 				this.commentClient.OnNewMessage += this.OnReceiveMessage;
 				this.commentClient.OnUpdateMember += this.OnUpdateMember;
-				this.commentClient.OnBan += this.OnBanUser;
-				this.commentClient.OnUnBan += this.OnUnBanUser;
+				this.commentClient.OnBan += this.OnCommentStatusChange;
+				this.commentClient.OnUnBan += this.OnCommentStatusChange;
+				this.commentClient.OnHideComment += this.OnCommentStatusChange;
+				this.commentClient.OnShowComment += this.OnCommentStatusChange;
 				this.commentClient.OnAdminShout += this.OnAdminShout;
 				this.commentClient.OnNotifyLiveClose += this.OnNotifyLiveClose;
 				this.commentClient.OnError += this.OnError;
@@ -413,6 +399,8 @@
 					message.OnUnBanUser += this.UnBanUser;
 					message.OnShowId += this.ShowId;
 					message.OnHideId += this.HideId;
+					message.OnShowComment += this.ShowComment;
+					message.OnHideComment += this.HideComment;
 					this.MessageList.Insert(0, message);
 				});
 
@@ -471,30 +459,9 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void BanUser(Message message) {
-			if (this.LoginStatus == false) {
-				MessageBox.Show("BANするにはログインが必須です。");
-				return;
-			}
-
-			if (this.commentClient.JoinedRoomSummary == null) {
-				MessageBox.Show("部屋に所属していません。");
-				return;
-			}
-
-			if (this.config.UserId != this.commentClient.JoinedRoomSummary.Author) {
-				MessageBox.Show("配信者でないとBANすることはできません。");
-				return;
-			}
-
-			try {
+			SendBroadcasterCommandHelper(() => {
 				this.commentClient.BanListener(message.Number, this.config.ApiKey);
-			} catch (ArgumentException ex) {
-				MessageBox.Show(ex.Message);
-				logger.Error(ex);
-			} catch (CavetubeException ex) {
-				MessageBox.Show(ex.Message);
-				logger.Error(ex);
-			}
+			});
 		}
 
 		/// <summary>
@@ -502,30 +469,9 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void UnBanUser(Message message) {
-			if (this.LoginStatus == false) {
-				MessageBox.Show("BANするにはログインが必須です。");
-				return;
-			}
-
-			if (this.commentClient.JoinedRoomSummary == null) {
-				MessageBox.Show("部屋に所属していません。");
-				return;
-			}
-
-			if (this.config.UserId != this.commentClient.JoinedRoomSummary.Author) {
-				MessageBox.Show("配信者でないとBANすることはできません。");
-				return;
-			}
-
-			try {
+			SendBroadcasterCommandHelper(() => {
 				this.commentClient.UnBanListener(message.Number, this.config.ApiKey);
-			} catch (ArgumentException ex) {
-				MessageBox.Show(ex.Message);
-				logger.Error(ex);
-			} catch (CavetubeException ex) {
-				MessageBox.Show(ex.Message);
-				logger.Error(ex);
-			}
+			});
 		}
 
 		/// <summary>
@@ -533,30 +479,9 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void ShowId(Message message) {
-			if (this.LoginStatus == false) {
-				MessageBox.Show("ID表示指定するにはログインが必須です。");
-				return;
-			}
-
-			if (this.commentClient.JoinedRoomSummary == null) {
-				MessageBox.Show("部屋に所属していません。");
-				return;
-			}
-
-			if (this.config.UserId != this.commentClient.JoinedRoomSummary.Author) {
-				MessageBox.Show("配信者でないとID表示指定することはできません。");
-				return;
-			}
-
-			try {
+			SendBroadcasterCommandHelper(() => {
 				this.commentClient.ShowId(message.Number, this.config.ApiKey);
-			} catch (ArgumentException ex) {
-				MessageBox.Show(ex.Message);
-				logger.Error(ex);
-			} catch (CavetubeException ex) {
-				MessageBox.Show(ex.Message);
-				logger.Error(ex);
-			}
+			});
 		}
 
 		/// <summary>
@@ -564,23 +489,50 @@
 		/// </summary>
 		/// <param name="message"></param>
 		private void HideId(Message message) {
-			if (this.LoginStatus == false) {
-				MessageBox.Show("ID表示解除するにはログインが必須です。");
-				return;
-			}
-
-			if (this.commentClient.JoinedRoomSummary == null) {
-				MessageBox.Show("部屋に所属していません。");
-				return;
-			}
-
-			if (this.config.UserId != this.commentClient.JoinedRoomSummary.Author) {
-				MessageBox.Show("配信者でないとID表示解除することはできません。");
-				return;
-			}
-
-			try {
+			SendBroadcasterCommandHelper(() => {
 				this.commentClient.HideId(message.Number, this.config.ApiKey);
+			});
+		}
+
+		/// <summary>
+		/// コメントを再表示します。
+		/// </summary>
+		/// <param name="message"></param>
+		private void ShowComment(Message message) {
+			SendBroadcasterCommandHelper(() => {
+				this.commentClient.ShowComment(message.Number, this.config.ApiKey);
+			});
+		}
+
+		/// <summary>
+		/// コメントを非表示にします。
+		/// </summary>
+		/// <param name="message"></param>
+		private void HideComment(Message message) {
+			SendBroadcasterCommandHelper(() => {
+				this.commentClient.HideComment(message.Number, this.config.ApiKey);
+			});
+		}
+
+		/// <summary>
+		/// 配信者用コマンドを送信するためのヘルパーです。
+		/// </summary>
+		/// <param name="act">実行するコマンド</param>
+		private void SendBroadcasterCommandHelper(Action act) {
+			try {
+				if (this.LoginStatus == false) {
+					throw new ArgumentException("ID表示解除するにはログインが必須です。");
+				}
+
+				if (this.commentClient.JoinedRoomSummary == null) {
+					throw new ArgumentException("部屋に所属していません。");
+				}
+
+				if (this.config.UserId != this.commentClient.JoinedRoomSummary.Author) {
+					throw new ArgumentException("配信者でないので動作を行うことができません。");
+				}
+
+				act();
 			} catch (ArgumentException ex) {
 				MessageBox.Show(ex.Message);
 				logger.Error(ex);
@@ -670,6 +622,8 @@
 			newMessage.OnUnBanUser += this.UnBanUser;
 			newMessage.OnShowId += this.ShowId;
 			newMessage.OnHideId += this.HideId;
+			newMessage.OnShowComment += this.ShowComment;
+			newMessage.OnHideComment += this.HideComment;
 			this.MessageList.Insert(0, newMessage);
 
 			// コメントの読み上げ
@@ -699,10 +653,10 @@
 		}
 
 		/// <summary>
-		/// BAN通知受信時に実行されるイベントです。
+		/// BANやコメント非表示などコメントの状態が変更される通知を受け取った時に実行されるイベントです。
 		/// </summary>
 		/// <param name="message"></param>
-		private void OnBanUser(Lib.Message message) {
+		private void OnCommentStatusChange(Lib.Message message) {
 			if (this.commentClient.JoinedRoomSummary == null) {
 				return;
 			}
@@ -712,30 +666,9 @@
 			newMessage.OnUnBanUser += this.UnBanUser;
 			newMessage.OnShowId += this.ShowId;
 			newMessage.OnHideId += this.HideId;
-
-			var index = this.MessageList.IndexOf(newMessage);
-			if (index < 0) {
-				return;
-			}
-
-			this.MessageList[index] = newMessage;
-		}
-
-		/// <summary>
-		/// BAN解除通知時に実行されるイベントです。
-		/// </summary>
-		/// <param name="message"></param>
-		private void OnUnBanUser(Lib.Message message) {
-			if (this.commentClient.JoinedRoomSummary == null) {
-				return;
-			}
-
-			var newMessage = new Message(this.commentClient.JoinedRoomSummary, message);
-			newMessage.OnBanUser += this.BanUser;
-			newMessage.OnUnBanUser += this.UnBanUser;
-			newMessage.OnShowId += this.ShowId;
-			newMessage.OnHideId += this.HideId;
-			var index = this.MessageList.IndexOf(newMessage);
+			newMessage.OnShowComment += this.ShowComment;
+			newMessage.OnHideComment += this.HideComment;
+			var index = this.MessageList.ToList().FindIndex(m => m.Number == newMessage.Number);
 			if (index < 0) {
 				return;
 			}
@@ -814,12 +747,8 @@
 				throw new ConfigurationErrorsException("Passwordが登録されていません。");
 			}
 
-			var devKey = ConfigurationManager.AppSettings["dev_key"];
-			if (String.IsNullOrWhiteSpace(devKey)) {
-				throw new ConfigurationErrorsException("[dev_key]が設定されていません。");
-			}
 			try {
-				var isSuccess = CavetubeAuth.Logout(userId, password, devKey);
+				var isSuccess = CavetubeAuth.Logout(userId, password);
 				if (isSuccess) {
 					this.config.ApiKey = String.Empty;
 					this.config.UserId = String.Empty;
@@ -925,6 +854,10 @@
 			get { return this.message.IsBan; }
 		}
 
+		public Boolean IsHide {
+			get { return this.message.IsHide; }
+		}
+
 		public Boolean IsAsciiArt {
 			get {
 				return this.message.IsAsciiArt;
@@ -997,12 +930,16 @@
 		public event Action<Message> OnMarkListener;
 		public event Action<Message> OnShowId;
 		public event Action<Message> OnHideId;
+		public event Action<Message> OnShowComment;
+		public event Action<Message> OnHideComment;
 
 		public ICommand CopyCommentCommand { get; private set; }
 		public ICommand BanUserCommand { get; private set; }
 		public ICommand UnBanUserCommand { get; private set; }
 		public ICommand ShowIdCommand { get; private set; }
 		public ICommand HideIdCommand { get; private set; }
+		public ICommand ShowCommentCommand { get; private set; }
+		public ICommand HideCommentCommand { get; private set; }
 		public ICommand MarkCommand { get; private set; }
 
 		public Message(Lib.Summary summary, Lib.Message message) {
@@ -1028,19 +965,34 @@
 					this.OnBanUser(this);
 				}
 			});
+
 			this.UnBanUserCommand = new RelayCommand(p => {
 				if (this.OnUnBanUser != null) {
 					this.OnUnBanUser(this);
 				}
 			});
+
 			this.ShowIdCommand = new RelayCommand(p => {
 				if (this.OnShowId != null) {
 					this.OnShowId(this);
 				}
 			});
+
 			this.HideIdCommand = new RelayCommand(p => {
 				if (this.OnHideId != null) {
 					this.OnHideId(this);
+				}
+			});
+
+			this.ShowCommentCommand = new RelayCommand(p => {
+				if (this.OnShowComment != null) {
+					this.OnShowComment(this);
+				}
+			});
+
+			this.HideCommentCommand = new RelayCommand(p => {
+				if (this.OnHideComment != null) {
+					this.OnHideComment(this);
 				}
 			});
 
@@ -1075,13 +1027,14 @@
 			}
 
 			var isNumberSame = this.Number == other.Number;
-			var isNameSame = this.Name == other.Name;
-			var isCommentSame = this.Comment == other.Comment;
-			return isNumberSame && isNameSame && isCommentSame;
+			var isBanSame = this.IsBan == other.IsBan;
+			var isHideSame = this.IsHide == other.IsHide;
+			var isPostTimeSame = this.PostTime == other.PostTime;
+			return isNumberSame && isBanSame && isHideSame && isPostTimeSame;
 		}
 
 		public override int GetHashCode() {
-			return this.Number.GetHashCode() ^ this.Name.GetHashCode() ^ this.Comment.GetHashCode();
+			return this.Number.GetHashCode() ^ this.IsBan.GetHashCode() ^ this.IsHide.GetHashCode() ^ this.PostTime.GetHashCode();
 		}
 	}
 }

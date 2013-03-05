@@ -1,17 +1,23 @@
 ﻿namespace CaveTube.CaveTalk.Lib {
 	using System;
-	using System.Linq;
-	using CaveTube.CaveTubeClient;
 	using System.Collections.Generic;
+	using System.Linq;
+	using AutoMapper;
+	using CaveTube.CaveTubeClient;
 
 	public sealed class CaveTubeClientWrapper : ACommentClient {
+		static CaveTubeClientWrapper() {
+			Mapper.CreateMap<CaveTubeClient.Summary, Summary>();
+			Mapper.CreateMap<CaveTubeClient.Message, Message>();
+			Mapper.CreateMap<CaveTubeClient.LiveNotification, LiveNotification>();
+		}
 
 		public override Summary JoinedRoomSummary {
 			get {
 				if (this.client.JoinedRoom == null) {
 					return null;
 				}
-				return new Summary(this.client.JoinedRoom);
+				return Mapper.Map<Summary>(this.client.JoinedRoom);
 			}
 		}
 
@@ -30,6 +36,8 @@
 		public override event Action<Int32> OnUpdateMember;
 		public override event Action<Message> OnBan;
 		public override event Action<Message> OnUnBan;
+		public override event Action<Message> OnHideComment;
+		public override event Action<Message> OnShowComment;
 		public override event Action<String> OnJoin;
 		public override event Action<String> OnLeave;
 		public override event Action<String> OnAdminShout;
@@ -46,8 +54,8 @@
 		}
 
 		protected override Room GetRoomInfo(String url) {
-			var summary = new Summary(this.client.GetSummary(url));
-			var messages = this.client.GetComment(url).Select(m => new Message(m));
+			var summary = Mapper.Map<Summary>(this.client.GetSummary(url));
+			var messages = this.client.GetComment(url).Select(m => Mapper.Map<Message>(m));
 			return new Room(summary, messages);
 		}
 
@@ -75,6 +83,14 @@
 			this.client.HideId(commentNumber, apiKey);
 		}
 
+		public override void HideComment(int commentNumber, string apiKey) {
+			this.client.HideComment(commentNumber, apiKey);
+		}
+
+		public override void ShowComment(int commentNumber, string apiKey) {
+			this.client.ShowComment(commentNumber, apiKey);
+		}
+
 		public override void PostComment(String name, String message, String apiKey) {
 			this.client.PostComment(name, message, apiKey);
 		}
@@ -92,6 +108,8 @@
 			this.client.OnUpdateMember += this.UpdateMember;
 			this.client.OnBan += this.Ban;
 			this.client.OnUnBan += this.UnBan;
+			this.client.OnHideComment += this.HideComment;
+			this.client.OnShowComment += this.ShowComment;
 			this.client.OnAdminShout += this.AdminShout;
 			this.client.OnError += this.Error;
 			this.client.OnNotifyLiveStart += this.NotifyLiveStart;
@@ -112,6 +130,8 @@
 			this.client.OnUpdateMember -= this.UpdateMember;
 			this.client.OnBan -= this.Ban;
 			this.client.OnUnBan -= this.UnBan;
+			this.client.OnHideComment -= this.HideComment;
+			this.client.OnShowComment -= this.ShowComment;
 			this.client.OnAdminShout -= this.AdminShout;
 			this.client.OnError -= this.Error;
 			this.client.OnNotifyLiveStart -= this.NotifyLiveStart;
@@ -139,13 +159,13 @@
 
 		public void MessageList(IEnumerable<CaveTubeClient.Message> messageList) {
 			if (this.OnMessageList != null) {
-				this.OnMessageList(messageList.Select(message => new Message(message)));
+				this.OnMessageList(messageList.Select(message => Mapper.Map<Message>(message)));
 			}
 		}
 
 		private void NewMessage(CaveTubeClient.Message message) {
 			if (this.OnNewMessage != null) {
-				this.OnNewMessage(new Message(message));
+				this.OnNewMessage(Mapper.Map<Message>(message));
 			}
 		}
 
@@ -157,13 +177,25 @@
 
 		private void Ban(CaveTubeClient.Message message) {
 			if (this.OnBan != null) {
-				this.OnBan(new Message(message));
+				this.OnBan(Mapper.Map<Message>(message));
 			}
 		}
 
 		private void UnBan(CaveTubeClient.Message message) {
 			if (this.OnUnBan != null) {
-				this.OnUnBan(new Message(message));
+				this.OnUnBan(Mapper.Map<Message>(message));
+			}
+		}
+
+		private void HideComment(CaveTubeClient.Message message) {
+			if (this.OnHideComment != null) {
+				this.OnHideComment(Mapper.Map<Message>(message));
+			}
+		}
+
+		private void ShowComment(CaveTubeClient.Message message) {
+			if (this.OnShowComment != null) {
+				this.OnShowComment(Mapper.Map<Message>(message));
 			}
 		}
 
@@ -181,13 +213,13 @@
 
 		private void NotifyLiveStart(CaveTubeClient.LiveNotification e) {
 			if (this.OnNotifyLiveStart != null) {
-				this.OnNotifyLiveStart(new LiveNotification(e));
+				this.OnNotifyLiveStart(Mapper.Map<LiveNotification>(e));
 			}
 		}
 
 		private void NotifyLiveClose(CaveTubeClient.LiveNotification e) {
 			if (this.OnNotifyLiveClose != null) {
-				this.OnNotifyLiveClose (new LiveNotification(e));
+				this.OnNotifyLiveClose(Mapper.Map<LiveNotification>(e));
 			}
 		}
 	}
@@ -196,41 +228,6 @@
 		public Room(Summary summary, IEnumerable<Message> messages) {
 			this.Summary = summary;
 			this.Messages = messages;
-		}
-	}
-
-	public partial class Summary {
-		public Summary(CaveTubeClient.Summary summary) {
-			this.RoomId = summary.RoomId;
-			this.Title = summary.Title;
-			this.Description = summary.Description;
-			this.Tags = summary.Tags;
-			this.IdVidible = summary.IdVidible;
-			this.AnonymousOnly = summary.AnonymousOnly;
-			this.Author = summary.Author;
-			this.PageView = summary.PageView;
-			this.Listener = summary.Listener;
-			this.StartTime = summary.StartTime;
-		}
-	}
-
-	public partial class Message {
-		public Message(CaveTubeClient.Message message) {
-			this.IsAuth = message.IsAuth;
-			this.Comment = message.Comment;
-			this.ListenerId = message.ListenerId;
-			this.IsBan = message.IsBan;
-			this.Name = message.Name;
-			this.Number = message.Number;
-			this.PostTime = message.PostTime;
-		}
-	}
-
-	public partial class LiveNotification {
-		public LiveNotification(CaveTubeClient.LiveNotification liveInfo) {
-			this.Author = liveInfo.Author;
-			this.Title = liveInfo.Title;
-			this.RoomId = liveInfo.RoomId;
 		}
 	}
 }

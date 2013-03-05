@@ -17,6 +17,7 @@
 	public sealed class CavetubeClient : IDisposable {
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
 		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.vmhost:3000";
+		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
 		/// <summary>
 		/// メッセージ一覧を取得した時に通知されるイベントです。
@@ -70,6 +71,14 @@
 		/// リスナーへのID強制表示が解除されたときに通知されるイベントです。
 		/// </summary>
 		public event Action<IdNotification> OnHideId;
+		/// <summary>
+		/// コメントが非表示指定された時に通知されるイベントです。
+		/// </summary>
+		public event Action<Message> OnHideComment;
+		/// <summary>
+		/// コメントが再表示指定された時に通知されるイベントです。
+		/// </summary>
+		public event Action<Message> OnShowComment;
 		/// <summary>
 		/// 新しい配信が始まった時に通知されるイベントです。
 		/// </summary>
@@ -203,7 +212,9 @@
 
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
-					var url = String.Format("{0}://{1}:{2}/viewedit/get?stream_name={3}", this.webUri.Scheme, this.webUri.Host, this.webUri.Port, streamName);
+					client.QueryString.Add("stream_name", streamName);
+					client.QueryString.Add("devkey", devkey);
+					var url = String.Format("{0}://{1}:{2}/api/summary", this.webUri.Scheme, this.webUri.Host, this.webUri.Port);
 
 					// WebClientでTaskを利用すると正常な順番で結果を受け取れないので、
 					// WebRequestを利用する予定ですが、
@@ -214,7 +225,7 @@
 					}
 
 					var json = DynamicJson.Parse(jsonString);
-					if (json.ret == false) {
+					if (json.IsDefined("ret") && json.ret == false) {
 						throw new CavetubeException("サマリーの取得に失敗しました。");
 					}
 
@@ -238,6 +249,7 @@
 
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
+					client.QueryString.Add("devkey", devkey);
 					var url = String.Format("{0}://{1}:{2}/comment/{3}", this.socketIOUri.Scheme, this.socketIOUri.Host, this.socketIOUri.Port, streamName);
 
 					var jsonString = client.DownloadString(url);
@@ -246,10 +258,6 @@
 					}
 
 					var json = DynamicJson.Parse(jsonString);
-					if (json.ret == false) {
-						throw new CavetubeException("コメントの取得に失敗しました。");
-					}
-
 					var comments = this.ParseMessage(json);
 					return comments;
 				}
@@ -270,6 +278,7 @@
 			}
 
 			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
 				mode = "join",
 				room = roomId,
 			});
@@ -286,6 +295,7 @@
 			}
 
 			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
 				mode = "leave",
 				room = roomId,
 			});
@@ -314,6 +324,7 @@
 			}
 
 			var jsonString = DynamicJson.Serialize(new {
+				devkey = devkey,
 				mode = "post",
 				name = name,
 				message = message,
@@ -339,6 +350,7 @@
 			}
 
 			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
 				mode = "ban",
 				commentNumber = commentNumber,
 				apikey = apiKey,
@@ -362,6 +374,7 @@
 			}
 
 			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
 				mode = "unban",
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
@@ -371,7 +384,55 @@
 		}
 
 		/// <summary>
-		/// リスナーの強制ID表示を有効にします。
+		/// 指定したコメントの非表示要求を行います。
+		/// </summary>
+		/// <param name="commentNumber">ID表示するコメント番号</param>
+		/// <param name="apiKey">APIキー</param>
+		public void HideComment(Int32 commentNumber, String apiKey) {
+			if (String.IsNullOrWhiteSpace(apiKey)) {
+				throw new ArgumentException("APIキーは必須です。");
+			}
+
+			if (this.JoinedRoom == null) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
+			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
+				mode = "hide_comment",
+				roomId = this.JoinedRoom.RoomId,
+				commentNumber = commentNumber,
+				apikey = apiKey,
+			});
+			client.Send(new TextMessage(message));
+		}
+
+		/// <summary>
+		/// 指定したコメントの再表示要求を行います。
+		/// </summary>
+		/// <param name="commentNumber">ID表示するコメント番号</param>
+		/// <param name="apiKey">APIキー</param>
+		public void ShowComment(Int32 commentNumber, String apiKey) {
+			if (String.IsNullOrWhiteSpace(apiKey)) {
+				throw new ArgumentException("APIキーは必須です。");
+			}
+
+			if (this.JoinedRoom == null) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
+			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
+				mode = "show_comment",
+				roomId = this.JoinedRoom.RoomId,
+				commentNumber = commentNumber,
+				apikey = apiKey,
+			});
+			client.Send(new TextMessage(message));
+		}
+
+		/// <summary>
+		/// 指定したコメント番号のリスナーのID表示要求を行います。
 		/// </summary>
 		/// <param name="commentNumber">ID表示するコメント番号</param>
 		/// <param name="apiKey">APIキー</param>
@@ -385,6 +446,7 @@
 			}
 
 			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
 				mode = "show_id",
 				commentNumber = commentNumber,
 				apikey = apiKey,
@@ -393,7 +455,7 @@
 		}
 
 		/// <summary>
-		/// リスナーの強制ID表示を解除します。
+		/// 指定したコメント番号のリスナーのID表示解除要求を行います。
 		/// </summary>
 		/// <param name="commentNumber">ID表示を解除するコメント番号</param>
 		/// <param name="apiKey">APIキー</param>
@@ -407,6 +469,7 @@
 			}
 
 			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
 				mode = "hide_id",
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
@@ -452,18 +515,15 @@
 				String mode = json.mode;
 				switch (mode) {
 					case "get":
-						if (this.OnMessageList == null) {
-							break;
+						if (this.OnMessageList != null) {
+							var messages = this.ParseMessage(json);
+							this.OnMessageList(messages);
 						}
-
-						var messages = this.ParseMessage(json);
-						this.OnMessageList(messages);
 						break;
 					case "post":
 						if (this.OnNewMessage != null) {
 							var post = new Message(json);
 							this.OnNewMessage(post);
-							break;
 						}
 						break;
 					case "post_result":
@@ -472,23 +532,35 @@
 							this.OnPostResult(result);
 						}
 						break;
-					case "ban_notify":
-						var banMessage = new Message(json);
-
-						if (banMessage.IsBan) {
-							if (this.OnBan != null) {
-								this.OnBan(banMessage);
-							}
-						} else {
-							if (this.OnUnBan != null) {
-								this.OnUnBan(banMessage);
-							}
+					case "ban_user":
+						if (this.OnBan != null) {
+							var message = new Message(json);
+							message.IsBan = true;
+							this.OnBan(message);
+						}
+						break;
+					case "unban_user":
+						if (this.OnUnBan != null) {
+							var message = new Message(json);
+							this.OnUnBan(message);
 						}
 						break;
 					case "ban_fail":
 						if (this.OnBanFail != null) {
 							var banFail = new BanFail(json);
 							this.OnBanFail(banFail);
+						}
+						break;
+					case "hide_comment":
+						if (this.OnHideComment != null) {
+							var message = new Message(json);
+							this.OnHideComment(message);
+						}
+						break;
+					case "show_comment":
+						if (this.OnShowComment != null) {
+							var message = new Message(json);
+							this.OnShowComment(message);
 						}
 						break;
 					case "show_id":
@@ -676,6 +748,8 @@
 
 		public Boolean IsBan { get; internal set; }
 
+		public Boolean IsHide { get; internal set; }
+
 		internal Message(dynamic json) {
 			this.Number = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
 			this.ListenerId = json.IsDefined("user_id") ? (String)json.user_id : String.Empty;
@@ -683,7 +757,8 @@
 			this.Comment = json.IsDefined("message") ? json.message : String.Empty;
 			this.IsAuth = json.IsDefined("auth") ? json.auth : false;
 			this.IsBan = json.IsDefined("is_ban") ? json.is_ban : false;
-			this.PostTime = json.IsDefined("time") ? JavaScriptTime.ToDateTime(json.time, TimeZoneKind.Japan) : null;
+			this.IsHide = json.IsDefined("is_hide") ? json.is_hide : false;
+			this.PostTime = json.IsDefined("time") ? JavaScriptTime.ToDateTime(json.time, TimeZoneKind.Japan) : new DateTime();
 		}
 
 		public override bool Equals(object obj) {
@@ -750,7 +825,7 @@
 		public Int32 Number { get; internal set; }
 
 		public IdNotification(dynamic json) {
-			this.Number = json.IsDefined("comment_num") ? json.comment_num : 0;
+			this.Number = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
 		}
 	}
 

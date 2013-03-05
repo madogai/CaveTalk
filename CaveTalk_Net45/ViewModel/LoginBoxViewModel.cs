@@ -67,33 +67,26 @@
 		private void Login(Object data) {
 			this.Cursor = Cursors.Wait;
 			try {
-				var devKey = ConfigurationManager.AppSettings["dev_key"];
-				if (String.IsNullOrWhiteSpace(devKey)) {
-					throw new ConfigurationErrorsException("[dev_key]が設定されていません。");
-				}
-
-				try {
-					var apiKey = CavetubeAuth.Login(this.UserId, this.Password, devKey);
-					if (String.IsNullOrWhiteSpace(apiKey)) {
-						this.ErrorMessage = "ログインに失敗しました。";
-						return;
-					}
-
-					var config = Config.GetConfig();
-					config.ApiKey = apiKey;
-					config.UserId = this.UserId;
-					config.Password = this.Password;
-					config.Save();
-				} catch (ArgumentException e) {
-					var message = "ログインに失敗しました。";
-					this.ErrorMessage = message;
-					logger.Error(message, e);
+				var apiKey = CavetubeAuth.Login(this.UserId, this.Password);
+				if (String.IsNullOrWhiteSpace(apiKey)) {
+					this.ErrorMessage = "ログインに失敗しました。";
 					return;
-				} catch (WebException e) {
-					var message = "ログインに失敗しました。";
-					this.ErrorMessage = message;
-					logger.Error(message, e);
 				}
+
+				var config = Config.GetConfig();
+				config.ApiKey = apiKey;
+				config.UserId = this.UserId;
+				config.Password = this.Password;
+				config.Save();
+			} catch (ArgumentException e) {
+				var message = "ログインに失敗しました。";
+				this.ErrorMessage = message;
+				logger.Error(message, e);
+				return;
+			} catch (WebException e) {
+				var message = "ログインに失敗しました。";
+				this.ErrorMessage = message;
+				logger.Error(message, e);
 			} finally {
 				this.Cursor = null;
 			}

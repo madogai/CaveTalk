@@ -33,6 +33,8 @@
 		public abstract event Action<Int32> OnUpdateMember;
 		public abstract event Action<Message> OnBan;
 		public abstract event Action<Message> OnUnBan;
+		public abstract event Action<Message> OnHideComment;
+		public abstract event Action<Message> OnShowComment;
 		public abstract event Action<String> OnAdminShout;
 		public abstract event Action<Exception> OnError;
 		public abstract event Action<LiveNotification> OnNotifyLiveStart;
@@ -121,6 +123,20 @@
 		/// <param name="commentNumber"></param>
 		/// <param name="apiKey"></param>
 		public abstract void HideId(Int32 commentNumber, String apiKey);
+
+		/// <summary>
+		/// コメントを非表示にします。
+		/// </summary>
+		/// <param name="commentNumber"></param>
+		/// <param name="apiKey"></param>
+		public abstract void HideComment(Int32 commentNumber, String apiKey);
+
+		/// <summary>
+		/// コメントを再表示します。
+		/// </summary>
+		/// <param name="commentNumber"></param>
+		/// <param name="apiKey"></param>
+		public abstract void ShowComment(Int32 commentNumber, String apiKey);
 
 		/// <summary>
 		/// コメントを投稿します。
@@ -242,6 +258,7 @@
 		public DateTime PostTime { get; protected set; }
 		public Boolean IsAuth { get; protected set; }
 		public Boolean IsBan { get; protected set; }
+		public Boolean IsHide { get; protected set; }
 		public Boolean IsAsciiArt {
 			get { return Regex.IsMatch(this.Comment, "　 (?!<br>|$)"); }
 		}

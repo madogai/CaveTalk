@@ -1,6 +1,5 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
-	using System.Collections.Generic;
 	using System.Configuration;
 	using System.Linq;
 	using System.Media;
@@ -325,20 +324,6 @@
 			}
 
 			this.config.Save();
-		}
-
-		/// <summary>
-		/// メッセージをDBに保存します。
-		/// </summary>
-		/// <param name="messages"></param>
-		private void SaveMessage(IEnumerable<Model.Message> messages) {
-			//var dbMessages = this.context.Messages.Where(message => message.Room.RoomId == room.RoomId);
-
-			//messages.Where(m => dbMessages.All(dm => dm.Number != m.Number && dm.PostTime != m.PostTime)).ForEach(m => {
-			//    this.context.Messages.Add(m);
-			//});
-
-			//this.context.SaveChanges();
 		}
 
 		/// <summary>
@@ -828,12 +813,8 @@
 				throw new ConfigurationErrorsException("Passwordが登録されていません。");
 			}
 
-			var devKey = ConfigurationManager.AppSettings["dev_key"];
-			if (String.IsNullOrWhiteSpace(devKey)) {
-				throw new ConfigurationErrorsException("[dev_key]が設定されていません。");
-			}
 			try {
-				var isSuccess = CavetubeAuth.Logout(userId, password, devKey);
+				var isSuccess = CavetubeAuth.Logout(userId, password);
 				if (isSuccess) {
 					this.config.ApiKey = String.Empty;
 					this.config.UserId = String.Empty;
@@ -1088,13 +1069,11 @@
 			}
 
 			var isNumberSame = this.Number == other.Number;
-			var isNameSame = this.Name == other.Name;
-			var isCommentSame = this.Comment == other.Comment;
-			return isNumberSame && isNameSame && isCommentSame;
+			return isNumberSame;
 		}
 
 		public override int GetHashCode() {
-			return this.Number.GetHashCode() ^ this.Name.GetHashCode() ^ this.Comment.GetHashCode();
+			return this.Number.GetHashCode();
 		}
 	}
 }

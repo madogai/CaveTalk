@@ -4,7 +4,7 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:b="clr-namespace:CaveTube.CaveTalk.Behavior"
         xmlns:cv="clr-namespace:CaveTube.CaveTalk.Converter"
-        Title="配信開始" Height="340" Width="350" x:Name="Root" WindowStyle="ToolWindow" Topmost="True">
+        Title="配信開始" Height="360" Width="350" x:Name="Root" WindowStyle="ToolWindow" Topmost="True">
     <Window.Resources>
         <cv:EnumBooleanConverter x:Key="enumBooleanConverter" />
     </Window.Resources>
@@ -19,7 +19,7 @@
                 <RowDefinition Height="40" />
                 <RowDefinition />
                 <RowDefinition Height="40" />
-                <RowDefinition Height="50" />
+                <RowDefinition Height="70" />
                 <RowDefinition Height="40" />
                 <RowDefinition Height="30" />
             </Grid.RowDefinitions>
@@ -47,6 +47,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition />
+                    <RowDefinition />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="コメントにIDを表示：" Margin="5, 0, 0, 0" VerticalAlignment="Center" />
                 <StackPanel Grid.Row="0" Grid.Column="1"  Orientation="Horizontal" VerticalAlignment="Center">
@@ -57,6 +58,11 @@
                 <StackPanel Grid.Row="1" Grid.Column="1"  Orientation="Horizontal" VerticalAlignment="Center">
                     <RadioButton Content="制限なし" IsChecked="{Binding Path=AnonymousOnly, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=False, UpdateSourceTrigger=LostFocus}" Margin="0,0,5,0" />
                     <RadioButton Content="匿名のみ" IsChecked="{Binding Path=AnonymousOnly, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=True, UpdateSourceTrigger=LostFocus}" />
+                </StackPanel>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="書き込みの制限：" Margin="5, 0, 0, 0" VerticalAlignment="Center" />
+                <StackPanel Grid.Row="2" Grid.Column="1"  Orientation="Horizontal" VerticalAlignment="Center">
+                    <RadioButton Content="制限なし" IsChecked="{Binding Path=LoginOnly, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=False, UpdateSourceTrigger=LostFocus}" Margin="0,0,5,0" />
+                    <RadioButton Content="ログインのみ" IsChecked="{Binding Path=LoginOnly, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=True, UpdateSourceTrigger=LostFocus}" />
                 </StackPanel>
             </Grid>
             <Grid Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center">

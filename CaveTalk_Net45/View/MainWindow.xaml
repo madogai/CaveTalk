@@ -254,10 +254,58 @@
                                 <Setter.Value>
                                     <ContextMenu>
                                         <MenuItem Header="コメントをコピー"  Command="{Binding Path=CopyCommentCommand}" />
-                                        <MenuItem Header="BAN指定" Command="{Binding Path=BanUserCommand}" />
-                                        <MenuItem Header="BAN解除" Command="{Binding Path=UnBanUserCommand}" />
+                                        <MenuItem Header="BAN指定" Command="{Binding Path=BanUserCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsBan}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                        <MenuItem Header="BAN解除" Command="{Binding Path=UnBanUserCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsBan}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
                                         <MenuItem Header="ID表示指定" Command="{Binding Path=ShowIdCommand}" />
                                         <MenuItem Header="ID表示解除" Command="{Binding Path=HideIdCommand}" />
+                                        <MenuItem Header="コメント非表示" Command="{Binding Path=HideCommentCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsHide}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Path=IsBan}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                        <MenuItem Header="コメント再表示" Command="{Binding Path=ShowCommentCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=IsHide}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Path=IsBan}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
                                         <MenuItem Header="色を付ける" Command="{Binding Path=MarkCommand}" />
                                     </ContextMenu>
                                 </Setter.Value>

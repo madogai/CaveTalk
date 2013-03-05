@@ -73,7 +73,7 @@
 				}
 
 				try {
-					var apiKey = CavetubeAuth.Login(this.UserId, this.Password, devKey);
+					var apiKey = CavetubeAuth.Login(this.UserId, this.Password);
 					if (String.IsNullOrWhiteSpace(apiKey)) {
 						this.ErrorMessage = "ログインに失敗しました。";
 						return;

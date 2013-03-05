@@ -71,6 +71,9 @@
     <DocumentationFile>..\bin\ReleaseILMerge\SocketIOClient.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="SuperSocket.ClientEngine.Common, Version=0.2.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL" />
     <Reference Include="SuperSocket.ClientEngine.Core, Version=0.2.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL" />
     <Reference Include="SuperSocket.ClientEngine.Protocol, Version=0.2.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL" />
@@ -108,21 +111,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=4.0.8.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.4.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Reference\SuperSocket.ClientEngine.Common.dll" />
     <Content Include="Reference\SuperSocket.ClientEngine.Core.dll" />
     <Content Include="Reference\SuperSocket.ClientEngine.Protocol.dll" />
     <Content Include="Reference\SuperSocket.ClientEngine.Proxy.dll" />
     <Content Include="Reference\WebSocket4Net.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
