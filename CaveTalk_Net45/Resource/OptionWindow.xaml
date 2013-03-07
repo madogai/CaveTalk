@@ -11,4 +11,8 @@
     <DataTemplate DataType="{x:Type vm:CommentOptionViewModel}">
         <vw:CommentOptionControl />
     </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:SpeechOptionViewModel}">
+        <vw:SpeechOptionControl />
+    </DataTemplate>
 </ResourceDictionary>

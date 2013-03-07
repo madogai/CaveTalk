@@ -159,6 +159,36 @@
 			}
 		}
 
+		// 名前の読み上げ
+		private const String readCommentName = "ReadCommentName";
+		public Boolean ReadCommentName {
+			get {
+				Boolean val;
+				if (this.configDictionary.ContainsKey(readCommentName) && Boolean.TryParse(this.configDictionary[readCommentName], out val)) {
+					return val;
+				}
+				return false;
+			}
+			set {
+				this.configDictionary[readCommentName] = value.ToString();
+			}
+		}
+
+		// コメント番号の読み上げ
+		private const String readCommentNumber = "ReadCommentNumber";
+		public Boolean ReadCommentNumber {
+			get {
+				Boolean val;
+				if (this.configDictionary.ContainsKey(readCommentNumber) && Boolean.TryParse(this.configDictionary[readCommentNumber], out val)) {
+					return val;
+				}
+				return false;
+			}
+			set {
+				this.configDictionary[readCommentNumber] = value.ToString();
+			}
+		}
+
 		// コメントのポップアップ種別
 		private const String commentPopupType = "CommentPopupType";
 		public CommentPopupDisplayType CommentPopupType {
@@ -189,33 +219,32 @@
 			}
 		}
 
-		// 名前の読み上げ
-		private const String readCommentName = "ReadCommentName";
-		public Boolean ReadCommentName {
+		// Flashコメントジェネレーターの有効化
+		private const String enableFlashCommentGenerator = "EnableFlashCommentGenerator";
+		public Boolean EnableFlashCommentGenerator {
 			get {
 				Boolean val;
-				if (this.configDictionary.ContainsKey(readCommentName) && Boolean.TryParse(this.configDictionary[readCommentName], out val)) {
+				if (this.configDictionary.ContainsKey(enableFlashCommentGenerator) && Boolean.TryParse(this.configDictionary[enableFlashCommentGenerator], out val)) {
 					return val;
 				}
 				return false;
 			}
 			set {
-				this.configDictionary[readCommentName] = value.ToString();
+				this.configDictionary[enableFlashCommentGenerator] = value.ToString();
 			}
 		}
 
-		// コメント番号の読み上げ
-		private const String readCommentNumber = "ReadCommentNumber";
-		public Boolean ReadCommentNumber {
+		// FlashコメントジェネレーターDatファイルのパス
+		private const String flashCommentGeneratorDatFilePath = "FlashCommentGeneratorDatFilePath";
+		public String FlashCommentGeneratorDatFilePath {
 			get {
-				Boolean val;
-				if (this.configDictionary.ContainsKey(readCommentNumber) && Boolean.TryParse(this.configDictionary[readCommentNumber], out val)) {
-					return val;
+				if (this.configDictionary.ContainsKey(flashCommentGeneratorDatFilePath) == false) {
+					return String.Empty;
 				}
-				return false;
+				return this.configDictionary[flashCommentGeneratorDatFilePath];
 			}
 			set {
-				this.configDictionary[readCommentNumber] = value.ToString();
+				this.configDictionary[flashCommentGeneratorDatFilePath] = value;
 			}
 		}
 

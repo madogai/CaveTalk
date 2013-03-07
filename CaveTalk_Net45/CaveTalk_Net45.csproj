@@ -173,6 +173,7 @@
     <Compile Include="Lib\Exception.cs" />
     <Compile Include="Lib\ACommentClient.cs" />
     <Compile Include="Lib\ASpeechClient.cs" />
+    <Compile Include="Lib\FlashCommentGeneratorNotifier.cs" />
     <Compile Include="Lib\SofTalkClient.cs" />
     <Compile Include="Lib\UserSoundClient.cs" />
     <Compile Include="Utils\DapperUtil.cs" />
@@ -188,6 +189,7 @@
     <Compile Include="ViewModel\GeneralOptionViewModel.cs" />
     <Compile Include="ViewModel\StartBroadcastViewModel.cs" />
     <Compile Include="ViewModel\AboutBoxViewModel.cs" />
+    <Compile Include="ViewModel\SpeechOptionViewModel.cs" />
     <Compile Include="View\CommentOptionControl.xaml.cs">
       <DependentUpon>CommentOptionControl.xaml</DependentUpon>
     </Compile>
@@ -209,6 +211,9 @@
     </Compile>
     <Compile Include="View\NotifyUpdateBox.xaml.cs">
       <DependentUpon>NotifyUpdateBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\SpeechOptionControl.xaml.cs">
+      <DependentUpon>SpeechOptionControl.xaml</DependentUpon>
     </Compile>
     <Page Include="Control\NotifyBalloon.xaml">
       <SubType>Designer</SubType>
@@ -289,6 +294,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="View\NotifyUpdateBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\SpeechOptionControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

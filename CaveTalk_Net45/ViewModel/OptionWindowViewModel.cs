@@ -17,9 +17,11 @@
 
 		private OptionBaseViewModel generalOption;
 		private OptionBaseViewModel commentOption;
+		private OptionBaseViewModel speechOption;
 
 		public ICommand GeneralOptionOpenCommand { get; private set; }
 		public ICommand CommentOptionOpenCommand { get; private set; }
+		public ICommand SpeechOptionOpenCommand { get; private set; }
 		public ICommand NotifyOptionOpenCommand { get; private set; }
 		public ICommand SaveCommand { get; private set; }
 		public ICommand CancelCommand { get; private set; }
@@ -27,13 +29,18 @@
 		public OptionWindowViewModel() {
 			this.generalOption = new GeneralOptionViewModel();
 			this.commentOption = new CommentOptionViewModel();
-			this.OptionWindow = this.commentOption;
+			this.speechOption = new SpeechOptionViewModel();
+
+			this.OptionWindow = this.speechOption;
 
 			this.GeneralOptionOpenCommand = new RelayCommand(p => {
 				this.OptionWindow = this.generalOption;
 			});
 			this.CommentOptionOpenCommand = new RelayCommand(p => {
 				this.OptionWindow = this.commentOption;
+			});
+			this.SpeechOptionOpenCommand = new RelayCommand(p => {
+				this.OptionWindow = this.speechOption;
 			});
 			this.SaveCommand = new RelayCommand(p => {
 				this.generalOption.Save();

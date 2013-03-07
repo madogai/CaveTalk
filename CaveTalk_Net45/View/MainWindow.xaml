@@ -181,7 +181,7 @@
                     <ColumnDefinition Width="80" />
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" BorderThickness="1,1,0,1" BorderBrush="#FFB9C9DA">
-                    <Label>放送URL
+                    <Label>配信URL
                         <Label.Background>
                             <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                 <GradientStop Color="#FFEDF3F9" Offset="0.619" />

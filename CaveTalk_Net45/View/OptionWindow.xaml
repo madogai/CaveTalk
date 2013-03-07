@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-        Title="CaveTalk - 設定" MinHeight="350" MinWidth="500" Height="450" Width="500" Background="#FFF0F0F0" WindowStyle="ToolWindow" Topmost="True">
+        Title="CaveTalk - 設定" MinHeight="350" MinWidth="550" Height="450" Width="550" Background="#FFF0F0F0" WindowStyle="ToolWindow" Topmost="True">
     <Grid Margin="5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150" />
@@ -50,10 +50,17 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </TreeViewItem>
-            <TreeViewItem Header="コメント" IsSelected="True">
+            <TreeViewItem Header="コメント">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="Selected">
                         <i:InvokeCommandAction Command="{Binding Path=CommentOptionOpenCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TreeViewItem>
+            <TreeViewItem Header="読み上げ" IsSelected="True">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="Selected">
+                        <i:InvokeCommandAction Command="{Binding Path=SpeechOptionOpenCommand}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </TreeViewItem>

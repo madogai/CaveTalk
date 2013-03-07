@@ -94,7 +94,7 @@
 				this.StartEntry(false);
 			});
 			this.StartTestBroadcastCommand = new RelayCommand(p => {
-				var message = "テスト配信を開始します。よろしいですか？\n\nテスト配信は画質のチェックや音量の確認などを行うための機能です。\n配信通知は行われませんが、配信は10分程度で強制的に終了します。URLを教えれば他の人に見てもらうことも可能です。なお、録画は残ります。";
+				var message = "テスト配信を開始します。よろしいですか？\n\nテスト配信は配信通知が行われません。\nただし、配信は10分で自動終了します。\nそれ以外は通常の配信と同等です。";
 				var result = MessageBox.Show(message, "確認", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
 				if (result != MessageBoxResult.OK) {
 					return;

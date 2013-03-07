@@ -2,6 +2,7 @@
 	using System;
 	using System.Collections.ObjectModel;
 	using System.Configuration;
+	using System.IO;
 	using System.Linq;
 	using System.Media;
 	using System.Net;
@@ -365,15 +366,17 @@
 
 			try {
 				this.commentClient.OnJoin += this.OnJoin;
-				this.commentClient.OnNewMessage += this.OnReceiveMessage;
-				this.commentClient.OnUpdateMember += this.OnUpdateMember;
-				this.commentClient.OnBan += this.OnCommentStatusChange;
-				this.commentClient.OnUnBan += this.OnCommentStatusChange;
-				this.commentClient.OnHideComment += this.OnCommentStatusChange;
-				this.commentClient.OnShowComment += this.OnCommentStatusChange;
-				this.commentClient.OnAdminShout += this.OnAdminShout;
-				this.commentClient.OnNotifyLiveClose += this.OnNotifyLiveClose;
-				this.commentClient.OnError += this.OnError;
+				this.commentClient.OnNewMessage += this.AddComment;
+				this.commentClient.OnNewMessage += this.SpeakMessage;
+				this.commentClient.OnNewMessage += this.NotifyMessageToFlashCommentGenerator;
+				this.commentClient.OnUpdateMember += this.UpdateMember;
+				this.commentClient.OnBan += this.CommentStatusChange;
+				this.commentClient.OnUnBan += this.CommentStatusChange;
+				this.commentClient.OnHideComment += this.CommentStatusChange;
+				this.commentClient.OnShowComment += this.CommentStatusChange;
+				this.commentClient.OnAdminShout += this.NotifyAdminShout;
+				this.commentClient.OnNotifyLiveClose += this.NotifyLiveClose;
+				this.commentClient.OnError += this.LogError;
 				this.commentClient.Connect();
 
 				var room = this.commentClient.GetRoom(liveUrl);
@@ -607,11 +610,10 @@
 		}
 
 		/// <summary>
-		/// コメント受信時に実行されるイベントです。
+		/// コメント受信時にコメントを追加します。
 		/// </summary>
-		/// <param name="summary"></param>
 		/// <param name="message"></param>
-		private void OnReceiveMessage(Lib.Message message) {
+		private void AddComment(Lib.Message message) {
 			if (this.commentClient.JoinedRoomSummary == null) {
 				return;
 			}
@@ -626,16 +628,6 @@
 			newMessage.OnHideComment += this.HideComment;
 			this.MessageList.Insert(0, newMessage);
 
-			// コメントの読み上げ
-			var isConnect = this.speechClient != null || this.speechClient.IsConnect == false;
-			if (this.SpeakApplicationStatus && isConnect) {
-				var speechResult = this.speechClient.Speak(message);
-				if (speechResult == false) {
-					base.OnPropertyChanged("SpeakApplicationStatus");
-					MessageBox.Show("読み上げに失敗しました。");
-				}
-			}
-
 			// コードビハインドのイベントを実行
 			if (this.OnMessage != null) {
 				uiDispatcher.BeginInvoke(new Action(() => {
@@ -645,10 +637,63 @@
 		}
 
 		/// <summary>
+		/// コメント受信時に読み上げを実行します。
+		/// </summary>
+		/// <param name="summary"></param>
+		/// <param name="message"></param>
+		private void SpeakMessage(Lib.Message message) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				return;
+			}
+
+			// コメントの読み上げ
+			var isConnect = this.speechClient != null || this.speechClient.IsConnect == false;
+			if ((this.SpeakApplicationStatus && isConnect) == false) {
+				return;
+			}
+
+			var speechResult = this.speechClient.Speak(message);
+			if (speechResult == false) {
+				base.OnPropertyChanged("SpeakApplicationStatus");
+				MessageBox.Show("読み上げに失敗しました。");
+			}
+		}
+
+		/// <summary>
+		/// コメント受信時にFlashコメントジェネレーターへの通知を行います。
+		/// </summary>
+		/// <param name="summary"></param>
+		/// <param name="message"></param>
+		private void NotifyMessageToFlashCommentGenerator(Lib.Message message) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				return;
+			}
+
+			if (config.EnableFlashCommentGenerator == false) {
+				return;
+			}
+
+			var filePath = config.FlashCommentGeneratorDatFilePath;
+			if (Path.IsPathRooted(filePath) == false) {
+				return;
+			}
+
+			if (String.IsNullOrEmpty(Path.GetFileName(filePath))) {
+				return;
+			}
+
+			try {
+				FlashCommentGeneratorNotifier.write(filePath, message);
+			} catch (IOException e) {
+				logger.Error(e);
+			}
+		}
+
+		/// <summary>
 		/// 人数更新受信時に実行されるイベントです。
 		/// </summary>
 		/// <param name="count"></param>
-		private void OnUpdateMember(Int32 count) {
+		private void UpdateMember(Int32 count) {
 			this.Listener = count;
 		}
 
@@ -656,7 +701,7 @@
 		/// BANやコメント非表示などコメントの状態が変更される通知を受け取った時に実行されるイベントです。
 		/// </summary>
 		/// <param name="message"></param>
-		private void OnCommentStatusChange(Lib.Message message) {
+		private void CommentStatusChange(Lib.Message message) {
 			if (this.commentClient.JoinedRoomSummary == null) {
 				return;
 			}
@@ -680,7 +725,7 @@
 		/// 管理者メッセージ通知時に実行されるイベントです。
 		/// </summary>
 		/// <param name="message"></param>
-		private void OnAdminShout(String message) {
+		private void NotifyAdminShout(String message) {
 			SystemSounds.Asterisk.Play();
 			MessageBox.Show(message, "管理者メッセージ", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
 		}
@@ -689,7 +734,7 @@
 		/// 配信終了通知時に実行されるイベントです。
 		/// </summary>
 		/// <param name="liveEntry"></param>
-		private void OnNotifyLiveClose(Lib.LiveNotification liveEntry) {
+		private void NotifyLiveClose(Lib.LiveNotification liveEntry) {
 			if (this.commentClient.JoinedRoomSummary == null) {
 				return;
 			}
@@ -710,7 +755,7 @@
 		/// CaveTubeClientから何かしらのエラーが通知されたときに実行されるイベントです。
 		/// </summary>
 		/// <param name="e"></param>
-		private void OnError(Exception e) {
+		private void LogError(Exception e) {
 			logger.Error(e);
 		}
 
