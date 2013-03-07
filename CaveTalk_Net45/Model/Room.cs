@@ -11,6 +11,7 @@
 		public String Tags { get; set; }
 		public Boolean IdVisible { get; set; }
 		public Boolean AnonymousOnly { get; set; }
+		public Boolean LoginOnly { get; set; }
 		public DateTime StartTime { get; set; }
 		public Int64 ListenerCount { get; set; }
 		public IEnumerable<Message> Messages {
@@ -105,6 +106,7 @@
 					,Tags TEXT
 					,IdVisible BOOL NOT NULL
 					,AnonymousOnly BOOL NOT NULL
+					,LoginOnly BOOL
 					,StartTime DATETIME NOT NULL
 					,ListenerCount INTEGER NOT NULL
 				);

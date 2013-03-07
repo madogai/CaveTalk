@@ -89,6 +89,7 @@
 			this.FrontLayerVisibility = Visibility.Hidden;
 			this.IdVisible = BooleanType.False;
 			this.AnonymousOnly = BooleanType.False;
+			this.LoginOnly = BooleanType.False;
 
 			this.StartBroadcastCommand = new RelayCommand(p => {
 				this.StartEntry(false);
@@ -126,6 +127,7 @@
 			this.Tags = room.Tags;
 			this.IdVisible = room.IdVisible ? BooleanType.True : BooleanType.False;
 			this.AnonymousOnly = room.AnonymousOnly ? BooleanType.True : BooleanType.False;
+			this.LoginOnly = BooleanType.False;
 		}
 
 		private void StartEntry(Boolean isTestMode) {
