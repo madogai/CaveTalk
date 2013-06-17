@@ -37,19 +37,19 @@
 					{"pass", password},
 				};
 
-				var response = client.UploadValues(String.Format("{0}/api/auth", webUrl), "POST", data);
-				var jsonString = Encoding.UTF8.GetString(response);
+				try {
+					var response = client.UploadValues(String.Format("{0}/api/auth", webUrl), "POST", data);
+					var jsonString = Encoding.UTF8.GetString(response);
 
-				var json = DynamicJson.Parse(jsonString);
-				if (json.IsDefined("ret") && json.ret == false) {
+					var json = DynamicJson.Parse(jsonString);
+					if (json.IsDefined("apikey") == false) {
+						return String.Empty;
+					}
+
+					return json.apikey;
+				} catch (WebException) {
 					return String.Empty;
 				}
-
-				if (json.IsDefined("apikey") == false) {
-					return String.Empty;
-				}
-
-				return json.apikey;
 			}
 		}
 

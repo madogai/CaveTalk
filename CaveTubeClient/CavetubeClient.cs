@@ -225,12 +225,7 @@
 					}
 
 					var json = DynamicJson.Parse(jsonString);
-					if (json.IsDefined("ret") && json.ret == false) {
-						throw new CavetubeException("サマリーの取得に失敗しました。");
-					}
-
-					var summary = new Summary(jsonString);
-					return summary;
+					return new Summary(jsonString);
 				}
 			} catch (WebException) {
 				return new Summary();
