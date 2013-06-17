@@ -46,7 +46,11 @@
 
 			comment = message.IsAsciiArt ? "アスキーアート" : comment;
 
+			// AmazonURLの省略
 			comment = Regex.Replace(comment, @"https?://(?:[^.]+\.)?(?:images-)?amazon\.(?:com|ca|co\.uk|de|co\.jp|jp|fr|cn)(/.+)(?![\w\s!?&.\/\+:;#~%""=-]*>)", "アマゾンリンク");
+
+			// URLの省略
+			comment = Regex.Replace(comment, @"((http|https|ftp)://[\w!?=&,./\+:;#~%-]+(?![\w\s!?&,./\+:;#~%""=-]*>))", "URL省略");
 
 			comment = comment.Replace("\n", " ");
 
