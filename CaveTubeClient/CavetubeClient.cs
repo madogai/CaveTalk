@@ -749,7 +749,7 @@
 			this.Number = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
 			this.ListenerId = json.IsDefined("user_id") ? (String)json.user_id : String.Empty;
 			this.Name = json.IsDefined("name") ? json.name : String.Empty;
-			this.Comment = json.IsDefined("message") ? json.message : String.Empty;
+			this.Comment = json.IsDefined("message") ? WebUtility.HtmlDecode(json.message) : String.Empty;
 			this.IsAuth = json.IsDefined("auth") ? json.auth : false;
 			this.IsBan = json.IsDefined("is_ban") ? json.is_ban : false;
 			this.IsHide = json.IsDefined("is_hide") ? json.is_hide : false;
