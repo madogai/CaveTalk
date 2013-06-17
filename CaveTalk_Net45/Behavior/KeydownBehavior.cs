@@ -33,12 +33,12 @@
 
 		protected override void OnAttached() {
 			base.OnAttached();
-			this.AssociatedObject.KeyDown += OnKeyDown;
+			this.AssociatedObject.PreviewKeyDown += OnKeyDown;
 		}
 
 		protected override void OnDetaching() {
 			base.OnDetaching();
-			this.AssociatedObject.KeyDown -= OnKeyDown;
+			this.AssociatedObject.PreviewKeyDown -= OnKeyDown;
 		}
 
 		public void OnKeyDown(Object sender, KeyEventArgs e) {
@@ -47,6 +47,7 @@
 				return;
 			}
 
+			e.Handled = true;
 			var path = this.Command;
 			var dataContext = AssociatedObject.DataContext;
 			var command = dataContext.GetType().GetProperty(path).GetValue(dataContext, null) as ICommand;
@@ -68,7 +69,6 @@
 	}
 
 	public sealed class ExecCommandOnEnterKeyDownBehavior : ExecCommandKeyDownBehavior<ComboBox> {
-
 		protected override Boolean IsFire(KeyEventArgs e) {
 			var isEneter = new[] { Key.Return, Key.Enter }.Contains(e.Key);
 			return isEneter;
@@ -76,12 +76,11 @@
 	}
 
 	public sealed class ExecCommandOnCtrlOrShiftAndEnterKeyDownBehavior : ExecCommandKeyDownBehavior<TextBox> {
-
 		protected override Boolean IsFire(KeyEventArgs e) {
-			var isEneter = new[] { Key.Return, Key.Enter }.Contains(e.Key);
+			var isEnter = new[] { Key.Return, Key.Enter }.Contains(e.Key);
 			var isPressCtrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
 			var isPressShift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
-			return isEneter && (isPressCtrl || isPressShift);
+			return isEnter && (isPressCtrl || isPressShift);
 		}
 	}
 }

@@ -33,12 +33,12 @@
 
 		protected override void OnAttached() {
 			base.OnAttached();
-			this.AssociatedObject.KeyDown += OnKeyDown;
+			this.AssociatedObject.PreviewKeyDown += OnKeyDown;
 		}
 
 		protected override void OnDetaching() {
 			base.OnDetaching();
-			this.AssociatedObject.KeyDown -= OnKeyDown;
+			this.AssociatedObject.PreviewKeyDown -= OnKeyDown;
 		}
 
 		public void OnKeyDown(Object sender, KeyEventArgs e) {
@@ -47,6 +47,7 @@
 				return;
 			}
 
+			e.Handled = true;
 			var path = this.Command;
 			var dataContext = AssociatedObject.DataContext;
 			var command = dataContext.GetType().GetProperty(path).GetValue(dataContext, null) as ICommand;
