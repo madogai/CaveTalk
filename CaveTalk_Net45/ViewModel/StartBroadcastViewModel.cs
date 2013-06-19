@@ -8,6 +8,8 @@
 	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Utils;
 	using CaveTube.CaveTalk.Lib;
+	using System.Collections.Generic;
+	using System.Collections.ObjectModel;
 
 	public sealed class StartBroadcastViewModel : ViewModelBase {
 		public event Action<String> OnClose;
@@ -27,6 +29,15 @@
 			set {
 				this.description = value;
 				base.OnPropertyChanged("Description");
+			}
+		}
+
+		private Genre genre;
+		public Genre Genre {
+			get { return this.genre; }
+			set {
+				this.genre = value;
+				base.OnPropertyChanged("Genre");
 			}
 		}
 
@@ -66,12 +77,35 @@
 			}
 		}
 
+		private Thumbnail thumbnail;
+		public Thumbnail Thumbnail {
+			get { return this.thumbnail; }
+			set {
+				this.thumbnail = value;
+				base.OnPropertyChanged("Thumbnail");
+			}
+		}
+
 		private Visibility frontLayerVisibility;
 		public Visibility FrontLayerVisibility {
 			get { return this.frontLayerVisibility; }
 			set {
 				this.frontLayerVisibility = value;
 				base.OnPropertyChanged("FrontLayerVisibility");
+			}
+		}
+
+		private IEnumerable<Genre> genres;
+		public IEnumerable<Genre> Genres {
+			get {
+				return this.genres;
+			}
+		}
+
+		private IEnumerable<Thumbnail> thumbnails;
+		public IEnumerable<Thumbnail> Thumbnails {
+			get {
+				return this.thumbnails;
 			}
 		}
 
@@ -108,6 +142,12 @@
 
 			this.client = new CaveTubeClientWrapper();
 			client.Connect();
+
+			this.genres = this.RequestGenre(config.ApiKey);
+			this.Genre = this.genres.First();
+
+			this.thumbnails = this.RequestThumbnails(config.ApiKey);
+			this.Thumbnail = this.thumbnails.First();
 		}
 
 		private void LoadPreviousSetting() {
@@ -118,7 +158,7 @@
 				this.previousCount = 0;
 				return;
 			}
-			
+
 			// 読み取りカウンタを回します。
 			this.previousCount = this.previousCount < 5 ? this.previousCount + 1 : 0;
 
@@ -154,9 +194,15 @@
 
 			this.Title = this.Title ?? DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
 			this.Description = this.Description ?? String.Empty;
-			var tags = String.IsNullOrWhiteSpace(this.Tags) ? new String[0] : Regex.Split(this.Tags, "\\s+");
 
-			var streamName = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
+			var tags = new SortedSet<String>();
+			this.genre.Tags.ForEach(t => tags.Add(t));
+
+			if (String.IsNullOrWhiteSpace(this.Tags) == false) {
+				Regex.Split(this.Tags, "\\s+").ForEach(t => tags.Add(t));
+			}
+
+			var streamName = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
 			return streamName;
 		}
 
@@ -174,8 +220,46 @@
 			};
 		}
 
+		private IEnumerable<Genre> RequestGenre(String apiKey) {
+			var response = new List<Genre> {
+				new Genre { Title = "配信ジャンル(オプション)", Tags = Enumerable.Empty<String>() }
+			};
+
+			var genres = CaveTubeClient.CaveTubeEntry.RequestGenre(apiKey);
+			if (genres == null) {
+				return response;
+			}
+
+			return Enumerable.Concat(response, genres.Select(g => new Genre { Title = g.Title, Tags = g.Tags }));
+		}
+
+		private IEnumerable<Thumbnail> RequestThumbnails(String apiKey) {
+			var result = new ObservableCollection<Thumbnail> ();
+
+			var userData = CaveTubeClient.CaveTubeEntry.RequestUserData(apiKey);
+			if (userData.Thumbnails.Any()) {
+				userData.Thumbnails.ForEach((t, i) => {
+					result.Add(new Thumbnail { Url = t.Url, Slot = t.Slot });
+				});
+			} else {
+				result.Add(new Thumbnail { Slot = 0, Url = "/CaveTalk;component/Images/no_thumbnail_image.png" });
+			}
+
+			return result;
+		}
+
 		public enum BooleanType {
 			True, False,
 		}
+	}
+
+	public class Genre {
+		public String Title { get; set; }
+		public IEnumerable<String> Tags { get; set; }
+	}
+
+	public class Thumbnail {
+		public String Url { get; set; }
+		public Int32 Slot { get; set; }
 	}
 }

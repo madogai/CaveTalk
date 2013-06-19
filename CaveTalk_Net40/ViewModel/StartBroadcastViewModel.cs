@@ -145,7 +145,7 @@
 			this.Description = this.Description ?? String.Empty;
 			var tags = String.IsNullOrWhiteSpace(this.Tags) ? new String[0] : Regex.Split(this.Tags, "\\s+");
 
-			var streamName = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, false, isTestMode, socketId);
+			var streamName = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, 0, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, false, isTestMode, socketId);
 			return streamName;
 		}
 

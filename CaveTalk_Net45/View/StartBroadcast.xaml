@@ -4,7 +4,8 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:b="clr-namespace:CaveTube.CaveTalk.Behavior"
         xmlns:cv="clr-namespace:CaveTube.CaveTalk.Converter"
-        Title="配信開始" Height="360" Width="350" x:Name="Root" WindowStyle="ToolWindow" Topmost="True">
+        xmlns:vm="clr-namespace:CaveTube.CaveTalk.ViewModel"
+        Title="配信開始" Height="480" Width="400" x:Name="Root" WindowStyle="ToolWindow" Topmost="True">
     <Window.Resources>
         <cv:EnumBooleanConverter x:Key="enumBooleanConverter" />
     </Window.Resources>
@@ -19,11 +20,13 @@
                 <RowDefinition Height="40" />
                 <RowDefinition />
                 <RowDefinition Height="40" />
+                <RowDefinition Height="40" />
+                <RowDefinition Height="77" />
                 <RowDefinition Height="70" />
                 <RowDefinition Height="40" />
                 <RowDefinition Height="30" />
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" Width="120" Content="前回の設定を使う" HorizontalAlignment="Right" Command="{Binding Path=LoadPreviousSettingCommand}" />
+            <Button Grid.Row="0" Width="120" Content="前回の設定を使う" HorizontalAlignment="Right" Command="{Binding Path=LoadPreviousSettingCommand}" Margin="0,0,5,0" />
             <TextBox Grid.Row="1" Margin="5" Text="{Binding Path=Title}" VerticalContentAlignment="Center">
                 <i:Interaction.Behaviors>
                     <b:TextBoxPlaceholderBehavior Placeholder="タイトル" />
@@ -34,14 +37,47 @@
                     <b:TextBoxPlaceholderBehavior Placeholder="詳細(オプション)" />
                 </i:Interaction.Behaviors>
             </TextBox>
-            <TextBox Grid.Row="3" Margin="5" Text="{Binding Path=Tags}" VerticalContentAlignment="Center">
+            <ComboBox x:Name="GenreComboBox" Grid.Row="3" Margin="5" ItemsSource="{Binding Path=Genres}" DisplayMemberPath="Title" SelectedValuePath="Tags" SelectedItem="{Binding Path=Genre}" VerticalContentAlignment="Center" />
+            <TextBox Grid.Row="4" Margin="5" Text="{Binding Path=Tags}" VerticalContentAlignment="Center">
                 <i:Interaction.Behaviors>
                     <b:TextBoxPlaceholderBehavior Placeholder="タグ(オプション)" />
                 </i:Interaction.Behaviors>
             </TextBox>
-            <Grid Grid.Row="4">
+            <ListBox Grid.Row="5" ItemsSource="{Binding Path=Thumbnails}" SelectedItem="{Binding Path=Thumbnail}" ScrollViewer.VerticalScrollBarVisibility="Hidden" Padding="0" BorderThickness="0" Margin="0">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Height" Value="75" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Border" BorderThickness="1" Padding="2" Margin="2, 0" BorderBrush="#FFABADB3">
+                                        <Image x:Name="Image" Source="{Binding Url}" Opacity="0.5" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Image" Property="Opacity" Value="1" />
+                                            <Setter TargetName="Border" Property="BorderBrush" Value="#FF3399FF" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Opacity" Value="1" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+            <Grid Grid.Row="6">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="160" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -65,16 +101,18 @@
                     <RadioButton Content="ログインのみ" IsChecked="{Binding Path=LoginOnly, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=True, UpdateSourceTrigger=LostFocus}" />
                 </StackPanel>
             </Grid>
-            <Grid Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid Grid.Row="7" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <CheckBox x:Name="IsAgree">
                     <TextBlock>
                         <Run>cavelis.net</Run>
                         <Hyperlink NavigateUri="http://gae.cavelis.net/rule" RequestNavigate="OpenUrl">利用規約</Hyperlink>
+                        <Run>及び</Run>
+                        <Hyperlink NavigateUri="http://gae.cavelis.net/howto/#guideline" RequestNavigate="OpenUrl">ガイドライン</Hyperlink>
                         <Run>に同意します。</Run>
                     </TextBlock>
                 </CheckBox>
             </Grid>
-            <Grid Grid.Row="6">
+            <Grid Grid.Row="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="100" />
