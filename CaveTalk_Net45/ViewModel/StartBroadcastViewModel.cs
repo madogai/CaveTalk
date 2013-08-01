@@ -202,8 +202,12 @@
 				Regex.Split(this.Tags, "\\s+").ForEach(t => tags.Add(t));
 			}
 
-			var streamName = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
-			return streamName;
+			var streamInfo = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
+			if (String.IsNullOrEmpty(streamInfo.WarnMessage) == false) {
+				MessageBox.Show(streamInfo.WarnMessage, "注意", MessageBoxButton.OK, MessageBoxImage.Warning);
+			}
+
+			return streamInfo.StreamName;
 		}
 
 		private void WaitStream(String streamName) {

@@ -13,7 +13,7 @@
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
-		public static String RequestStartBroadcast(String title, String apiKey, String description, IEnumerable<String> tags, Int32 thumbnailSlot, Boolean idVisible, Boolean anonymousOnly, Boolean loginOnly, Boolean testMode, String socketId) {
+		public static StartInfo RequestStartBroadcast(String title, String apiKey, String description, IEnumerable<String> tags, Int32 thumbnailSlot, Boolean idVisible, Boolean anonymousOnly, Boolean loginOnly, Boolean testMode, String socketId) {
 			try {
 				using (var client = new WebClient()) {
 					var data = new NameValueCollection {
@@ -35,13 +35,13 @@
 
 					var json = DynamicJson.Parse(jsonString);
 					if (json.IsDefined("stream_name") == false) {
-						return String.Empty;
+						return null;
 					}
 
-					return json.stream_name;
+					return new StartInfo(json);
 				}
 			} catch (WebException) {
-				return String.Empty;
+				return null;
 			}
 		}
 
@@ -106,6 +106,16 @@
 			internal Thumbnail(dynamic json) {
 				this.Slot = (Int32)json.slot;
 				this.Url = json.url;
+			}
+		}
+
+		public class StartInfo {
+			public String StreamName { get; private set; }
+			public String WarnMessage { get; private set; }
+
+			internal StartInfo(dynamic json) {
+				this.StreamName = json.stream_name;
+				this.WarnMessage = json.warn_message;
 			}
 		}
 	}

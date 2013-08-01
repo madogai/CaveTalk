@@ -145,8 +145,12 @@
 			this.Description = this.Description ?? String.Empty;
 			var tags = String.IsNullOrWhiteSpace(this.Tags) ? new String[0] : Regex.Split(this.Tags, "\\s+");
 
-			var streamName = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, 0, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, false, isTestMode, socketId);
-			return streamName;
+			var streamInfo = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, 0, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, false, isTestMode, socketId);
+			if (String.IsNullOrEmpty(streamInfo.WarnMessage) == false) {
+				MessageBox.Show(streamInfo.WarnMessage, "注意", MessageBoxButton.OK, MessageBoxImage.Warning);
+			}
+
+			return streamInfo.StreamName;
 		}
 
 		private void WaitStream(String streamName) {
