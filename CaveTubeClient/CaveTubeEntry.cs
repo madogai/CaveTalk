@@ -115,7 +115,7 @@
 
 			internal StartInfo(dynamic json) {
 				this.StreamName = json.stream_name;
-				this.WarnMessage = json.warn_message;
+				this.WarnMessage = json.IsDefined("warn_message") ? json.warn_message : String.Empty;
 			}
 		}
 	}
