@@ -54,9 +54,13 @@
 		}
 
 		protected override Room GetRoomInfo(String url) {
-			var summary = Mapper.Map<Summary>(this.client.GetSummary(url));
-			var messages = this.client.GetComment(url).Select(m => Mapper.Map<Message>(m));
-			return new Room(summary, messages);
+			try {
+				var summary = Mapper.Map<Summary>(this.client.GetSummary(url));
+				var messages = this.client.GetComment(url).Select(m => Mapper.Map<Message>(m));
+				return new Room(summary, messages);
+			} catch (CavetubeException) {
+				return new Room(null, null);
+			}
 		}
 
 		public override void JoinRoom(String url) {

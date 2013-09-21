@@ -61,10 +61,11 @@
 		public Room GetRoom(String url) {
 			var room = this.GetRoomInfo(url);
 
-			var summary = room.Summary;
-			if (String.IsNullOrWhiteSpace(summary.RoomId)) {
+			if (room.Summary == null) {
 				return null;
 			}
+
+			var summary = room.Summary;
 
 			// DBの部屋情報を更新します。
 			var dbRoom = new Model.Room {

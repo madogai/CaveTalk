@@ -227,10 +227,8 @@
 					var json = DynamicJson.Parse(jsonString);
 					return new Summary(jsonString);
 				}
-			} catch (WebException) {
-				return new Summary();
-			} catch (CavetubeException) {
-				return new Summary();
+			} catch (WebException e) {
+				throw new CavetubeException("サマリーの取得に失敗しました", e); 
 			}
 		}
 
@@ -630,15 +628,13 @@
 				return;
 			}
 
-			var summary = this.GetSummary((String)json.room);
-			if (summary.RoomId == null) {
+			try {
+				this.JoinedRoom = this.GetSummary((String)json.room);
+				if (this.OnJoin != null) {
+					this.OnJoin(this.JoinedRoom.RoomId);
+				}
+			} catch (CavetubeException) {
 				return;
-			}
-
-			this.JoinedRoom = summary;
-
-			if (this.OnJoin != null) {
-				this.OnJoin(this.JoinedRoom.RoomId);
 			}
 		}
 
