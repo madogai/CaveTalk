@@ -1,6 +1,8 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
+	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
+	using System.ComponentModel;
 	using System.Configuration;
 	using System.IO;
 	using System.Linq;
@@ -8,6 +10,7 @@
 	using System.Net;
 	using System.Runtime.InteropServices;
 	using System.Windows;
+	using System.Windows.Controls;
 	using System.Windows.Data;
 	using System.Windows.Input;
 	using System.Windows.Media;
@@ -29,6 +32,7 @@
 		private ASpeechClient speechClient;
 
 		public event Action<Lib.Message, Model.Config> OnMessage;
+		public event Action<Model.Config> OnRefresh;
 
 		#region プロパティ
 
@@ -67,6 +71,20 @@
 			set {
 				this.listener = value;
 				base.OnPropertyChanged("Listener");
+			}
+		}
+
+		public ListSortDirection? SortDirection {
+			get {
+				return this.config.SortDirection;
+			}
+			set {
+				if (value == ListSortDirection.Ascending) {
+					this.config.SortDirection = ListSortDirection.Ascending;
+				} else {
+					this.config.SortDirection = null;
+				}
+				base.OnPropertyChanged("SortDirection");
 			}
 		}
 
@@ -404,8 +422,18 @@
 					message.OnHideId += this.HideId;
 					message.OnShowComment += this.ShowComment;
 					message.OnHideComment += this.HideComment;
-					this.MessageList.Insert(0, message);
+					if (this.SortDirection == ListSortDirection.Ascending) {
+						this.MessageList.Add(message);
+					} else {
+						this.MessageList.Insert(0, message);
+					}
 				});
+
+				if (this.OnRefresh != null) {
+					uiDispatcher.BeginInvoke(new Action(() => {
+						this.OnRefresh(this.config);
+					}));
+				}
 
 				this.commentClient.JoinRoom(roomId);
 			} catch (CommentException e) {
@@ -626,12 +654,22 @@
 			newMessage.OnHideId += this.HideId;
 			newMessage.OnShowComment += this.ShowComment;
 			newMessage.OnHideComment += this.HideComment;
-			this.MessageList.Insert(0, newMessage);
+			if (this.SortDirection == ListSortDirection.Ascending) {
+				this.MessageList.Add(newMessage);
+			} else {
+				this.MessageList.Insert(0, newMessage);
+			}
 
 			// コードビハインドのイベントを実行
 			if (this.OnMessage != null) {
 				uiDispatcher.BeginInvoke(new Action(() => {
 					this.OnMessage(message, this.config);
+				}));
+			}
+
+			if (this.OnRefresh != null) {
+				uiDispatcher.BeginInvoke(new Action(() => {
+					this.OnRefresh(this.config);
 				}));
 			}
 		}
@@ -839,19 +877,23 @@
 		#endregion
 
 		private void ShowStartBroadcast() {
-			var window = new StartBroadcast();
-			var viewModel = new StartBroadcastViewModel();
-			viewModel.OnClose += roomId => {
-				uiDispatcher.BeginInvoke(new Action(() => {
-					window.Close();
-					if (String.IsNullOrWhiteSpace(roomId)) {
-						return;
-					}
-					this.JoinRoom(roomId);
-				}));
-			};
-			window.DataContext = viewModel;
-			window.ShowDialog();
+			try {
+				var window = new StartBroadcast();
+				var viewModel = new StartBroadcastViewModel();
+				viewModel.OnClose += roomId => {
+					uiDispatcher.BeginInvoke(new Action(() => {
+						window.Close();
+						if (String.IsNullOrWhiteSpace(roomId)) {
+							return;
+						}
+						this.JoinRoom(roomId);
+					}));
+				};
+				window.DataContext = viewModel;
+				window.ShowDialog();
+			} catch (CommentException) {
+				return;
+			}
 		}
 	}
 

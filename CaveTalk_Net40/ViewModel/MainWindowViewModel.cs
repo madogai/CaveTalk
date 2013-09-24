@@ -860,19 +860,23 @@
 		#endregion
 
 		private void ShowStartBroadcast() {
-			var window = new StartBroadcast();
-			var viewModel = new StartBroadcastViewModel();
-			viewModel.OnClose += roomId => {
-				uiDispatcher.BeginInvoke(new Action(() => {
-					window.Close();
-					if (String.IsNullOrWhiteSpace(roomId)) {
-						return;
-					}
-					this.JoinRoom(roomId);
-				}));
-			};
-			window.DataContext = viewModel;
-			window.ShowDialog();
+			try {
+				var window = new StartBroadcast();
+				var viewModel = new StartBroadcastViewModel();
+				viewModel.OnClose += roomId => {
+					uiDispatcher.BeginInvoke(new Action(() => {
+						window.Close();
+						if (String.IsNullOrWhiteSpace(roomId)) {
+							return;
+						}
+						this.JoinRoom(roomId);
+					}));
+				};
+				window.DataContext = viewModel;
+				window.ShowDialog();
+			} catch (CommentException) {
+				return;
+			}
 		}
 	}
 

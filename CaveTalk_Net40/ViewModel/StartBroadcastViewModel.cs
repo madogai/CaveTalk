@@ -108,7 +108,7 @@
 				this.previousCount = 0;
 				return;
 			}
-			
+
 			// 読み取りカウンタを回します。
 			this.previousCount = this.previousCount < 5 ? this.previousCount + 1 : 0;
 

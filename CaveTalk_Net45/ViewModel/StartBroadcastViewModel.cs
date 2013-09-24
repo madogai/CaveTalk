@@ -238,7 +238,7 @@
 		}
 
 		private IEnumerable<Thumbnail> RequestThumbnails(String apiKey) {
-			var result = new ObservableCollection<Thumbnail> ();
+			var result = new ObservableCollection<Thumbnail>();
 
 			var userData = CaveTubeClient.CaveTubeEntry.RequestUserData(apiKey);
 			if (userData.Thumbnails.Any()) {

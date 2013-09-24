@@ -1,14 +1,19 @@
 ﻿namespace CaveTube.CaveTalk.View {
 
 	using System;
+	using System.Collections.Specialized;
+	using System.ComponentModel;
 	using System.Configuration;
 	using System.Diagnostics;
+	using System.Linq;
 	using System.Windows;
 	using System.Windows.Controls;
 	using System.Windows.Controls.Primitives;
 	using System.Windows.Controls.Ribbon;
+	using System.Windows.Data;
 	using System.Windows.Documents;
 	using System.Windows.Input;
+	using System.Windows.Media;
 	using System.Windows.Media.Imaging;
 	using CaveTube.CaveTalk.Control;
 	using CaveTube.CaveTalk.Model;
@@ -51,6 +56,31 @@
 					this.MyNotifyIcon.ShowCustomBalloon(balloon, PopupAnimation.Slide, timeout);
 				};
 			};
+
+			this.Loaded += (sender, e) => {
+				var messages = (CollectionView)CollectionViewSource.GetDefaultView(this.CommentGrid.Items);
+				((INotifyCollectionChanged)messages).CollectionChanged += (sender2, e2) => {
+					if (this.CommentNoColumn.SortDirection != ListSortDirection.Ascending) {
+						return;
+					}
+
+					if (this.CommentGrid.Items.Count == 0) {
+						return;
+					}
+
+					var border = VisualTreeHelper.GetChild(this.CommentGrid, 0) as Decorator;
+					if (border == null) {
+						return;
+					}
+
+					var scroll = border.Child as ScrollViewer;
+					if (scroll == null) {
+						return;
+					}
+
+					scroll.ScrollToEnd();
+				};
+			};
 		}
 
 		private void RestoreWindowExecuted(Object sender, ExecutedRoutedEventArgs e) {
@@ -81,6 +111,13 @@
 
 		private void Close(object sender, RoutedEventArgs e) {
 			this.Close();
+		}
+
+		private void Ribbon_Loaded(object sender, RoutedEventArgs e) {
+			var child = VisualTreeHelper.GetChild((DependencyObject)sender, 0) as Grid;
+			if (child != null) {
+				child.RowDefinitions[0].Height = new GridLength(0);
+			}
 		}
 	}
 }

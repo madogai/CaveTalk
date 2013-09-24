@@ -3,6 +3,7 @@
 	using System.Linq;
 	using System.Collections.Generic;
 	using CaveTube.CaveTalk.Utils;
+	using System.ComponentModel;
 
 	public sealed class Config {
 		private static Config config;
@@ -98,6 +99,66 @@
 			}
 			set {
 				this.configDictionary[speakApplication] = value.ToString();
+			}
+		}
+
+		// 棒読みちゃんのオプション有効化
+		private const String enableBouyomiOption = "EnableBouyomiOption";
+		public Boolean EnableBouyomiOption {
+			get {
+				Boolean val;
+				if (this.configDictionary.ContainsKey(enableBouyomiOption) && Boolean.TryParse(this.configDictionary[enableBouyomiOption], out val)) {
+					return val;
+				}
+				return false;
+			}
+			set {
+				this.configDictionary[enableBouyomiOption] = value.ToString();
+			}
+		}
+
+		// 棒読みちゃん 音量
+		private const String bouyomiVolume = "BouyomiVolume";
+		public Int32 BouyomiVolume {
+			get {
+				Int32 val;
+				if (this.configDictionary.ContainsKey(bouyomiVolume) && Int32.TryParse(this.configDictionary[bouyomiVolume], out val)) {
+					return val;
+				}
+				return 100;
+			}
+			set {
+				this.configDictionary[bouyomiVolume] = value.ToString();
+			}
+		}
+
+		// 棒読みちゃん 速度
+		private const String bouyomiSpeed = "BouyomiSpeed";
+		public Int32 BouyomiSpeed {
+			get {
+				Int32 val;
+				if (this.configDictionary.ContainsKey(bouyomiSpeed) && Int32.TryParse(this.configDictionary[bouyomiSpeed], out val)) {
+					return val;
+				}
+				return 100;
+			}
+			set {
+				this.configDictionary[bouyomiSpeed] = value.ToString();
+			}
+		}
+
+		// 棒読みちゃん 音程
+		private const String bouyomiTone = "BouyomiTone";
+		public Int32 BouyomiTone {
+			get {
+				Int32 val;
+				if (this.configDictionary.ContainsKey(bouyomiTone) && Int32.TryParse(this.configDictionary[bouyomiTone], out val)) {
+					return val;
+				}
+				return 100;
+			}
+			set {
+				this.configDictionary[bouyomiTone] = value.ToString();
 			}
 		}
 
@@ -395,6 +456,21 @@
 			}
 			set {
 				this.configDictionary[displayElapsedPostTimeColumn] = value.ToString();
+			}
+		}
+
+		// ソート順
+		private const String sortDirection = "SortDirection";
+		public ListSortDirection? SortDirection {
+			get {
+				ListSortDirection val;
+				if (this.configDictionary.ContainsKey(sortDirection) && Enum.TryParse<ListSortDirection>(this.configDictionary[sortDirection], out val)) {
+					return val;
+				}
+				return null;
+			}
+			set {
+				this.configDictionary[sortDirection] = value.ToString();
 			}
 		}
 

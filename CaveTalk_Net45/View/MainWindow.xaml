@@ -58,7 +58,7 @@
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
-        <Ribbon DockPanel.Dock="Top" ShowQuickAccessToolBarOnTop="False">
+        <Ribbon DockPanel.Dock="Top" ShowQuickAccessToolBarOnTop="False" Loaded="Ribbon_Loaded">
             <Ribbon.ApplicationMenu>
                 <RibbonApplicationMenu Label="ファイル" SmallImageSource="/CaveTalk;component/Images/document.png">
                     <RibbonApplicationMenuItem Header="CaveTalkについて(_V)" Command="{Binding Path=AboutBoxCommand}" ImageSource="/CaveTalk;component/Images/info.png" CanAddToQuickAccessToolBarDirectly="False"></RibbonApplicationMenuItem>
@@ -224,7 +224,7 @@
         </Border>
         <!-- DataGrid用のプロキシ -->
         <ContentControl Visibility="Collapsed" Content="{StaticResource ProxyElement}"/>
-        <DataGrid AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True" SelectedIndex="{Binding Path=MessageIndex}" HorizontalScrollBarVisibility="Disabled" FontSize="{Binding Path=FontSize}">
+        <DataGrid x:Name="CommentGrid" AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True" SelectedIndex="{Binding Path=MessageIndex}" HorizontalScrollBarVisibility="Disabled" FontSize="{Binding Path=FontSize}">
             <i:Interaction.Behaviors>
                 <b:ExecCommandDoubleClickBehavior Command="MarkCommand" />
             </i:Interaction.Behaviors>
@@ -315,8 +315,8 @@
                 </Style>
             </DataGrid.RowStyle>
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Path=Number}" Header="No" Width="40" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" />
-                <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}">
+                <DataGridTextColumn x:Name="CommentNoColumn" Binding="{Binding Path=Number}" Header="No" Width="40" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" SortDirection="{Binding Path=DataContext.SortDirection, Source={StaticResource ResourceKey=ProxyElement}, Mode=TwoWay}" />
+                <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" CanUserSort="False">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Style.Triggers>
@@ -366,9 +366,9 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Binding="{Binding Path=ListenerId}" Header="Id" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayIdColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
-                <DataGridTextColumn Binding="{Binding Path=PostTime, StringFormat=HH:mm:ss}" Header="投稿時間" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayPostTimeColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
-                <DataGridTextColumn Binding="{Binding Path=ElapsedPostTime, Converter={StaticResource ResourceKey=TimeSpanToTotalHoursConverter}}" Header="経過時間" Width="90" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayElapsedPostTimeColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" />
+                <DataGridTextColumn Binding="{Binding Path=ListenerId}" Header="Id" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayIdColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" CanUserSort="False" />
+                <DataGridTextColumn Binding="{Binding Path=PostTime, StringFormat=HH:mm:ss}" Header="投稿時間" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayPostTimeColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" CanUserSort="False" />
+                <DataGridTextColumn Binding="{Binding Path=ElapsedPostTime, Converter={StaticResource ResourceKey=TimeSpanToTotalHoursConverter}}" Header="経過時間" Width="90" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayElapsedPostTimeColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" CanUserSort="False" />
             </DataGrid.Columns>
         </DataGrid>
     </DockPanel>
