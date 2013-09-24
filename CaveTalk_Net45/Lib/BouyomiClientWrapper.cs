@@ -1,14 +1,17 @@
 ﻿namespace CaveTube.CaveTalk.Lib {
 	using System;
 	using System.Runtime.Remoting;
+	using CaveTube.CaveTalk.Model;
 	using FNF.Utility;
 
 	public sealed class BouyomiClientWrapper : ASpeechClient {
 		private BouyomiChanClient client;
+		private Config config;
 
 		public BouyomiClientWrapper()
 			: base() {
 			this.client = new BouyomiChanClient();
+			this.config = Config.GetConfig();
 		}
 
 		#region ASpeechClient メンバー
@@ -25,8 +28,7 @@
 			try {
 				var count = this.client.TalkTaskCount;
 				return true;
-			}
-			catch (RemotingException) {
+			} catch (RemotingException) {
 				return false;
 			}
 		}
@@ -41,10 +43,13 @@
 
 		public override Boolean Speak(String text) {
 			try {
-				this.client.AddTalkTask(text);
+				if (this.config.EnableBouyomiOption) {
+					this.client.AddTalkTask(text, this.config.BouyomiSpeed, this.config.BouyomiVolume, this.config.BouyomiTone, VoiceType.Default);
+				} else {
+					this.client.AddTalkTask(text);
+				}
 				return true;
-			}
-			catch (RemotingException) {
+			} catch (RemotingException) {
 				return false;
 			}
 		}

@@ -22,6 +22,38 @@
 			}
 		}
 
+		public Boolean EnableBouyomiOption {
+			get { return this.config.EnableBouyomiOption; }
+			set {
+				this.config.EnableBouyomiOption = value;
+				base.OnPropertyChanged("EnableBouyomiOption");
+			}
+		}
+
+		public Int32 BouyomiVolume {
+			get { return this.config.BouyomiVolume; }
+			set {
+				this.config.BouyomiVolume = value;
+				base.OnPropertyChanged("BouyomiVolume");
+			}
+		}
+
+		public Int32 BouyomiSpeed {
+			get { return this.config.BouyomiSpeed; }
+			set {
+				this.config.BouyomiSpeed = value;
+				base.OnPropertyChanged("BouyomiSpeed");
+			}
+		}
+
+		public Int32 BouyomiTone {
+			get { return this.config.BouyomiTone; }
+			set {
+				this.config.BouyomiTone = value;
+				base.OnPropertyChanged("BouyomiTone");
+			}
+		}
+
 		public String SoftalkFilePath {
 			get { return this.config.SofTalkPath; }
 			set {
