@@ -8,7 +8,7 @@ Download
 License
 -------
 
-Copyright 2011-2013, まどがい  
+Copyright 2011-2014, まどがい  
 MIT-style License.  
 <http://www.opensource.org/licenses/mit-license.php>
 

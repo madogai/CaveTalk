@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder", "SolutionFolder", "{E46822AE-C279-4439-AB62-1FFF1B915508}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
@@ -19,14 +21,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTubeClient.Test", "Cave
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketIOClient", "SocketIO\SocketIOClient.csproj", "{352C9BC1-F74C-4741-A09D-7227BC60C057}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTalk_Net40", "CaveTalk_Net40\CaveTalk_Net40.csproj", "{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTalk_Net45", "CaveTalk_Net45\CaveTalk_Net45.csproj", "{C5608987-9DA5-4A04-BEE0-11077FDE07D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTalk", "CaveTalk_Net45\CaveTalk.csproj", "{C5608987-9DA5-4A04-BEE0-11077FDE07D7}"
 EndProject
 Global
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = CaveTalk.vsmdi
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -118,30 +115,6 @@ Global
 		{352C9BC1-F74C-4741-A09D-7227BC60C057}.ReleaseILMerge|Mixed Platforms.Build.0 = ReleaseILMerge|Any CPU
 		{352C9BC1-F74C-4741-A09D-7227BC60C057}.ReleaseILMerge|x64.ActiveCfg = ReleaseILMerge|Any CPU
 		{352C9BC1-F74C-4741-A09D-7227BC60C057}.ReleaseILMerge|x86.ActiveCfg = ReleaseILMerge|Any CPU
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Debug|x64.ActiveCfg = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Debug|x86.ActiveCfg = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Debug|x86.Build.0 = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.DebugILMerge|Any CPU.ActiveCfg = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.DebugILMerge|Mixed Platforms.ActiveCfg = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.DebugILMerge|Mixed Platforms.Build.0 = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.DebugILMerge|x64.ActiveCfg = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.DebugILMerge|x86.ActiveCfg = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.DebugILMerge|x86.Build.0 = Debug|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|Any CPU.ActiveCfg = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|Mixed Platforms.Build.0 = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|x64.ActiveCfg = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|x86.ActiveCfg = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.Release|x86.Build.0 = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|Any CPU.ActiveCfg = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|Mixed Platforms.ActiveCfg = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|Mixed Platforms.Build.0 = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|x64.ActiveCfg = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|x86.ActiveCfg = Release|x86
-		{C2F12BA9-5087-4E5B-8902-FABC1F20EE0B}.ReleaseILMerge|x86.Build.0 = Release|x86
 		{C5608987-9DA5-4A04-BEE0-11077FDE07D7}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{C5608987-9DA5-4A04-BEE0-11077FDE07D7}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{C5608987-9DA5-4A04-BEE0-11077FDE07D7}.Debug|Mixed Platforms.Build.0 = Debug|x86
@@ -169,5 +142,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = CaveTalk.vsmdi
 	EndGlobalSection
 EndGlobal

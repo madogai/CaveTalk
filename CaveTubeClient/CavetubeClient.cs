@@ -228,7 +228,7 @@
 					return new Summary(jsonString);
 				}
 			} catch (WebException e) {
-				throw new CavetubeException("サマリーの取得に失敗しました", e); 
+				throw new CavetubeException("サマリーの取得に失敗しました", e);
 			}
 		}
 
@@ -700,7 +700,7 @@
 			this.Author = json.IsDefined("author") ? json.author : String.Empty;
 			this.Listener = json.IsDefined("listener") ? (Int32)json.listener : 0;
 			this.PageView = json.IsDefined("viewer") ? (Int32)json.viewer : 0;
-			this.StartTime = json.IsDefined("start_time") && json.start_time != null ? JavaScriptTime.ToDateTime(json.start_time, TimeZoneKind.Japan) : null;
+			this.StartTime = json.IsDefined("start_time") && json.start_time != null ? json.start_time.ToDateTime() : null;
 		}
 
 		public override bool Equals(object obj) {
@@ -749,7 +749,7 @@
 			this.IsAuth = json.IsDefined("auth") ? json.auth : false;
 			this.IsBan = json.IsDefined("is_ban") ? json.is_ban : false;
 			this.IsHide = json.IsDefined("is_hide") ? json.is_hide : false;
-			this.PostTime = json.IsDefined("time") ? JavaScriptTime.ToDateTime(json.time, TimeZoneKind.Japan) : new DateTime();
+			this.PostTime = json.IsDefined("time") ? json.time.ToDateTime() : new DateTime();
 		}
 
 		public override bool Equals(object obj) {
