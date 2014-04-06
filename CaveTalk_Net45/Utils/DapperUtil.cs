@@ -24,10 +24,9 @@
 			});
 		}
 
-		public static void Execute(Action<QueryExecutor> action) {
+		public static void Execute(Action<IDbConnection> action) {
 			ExecuteDbAction(conn => {
-				var executor = new QueryExecutor(conn);
-				action(executor);
+				action(conn);
 			});
 		}
 
@@ -74,54 +73,6 @@
 				finally {
 					conn.Close();
 				}
-			}
-		}
-
-		public sealed class QueryExecutor {
-			private IDbConnection conn;
-
-			public QueryExecutor(IDbConnection conn) {
-				this.conn = conn;
-			}
-
-			public IDbTransaction BeginTransaction() {
-				return conn.BeginTransaction();
-			}
-
-			public IDbTransaction BeginTransaction(IsolationLevel il) {
-				return conn.BeginTransaction(il);
-			}
-
-			public int Execute(String sql, dynamic param = null, IDbTransaction transaction = null, Int32? commandTimeout = null, CommandType? commandType = null) {
-				return Dapper.SqlMapper.Execute(conn, sql, param, transaction, commandTimeout, commandType);
-			}
-
-			public IEnumerable<T> Query<T>(String sql, dynamic param = null, IDbTransaction transaction = null, Boolean buffered = true, Int32? commandTimeout = null, CommandType? commandType = null) {
-				return Dapper.SqlMapper.Query(conn, sql, param, transaction, buffered, commandTimeout, commandType);
-			}
-
-			public IEnumerable<dynamic> Query(String sql, dynamic param = null, IDbTransaction transaction = null, Boolean buffered = true, Int32? commandTimeout = null, CommandType? commandType = null) {
-				return Dapper.SqlMapper.Query(conn, sql, param, transaction, buffered, commandTimeout, commandType);
-			}
-
-			public IEnumerable<TReturn> Query<TFirst, TSecond, TReturn>(String sql, Func<TFirst, TSecond, TReturn> map, dynamic param = null, IDbTransaction transaction = null, Boolean buffered = true, String splitOn = "Id", Int32? commandTimeout = null, CommandType? commandType = null) {
-				return Dapper.SqlMapper.Query(conn, sql, param, transaction, buffered, commandTimeout, commandType);
-			}
-
-			public IEnumerable<TReturn> Query<TFirst, TSecond, TThird, TFourth, TFifth, TReturn>(String sql, Func<TFirst, TSecond, TThird, TFourth, TFifth, TReturn> map, dynamic param = null, IDbTransaction transaction = null, Boolean buffered = true, String splitOn = "Id", Int32? commandTimeout = null, CommandType? commandType = null) {
-				return Dapper.SqlMapper.Query(conn, sql, map, param, transaction, buffered, splitOn, commandTimeout, commandType);
-			}
-
-			public IEnumerable<TReturn> Query<TFirst, TSecond, TThird, TFourth, TReturn>(String sql, Func<TFirst, TSecond, TThird, TFourth, TReturn> map, dynamic param = null, IDbTransaction transaction = null, Boolean buffered = true, String splitOn = "Id", Int32? commandTimeout = null, CommandType? commandType = null) {
-				return Dapper.SqlMapper.Query(conn, sql, map, param, transaction, buffered, splitOn, commandTimeout, commandType);
-			}
-
-			public IEnumerable<TReturn> Query<TFirst, TSecond, TThird, TReturn>(String sql, Func<TFirst, TSecond, TThird, TReturn> map, dynamic param = null, IDbTransaction transaction = null, Boolean buffered = true, String splitOn = "Id", Int32? commandTimeout = null, CommandType? commandType = null) {
-				return Dapper.SqlMapper.Query(conn, sql, map, param, transaction, buffered, splitOn, commandTimeout, commandType);
-			}
-
-			public SqlMapper.GridReader QueryMultiple(String sql, dynamic param = null, IDbTransaction transaction = null, Int32? commandTimeout = null, CommandType? commandType = null) {
-				return Dapper.SqlMapper.QueryMultiple(conn, sql, param, transaction, commandTimeout, commandType);
 			}
 		}
 	}
