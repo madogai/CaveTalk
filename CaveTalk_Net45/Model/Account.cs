@@ -2,6 +2,7 @@
 	using System;
 	using System.Collections.Generic;
 	using CaveTube.CaveTalk.Utils;
+	using Dapper;
 
 	public sealed class Account {
 		// MEMO Dapperが綺麗にキャッシュする仕様ならば、ここでキャッシュする必要はなくなります。

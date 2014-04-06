@@ -2,6 +2,7 @@
 	using System;
 	using System.Collections.Generic;
 	using CaveTube.CaveTalk.Utils;
+	using Dapper;
 
 	public sealed class Message {
 		public Int64? Order { get; set; }
@@ -66,10 +67,10 @@
 		}
 
 		public static void UpdateMessage(IEnumerable<Message> messages) {
-			DapperUtil.Execute(executor => {
-				var transaction = executor.BeginTransaction();
+			DapperUtil.Execute(conn => {
+				var transaction = conn.BeginTransaction();
 				foreach (var message in messages) {
-					executor.Execute(@"
+					conn.Execute(@"
 						INSERT OR REPLACE INTO Message (
 							RoomId
 							,PostTime

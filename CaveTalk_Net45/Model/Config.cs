@@ -1,9 +1,10 @@
 ﻿namespace CaveTube.CaveTalk.Model {
 	using System;
-	using System.Linq;
 	using System.Collections.Generic;
-	using CaveTube.CaveTalk.Utils;
 	using System.ComponentModel;
+	using System.Linq;
+	using CaveTube.CaveTalk.Utils;
+	using Dapper;
 
 	public sealed class Config {
 		private static Config config;

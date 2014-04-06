@@ -2,6 +2,7 @@
 	using System;
 	using System.Collections.Generic;
 	using CaveTube.CaveTalk.Utils;
+	using Dapper;
 
 	public sealed class Room {
 		public String RoomId { get; set; }
