@@ -15,11 +15,11 @@
 			return Convert.ToInt64(timespan.TotalMilliseconds);
 		}
 
-		public static DateTime ToDateTime(this Int64 unixEpoch) {
+		public static DateTime ToDateTime(this Double unixEpoch) {
 			return unixEpoch.ToDateTime(TimeZoneInfo.Local);
 		}
 
-		public static DateTime ToDateTime(this Int64 unixEpoch, TimeZoneInfo timeZoneInfo) {
+		public static DateTime ToDateTime(this Double unixEpoch, TimeZoneInfo timeZoneInfo) {
 			var inputDateTime = UnixBaseTime.AddMilliseconds(unixEpoch);
 			return TimeZoneInfo.ConvertTimeFromUtc(inputDateTime, timeZoneInfo);
 		}

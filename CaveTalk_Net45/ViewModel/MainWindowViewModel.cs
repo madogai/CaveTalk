@@ -32,7 +32,6 @@
 		private ASpeechClient speechClient;
 
 		public event Action<Lib.Message, Model.Config> OnMessage;
-		public event Action<Model.Config> OnRefresh;
 
 		#region プロパティ
 
@@ -361,7 +360,7 @@
 		/// コメント部屋に接続します。
 		/// </summary>
 		/// <param name="liveUrl"></param>
-		private void JoinRoom(String liveUrl) {
+		private async void JoinRoom(String liveUrl) {
 			if (String.IsNullOrWhiteSpace(liveUrl)) {
 				return;
 			}
@@ -397,7 +396,7 @@
 				this.commentClient.OnError += this.LogError;
 				this.commentClient.Connect();
 
-				var room = this.commentClient.GetRoom(liveUrl);
+				var room = await this.commentClient.GetRoomAsync(liveUrl);
 				if (room == null) {
 					Mouse.OverrideCursor = null;
 					MessageBox.Show("接続に失敗しました。");
@@ -428,12 +427,6 @@
 						this.MessageList.Insert(0, message);
 					}
 				});
-
-				if (this.OnRefresh != null) {
-					uiDispatcher.BeginInvoke(new Action(() => {
-						this.OnRefresh(this.config);
-					}));
-				}
 
 				this.commentClient.JoinRoom(roomId);
 			} catch (CommentException e) {
@@ -666,12 +659,6 @@
 					this.OnMessage(message, this.config);
 				}));
 			}
-
-			if (this.OnRefresh != null) {
-				uiDispatcher.BeginInvoke(new Action(() => {
-					this.OnRefresh(this.config);
-				}));
-			}
 		}
 
 		/// <summary>
@@ -814,7 +801,7 @@
 			this.PostName = this.config.UserId;
 		}
 
-		private void LogoutCavetube() {
+		private async void LogoutCavetube() {
 			var apiKey = this.config.ApiKey;
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				return;
@@ -831,7 +818,7 @@
 			}
 
 			try {
-				var isSuccess = CavetubeAuth.Logout(userId, password);
+				var isSuccess = await CavetubeAuth.LogoutAsync(userId, password);
 				if (isSuccess) {
 					this.config.ApiKey = String.Empty;
 					this.config.UserId = String.Empty;
@@ -876,10 +863,10 @@
 
 		#endregion
 
-		private void ShowStartBroadcast() {
+		private async void ShowStartBroadcast() {
 			try {
 				var window = new StartBroadcast();
-				var viewModel = new StartBroadcastViewModel();
+				var viewModel = await StartBroadcastViewModel.CreateInstance();
 				viewModel.OnClose += roomId => {
 					uiDispatcher.BeginInvoke(new Action(() => {
 						window.Close();

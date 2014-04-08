@@ -8,6 +8,7 @@
 	using System.Text;
 	using System.Text.RegularExpressions;
 	using System.Threading;
+	using System.Threading.Tasks;
 	using System.Xml;
 	using Codeplex.Data;
 	using Microsoft.CSharp.RuntimeBinder;
@@ -16,7 +17,7 @@
 
 	public sealed class CavetubeClient : IDisposable {
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
-		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.vmhost:3000";
+		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.cavelis.net:3000";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
 		/// <summary>
@@ -203,9 +204,9 @@
 		/// </summary>
 		/// <param name="liveUrl">配信URL</param>
 		/// <returns></returns>
-		public Summary GetSummary(String liveUrl) {
+		public async Task<Summary> GetSummaryAsync(String liveUrl) {
 			try {
-				var streamName = this.ParseStreamUrl(liveUrl);
+				var streamName = await this.ParseStreamUrlAsync(liveUrl);
 				if (String.IsNullOrWhiteSpace(streamName)) {
 					throw new CavetubeException("サマリーの取得に失敗しました。");
 				}
@@ -215,11 +216,7 @@
 					client.QueryString.Add("stream_name", streamName);
 					client.QueryString.Add("devkey", devkey);
 					var url = String.Format("{0}://{1}:{2}/api/summary", this.webUri.Scheme, this.webUri.Host, this.webUri.Port);
-
-					// WebClientでTaskを利用すると正常な順番で結果を受け取れないので、
-					// WebRequestを利用する予定ですが、
-					// 実装が間に合わないのでまだ同期パターンを使用します。
-					var jsonString = client.DownloadString(url);
+					var jsonString = await client.DownloadStringTaskAsync(url);
 					if (String.IsNullOrEmpty(jsonString)) {
 						throw new CavetubeException("サマリーの取得に失敗しました。");
 					}
@@ -236,16 +233,16 @@
 		/// コメントの取得リクエストを送信します。
 		/// </summary>
 		/// <param name="url">配信URL</param>
-		public IEnumerable<Message> GetComment(String liveUrl) {
+		public async Task<IEnumerable<Message>> GetCommentAsync(String liveUrl) {
 			try {
-				var streamName = this.ParseStreamUrl(liveUrl);
+				var streamName = await this.ParseStreamUrlAsync(liveUrl);
 
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
 					client.QueryString.Add("devkey", devkey);
 					var url = String.Format("{0}://{1}:{2}/comment/{3}", this.socketIOUri.Scheme, this.socketIOUri.Host, this.socketIOUri.Port, streamName);
 
-					var jsonString = client.DownloadString(url);
+					var jsonString = await client.DownloadStringTaskAsync(url);
 					if (String.IsNullOrEmpty(jsonString)) {
 						throw new CavetubeException("コメントの取得に失敗しました。");
 					}
@@ -264,8 +261,8 @@
 		/// </summary>
 		/// <param name="roomId">視聴ページのURL、またはルームID</param>
 		/// <exception cref="System.FormatException">引数のフォーマットが正しくありません。</exception>
-		public void JoinRoom(String liveUrl) {
-			var roomId = this.ParseStreamUrl(liveUrl);
+		public async void JoinRoom(String liveUrl) {
+			var roomId = await this.ParseStreamUrlAsync(liveUrl);
 			if (String.IsNullOrWhiteSpace(roomId)) {
 				throw new FormatException("URLのフォーマットが正常ではありません。");
 			}
@@ -594,7 +591,7 @@
 		}
 
 		/// <summary>
-		/// 配信情報を処理します。
+		/// 配信の開始情報を処理します。
 		/// </summary>
 		/// <param name="json"></param>
 		private void HandleLiveStartInfomation(dynamic json) {
@@ -608,6 +605,10 @@
 			}
 		}
 
+		/// <summary>
+		/// 配信の終了情報を処理します。
+		/// </summary>
+		/// <param name="json"></param>
 		private void HandleLiveCloseInfomation(dynamic json) {
 			if (json.mode != "close_entry") {
 				return;
@@ -623,13 +624,13 @@
 		/// CaveTalkクライアントの部屋へのJoin/Leave情報を処理します。
 		/// </summary>
 		/// <param name="json"></param>
-		private void HandleJoin(dynamic json) {
+		private async void HandleJoin(dynamic json) {
 			if (json.mode != "ready") {
 				return;
 			}
 
 			try {
-				this.JoinedRoom = this.GetSummary((String)json.room);
+				this.JoinedRoom = await this.GetSummaryAsync((String)json.room);
 				if (this.OnJoin != null) {
 					this.OnJoin(this.JoinedRoom.RoomId);
 				}
@@ -643,7 +644,7 @@
 			return messages;
 		}
 
-		private String ParseStreamUrl(String url) {
+		private async Task<String> ParseStreamUrlAsync(String url) {
 			var baseUrl = String.Format("{0}://{1}", this.webUri.Scheme, this.webUri.Host);
 			if (this.webUri.Port != 80) {
 				baseUrl += String.Format(":{0}", this.webUri.Port);
@@ -660,7 +661,7 @@
 			if (match.Success) {
 				using (var client = new WebClient()) {
 					var userName = match.Groups[1].Value;
-					var jsonString = client.DownloadString(String.Format("{0}/live_url?user={1}", baseUrl, userName));
+					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/live_url?user={1}", baseUrl, userName));
 					var json = DynamicJson.Parse(jsonString);
 					var streamName = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
 					return streamName;
@@ -700,7 +701,7 @@
 			this.Author = json.IsDefined("author") ? json.author : String.Empty;
 			this.Listener = json.IsDefined("listener") ? (Int32)json.listener : 0;
 			this.PageView = json.IsDefined("viewer") ? (Int32)json.viewer : 0;
-			this.StartTime = json.IsDefined("start_time") && json.start_time != null ? json.start_time.ToDateTime() : null;
+			this.StartTime = json.IsDefined("start_time") ? DateExtends.ToDateTime(json.start_time) : new DateTime();
 		}
 
 		public override bool Equals(object obj) {
@@ -724,21 +725,13 @@
 	/// コメント情報
 	/// </summary>
 	public class Message {
-
 		public Int32 Number { get; internal set; }
-
 		public String Name { get; internal set; }
-
 		public String Comment { get; internal set; }
-
 		public DateTime PostTime { get; internal set; }
-
 		public String ListenerId { get; internal set; }
-
 		public Boolean IsAuth { get; internal set; }
-
 		public Boolean IsBan { get; internal set; }
-
 		public Boolean IsHide { get; internal set; }
 
 		internal Message(dynamic json) {
@@ -749,7 +742,7 @@
 			this.IsAuth = json.IsDefined("auth") ? json.auth : false;
 			this.IsBan = json.IsDefined("is_ban") ? json.is_ban : false;
 			this.IsHide = json.IsDefined("is_hide") ? json.is_hide : false;
-			this.PostTime = json.IsDefined("time") ? json.time.ToDateTime() : new DateTime();
+			this.PostTime = json.IsDefined("time") ? DateExtends.ToDateTime(json.time) : new DateTime();
 		}
 
 		public override bool Equals(object obj) {
@@ -772,14 +765,14 @@
 	/// <summary>
 	/// 配信通知情報
 	/// </summary>
-	public class LiveNotification {
+	public sealed class LiveNotification {
 		public String Author { get; internal set; }
 
 		public String Title { get; internal set; }
 
 		public String RoomId { get; internal set; }
 
-		public LiveNotification(dynamic json) {
+		internal LiveNotification(dynamic json) {
 			this.Author = json.IsDefined("author") ? json.author : String.Empty;
 			this.Title = json.IsDefined("title") ? json.title : String.Empty;
 			this.RoomId = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
@@ -802,7 +795,7 @@
 		}
 	}
 
-	public class BanFail {
+	public sealed class BanFail {
 		public Int32 Number { get; internal set; }
 		public String Message { get; internal set; }
 
@@ -812,18 +805,18 @@
 		}
 	}
 
-	public class IdNotification {
+	public sealed class IdNotification {
 		public Int32 Number { get; internal set; }
 
-		public IdNotification(dynamic json) {
+		internal IdNotification(dynamic json) {
 			this.Number = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
 		}
 	}
 
-	public class AdminShout {
+	public sealed class AdminShout {
 		public String Message { get; internal set; }
 
-		public AdminShout(dynamic json) {
+		internal AdminShout(dynamic json) {
 			this.Message = json.IsDefined("message") ? json.message : String.Empty;
 		}
 	}

@@ -2,6 +2,7 @@
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
+	using System.Threading.Tasks;
 	using AutoMapper;
 	using CaveTube.CaveTubeClient;
 
@@ -53,10 +54,10 @@
 			}
 		}
 
-		protected override Room GetRoomInfo(String url) {
+		protected override async Task<Room> GetRoomInfoAsync(String url) {
 			try {
-				var summary = Mapper.Map<Summary>(this.client.GetSummary(url));
-				var messages = this.client.GetComment(url).Select(m => Mapper.Map<Message>(m));
+				var summary = Mapper.Map<Summary>(await this.client.GetSummaryAsync(url));
+				var messages = (await this.client.GetCommentAsync(url)).Select(m => Mapper.Map<Message>(m));
 				return new Room(summary, messages);
 			} catch (CavetubeException) {
 				return new Room(null, null);

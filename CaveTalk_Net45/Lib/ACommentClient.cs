@@ -1,9 +1,10 @@
 ﻿namespace CaveTube.CaveTalk.Lib {
 	using System;
-	using System.Linq;
 	using System.Collections.Generic;
 	using System.Configuration;
+	using System.Linq;
 	using System.Text.RegularExpressions;
+	using System.Threading.Tasks;
 
 	public abstract class ACommentClient : IDisposable {
 		public static ACommentClient CreateInstance(String url) {
@@ -52,15 +53,15 @@
 		/// メッセージの待機を開始します。
 		/// </summary>
 		public abstract void Connect();
+
 		/// <summary>
 		/// 部屋情報を取得します。
 		/// </summary>
 		/// <param name="url">配信Url</param>
 		/// <returns></returns>
 		/// <exception cref="CaveTube.CaveTalk.Lib.CommentException" />
-		public Room GetRoom(String url) {
-			var room = this.GetRoomInfo(url);
-
+		public async Task<Room> GetRoomAsync(String url) {
+			var room = await this.GetRoomInfoAsync(url);
 			if (room.Summary == null) {
 				return null;
 			}
@@ -85,17 +86,19 @@
 
 			return room;
 		}
-		protected abstract Room GetRoomInfo(String url);
+		protected abstract Task<Room> GetRoomInfoAsync(String url);
 
 		/// <summary>
 		/// 部屋に入室します。
 		/// </summary>
 		/// <param name="url">配信Url</param>
 		public abstract void JoinRoom(String url);
+
 		/// <summary>
 		/// 部屋から退出します。
 		/// </summary>
 		public abstract void LeaveRoom();
+
 		/// <summary>
 		/// リスナーをBANします。
 		/// </summary>
@@ -103,6 +106,7 @@
 		/// <param name="apiKey"></param>
 		/// <returns></returns>
 		public abstract void BanListener(Int32 commentNumber, String apiKey);
+
 		/// <summary>
 		/// リスナーのBANを解除します。
 		/// </summary>

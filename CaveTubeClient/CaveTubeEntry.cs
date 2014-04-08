@@ -1,19 +1,20 @@
 ﻿namespace CaveTube.CaveTubeClient {
 	using System;
-	using System.Linq;
 	using System.Collections.Generic;
 	using System.Collections.Specialized;
 	using System.Configuration;
+	using System.Linq;
 	using System.Net;
 	using System.Text;
-	using Codeplex.Data;
+	using System.Threading.Tasks;
 	using System.Xml;
+	using Codeplex.Data;
 
 	public static class CaveTubeEntry {
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
-		public static StartInfo RequestStartBroadcast(String title, String apiKey, String description, IEnumerable<String> tags, Int32 thumbnailSlot, Boolean idVisible, Boolean anonymousOnly, Boolean loginOnly, Boolean testMode, String socketId) {
+		public static async Task<StartInfo> RequestStartBroadcastAsync(String title, String apiKey, String description, IEnumerable<String> tags, Int32 thumbnailSlot, Boolean idVisible, Boolean anonymousOnly, Boolean loginOnly, Boolean testMode, String socketId) {
 			try {
 				using (var client = new WebClient()) {
 					var data = new NameValueCollection {
@@ -30,7 +31,7 @@
 						{"socket_id", socketId},
 					};
 
-					var response = client.UploadValues(String.Format("{0}/api/start", webUrl), "POST", data);
+					var response = await client.UploadValuesTaskAsync(String.Format("{0}/api/start", webUrl), "POST", data);
 					var jsonString = Encoding.UTF8.GetString(response);
 
 					var json = DynamicJson.Parse(jsonString);
@@ -45,12 +46,12 @@
 			}
 		}
 
-		public static UserData RequestUserData(String apiKey) {
+		public static async Task<UserData> RequestUserDataAsync(String apiKey) {
 			try {
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
 
-					var jsonString = client.DownloadString(String.Format("{0}/api/user_data?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
+					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/user_data?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
 					var json = DynamicJson.Parse(jsonString);
 					return new UserData(json);
 				}
@@ -61,12 +62,12 @@
 			}
 		}
 
-		public static IEnumerable<Genre> RequestGenre(String apiKey) {
+		public static async Task<IEnumerable<Genre>> RequestGenre(String apiKey) {
 			try {
 				using (var client = new WebClient()) {
 					client.Encoding = Encoding.UTF8;
 
-					var jsonString = client.DownloadString(String.Format("{0}/api/genre?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
+					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/genre?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
 					var json = DynamicJson.Parse(jsonString);
 					return ((dynamic[])json.genres).Select(genre => new Genre(genre));
 				}

@@ -10,6 +10,7 @@
 	using CaveTube.CaveTalk.Lib;
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
+	using System.Threading.Tasks;
 
 	public sealed class StartBroadcastViewModel : ViewModelBase {
 		public event Action<String> OnClose;
@@ -117,7 +118,16 @@
 		public ICommand StartTestBroadcastCommand { get; private set; }
 		public ICommand LoadPreviousSettingCommand { get; private set; }
 
-		public StartBroadcastViewModel() {
+		public static async Task<StartBroadcastViewModel> CreateInstance() {
+			var instance = new StartBroadcastViewModel();
+			await instance.Init();
+			return instance;
+		}
+
+		private StartBroadcastViewModel() {
+		}
+
+		private async Task Init() {
 			this.config = Model.Config.GetConfig();
 
 			this.FrontLayerVisibility = Visibility.Hidden;
@@ -141,12 +151,12 @@
 			});
 
 			this.client = new CaveTubeClientWrapper();
-			client.Connect();
+			this.client.Connect();
 
-			this.genres = this.RequestGenre(config.ApiKey);
+			this.genres = await this.RequestGenreAsync(this.config.ApiKey);
 			this.Genre = this.genres.First();
 
-			this.thumbnails = this.RequestThumbnails(config.ApiKey);
+			this.thumbnails = await this.RequestThumbnailsAsync(this.config.ApiKey);
 			this.Thumbnail = this.thumbnails.First();
 		}
 
@@ -170,11 +180,11 @@
 			this.LoginOnly = BooleanType.False;
 		}
 
-		private void StartEntry(Boolean isTestMode) {
+		private async void StartEntry(Boolean isTestMode) {
 			try {
 				Mouse.OverrideCursor = Cursors.Wait;
 
-				var streamName = this.RequestStartBroadcast(isTestMode, this.client.SocketId);
+				var streamName = await this.RequestStartBroadcast(isTestMode, this.client.SocketId);
 				if (String.IsNullOrWhiteSpace(streamName)) {
 					MessageBox.Show("配信の開始に失敗しました。", "注意", MessageBoxButton.OK, MessageBoxImage.Warning, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
 					return;
@@ -186,7 +196,7 @@
 			}
 		}
 
-		private String RequestStartBroadcast(Boolean isTestMode = false, String socketId = "") {
+		private async Task<String> RequestStartBroadcast(Boolean isTestMode = false, String socketId = "") {
 			var apiKey = config.ApiKey;
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				return String.Empty;
@@ -202,7 +212,7 @@
 				Regex.Split(this.Tags, "\\s+").ForEach(t => tags.Add(t));
 			}
 
-			var streamInfo = CaveTubeClient.CaveTubeEntry.RequestStartBroadcast(this.Title, config.ApiKey, this.Description, tags, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
+			var streamInfo = await CaveTubeClient.CaveTubeEntry.RequestStartBroadcastAsync(this.Title, config.ApiKey, this.Description, tags, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
 			if (String.IsNullOrEmpty(streamInfo.WarnMessage) == false) {
 				MessageBox.Show(streamInfo.WarnMessage, "注意", MessageBoxButton.OK, MessageBoxImage.Warning);
 			}
@@ -224,12 +234,12 @@
 			};
 		}
 
-		private IEnumerable<Genre> RequestGenre(String apiKey) {
+		private async Task<IEnumerable<Genre>> RequestGenreAsync(String apiKey) {
 			var response = new List<Genre> {
 				new Genre { Title = "配信ジャンル(オプション)", Tags = Enumerable.Empty<String>() }
 			};
 
-			var genres = CaveTubeClient.CaveTubeEntry.RequestGenre(apiKey);
+			var genres = await CaveTubeClient.CaveTubeEntry.RequestGenre(apiKey);
 			if (genres == null) {
 				return response;
 			}
@@ -237,10 +247,10 @@
 			return Enumerable.Concat(response, genres.Select(g => new Genre { Title = g.Title, Tags = g.Tags }));
 		}
 
-		private IEnumerable<Thumbnail> RequestThumbnails(String apiKey) {
+		private async Task<IEnumerable<Thumbnail>> RequestThumbnailsAsync(String apiKey) {
 			var result = new ObservableCollection<Thumbnail>();
 
-			var userData = CaveTubeClient.CaveTubeEntry.RequestUserData(apiKey);
+			var userData = await CaveTubeClient.CaveTubeEntry.RequestUserDataAsync(apiKey);
 			if (userData.Thumbnails.Any()) {
 				userData.Thumbnails.ForEach((t, i) => {
 					result.Add(new Thumbnail { Url = t.Url, Slot = t.Slot });

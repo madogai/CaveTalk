@@ -64,10 +64,10 @@
 			this.LoginCommand = new RelayCommand(Login);
 		}
 
-		private void Login(Object data) {
+		private async void Login(Object data) {
 			this.Cursor = Cursors.Wait;
 			try {
-				var apiKey = CavetubeAuth.Login(this.UserId, this.Password);
+				var apiKey = await CavetubeAuth.LoginAsync(this.UserId, this.Password);
 				if (String.IsNullOrWhiteSpace(apiKey)) {
 					this.ErrorMessage = "ログインに失敗しました。";
 					return;
