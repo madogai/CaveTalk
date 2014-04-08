@@ -176,10 +176,10 @@
 				}
 			};
 
-			this.OnMessage += this.HandleMessage;
-			this.OnMessage += this.HandleLiveStartInfomation;
-			this.OnMessage += this.HandleLiveCloseInfomation;
-			this.OnMessage += this.HandleJoin;
+			this.OnMessage += this.HandleCommentInformation;
+			this.OnMessage += this.HandleRoomInformation;
+			this.OnMessage += this.HandleLiveInfomation;
+			this.OnMessage += this.HandleOtherInformation;
 		}
 
 		~CavetubeClient() {
@@ -482,10 +482,10 @@
 		/// オブジェクトを破棄します。
 		/// </summary>
 		public void Dispose() {
-			this.OnMessage -= this.HandleMessage;
-			this.OnMessage -= this.HandleLiveStartInfomation;
-			this.OnMessage -= this.HandleLiveCloseInfomation;
-			this.OnMessage -= this.HandleJoin;
+			this.OnMessage -= this.HandleCommentInformation;
+			this.OnMessage -= this.HandleRoomInformation;
+			this.OnMessage -= this.HandleLiveInfomation;
+			this.OnMessage -= this.HandleOtherInformation;
 
 			if (this.client == null) {
 				return;
@@ -497,13 +497,19 @@
 		}
 
 		/// <summary>
-		/// コメントと視聴人数などの情報を処理します。
+		/// コメントの情報を処理します。
 		/// </summary>
 		/// <param name="json"></param>
-		private void HandleMessage(dynamic json) {
+		private async void HandleCommentInformation(dynamic json) {
 			try {
 				String mode = json.mode;
 				switch (mode) {
+					case "ready":
+						this.JoinedRoom = await this.GetSummaryAsync((String)json.room);
+						if (this.OnJoin != null) {
+							this.OnJoin(this.JoinedRoom.RoomId);
+						}
+						break;
 					case "get":
 						if (this.OnMessageList != null) {
 							var messages = this.ParseMessage(json);
@@ -565,24 +571,11 @@
 							this.OnHideId(idNotify);
 						}
 						break;
-					case "join":
-					case "leave":
-						if (this.OnUpdateMember != null) {
-							var ipCount = (Int32)json.ipcount;
-							if (this.OnUpdateMember != null) {
-								this.OnUpdateMember(ipCount);
-							}
-						}
-						break;
-					case "admin_yell":
-						if (this.OnAdminShout != null) {
-							var adminShout = new AdminShout(json);
-							this.OnAdminShout(adminShout);
-						}
-						break;
 					default:
 						break;
 				}
+			} catch (CavetubeException e) {
+				Debug.WriteLine(e.Message);
 			} catch (XmlException) {
 				Debug.WriteLine("メッセージのParseに失敗しました。");
 			} catch (RuntimeBinderException) {
@@ -591,51 +584,57 @@
 		}
 
 		/// <summary>
-		/// 配信の開始情報を処理します。
+		/// 部屋に関する情報を処理します。
 		/// </summary>
 		/// <param name="json"></param>
-		private void HandleLiveStartInfomation(dynamic json) {
-			if (json.mode != "start_entry") {
-				return;
-			}
-
-			if (this.OnNotifyLiveStart != null) {
-				var liveInfo = new LiveNotification(json);
-				this.OnNotifyLiveStart(liveInfo);
+		private void HandleRoomInformation(dynamic json) {
+			String mode = json.mode;
+			switch (mode) {
+				case "join":
+				case "leave":
+					if (this.OnUpdateMember != null && this.OnUpdateMember != null) {
+						var ipCount = (Int32)json.ipcount;
+						this.OnUpdateMember(ipCount);
+					}
+					break;
 			}
 		}
 
 		/// <summary>
-		/// 配信の終了情報を処理します。
+		/// 配信の開始/終了情報を処理します。
 		/// </summary>
 		/// <param name="json"></param>
-		private void HandleLiveCloseInfomation(dynamic json) {
-			if (json.mode != "close_entry") {
-				return;
-			}
-
-			if (this.OnNotifyLiveClose != null) {
-				var liveInfo = new LiveNotification(json);
-				this.OnNotifyLiveClose(liveInfo);
+		private void HandleLiveInfomation(dynamic json) {
+			String mode = json.mode;
+			switch (mode) {
+				case "start_entry":
+					if (this.OnNotifyLiveStart != null) {
+						var liveInfo = new LiveNotification(json);
+						this.OnNotifyLiveStart(liveInfo);
+					}
+					break;
+				case "close_entry":
+					if (this.OnNotifyLiveClose != null) {
+						var liveInfo = new LiveNotification(json);
+						this.OnNotifyLiveClose(liveInfo);
+					}
+					break;
 			}
 		}
 
 		/// <summary>
-		/// CaveTalkクライアントの部屋へのJoin/Leave情報を処理します。
+		/// その他の特殊な情報を処理します。
 		/// </summary>
 		/// <param name="json"></param>
-		private async void HandleJoin(dynamic json) {
-			if (json.mode != "ready") {
-				return;
-			}
-
-			try {
-				this.JoinedRoom = await this.GetSummaryAsync((String)json.room);
-				if (this.OnJoin != null) {
-					this.OnJoin(this.JoinedRoom.RoomId);
-				}
-			} catch (CavetubeException) {
-				return;
+		private void HandleOtherInformation(dynamic json) {
+			String mode = json.mode;
+			switch (mode) {
+				case "admin_yell":
+					if (this.OnAdminShout != null) {
+						var adminShout = new AdminShout(json);
+						this.OnAdminShout(adminShout);
+					}
+					break;
 			}
 		}
 
