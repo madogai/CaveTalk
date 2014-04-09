@@ -16,6 +16,8 @@
 	using SocketIOClient.Messages;
 
 	public sealed class CavetubeClient : IDisposable {
+		private const Int32 defaultTimeout = 3000;
+
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
 		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.cavelis.net:3000";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
@@ -89,6 +91,23 @@
 		/// </summary>
 		public event Action<LiveNotification> OnNotifyLiveClose;
 		/// <summary>
+		/// 投票が開始された時に通知されるイベントです。
+		/// </summary>
+		public event Action<Vote> OnVoteStart;
+		/// <summary>
+		/// 投票結果が開示された時に通知されるイベントです。
+		/// </summary>
+		public event Action<Vote> OnVoteResult;
+		/// <summary>
+		/// 投票がキャンセルされた時に通知されるイベントです。
+		/// </summary>
+		public event Action OnVoteStop;
+		public event Action OnInviteInstantMessage;
+		public event Action<String> OnReceiveInstantMessage;
+		public event Action OnNotifyInviteInstantMessage;
+		public event Action OnNotifySendInstantMessage;
+
+		/// <summary>
 		/// 管理者メッセージ通知です。
 		/// </summary>
 		public event Action<AdminShout> OnAdminShout;
@@ -98,6 +117,8 @@
 		public event Action<CavetubeException> OnError;
 
 		private event Action<dynamic> OnMessage;
+		private event Action<Boolean> OnAllowInstantMessage;
+		private event Action<Boolean> OnSendInstantMessage;
 
 		/// <summary>
 		/// ソケットID
@@ -469,6 +490,96 @@
 		}
 
 		/// <summary>
+		/// 投票を開始します。
+		/// </summary>
+		/// <param name="question">質問</param>
+		/// <param name="choices">回答リスト</param>
+		/// <param name="apiKey">APIキー</param>
+		public void VoteStart(String question, IList<String> choices, String apiKey) {
+			client.Emit("vote_start", new {
+				devkey = devkey,
+				question = question,
+				choices = choices,
+				apikey = apiKey,
+			});
+		}
+
+		/// <summary>
+		/// 投票結果を表示します。
+		/// </summary>
+		/// <param name="apiKey">APIキー</param>
+		public void VoteResult(String apiKey) {
+			client.Emit("vote_result", new {
+				devkey = devkey,
+				apiKey = apiKey,
+			});
+		}
+
+		/// <summary>
+		/// 投票を中断します。
+		/// </summary>
+		/// <param name="apiKey">APIキー</param>
+		public void VoteStop(String apiKey) {
+			client.Emit("vote_stop", new {
+				devkey = devkey,
+				apiKey = apiKey,
+			});
+		}
+
+		public Task<Boolean> InviteInstantMessage(Int32 commentNumber, String apiKey) {
+			var tcs = new TaskCompletionSource<Boolean>();
+
+			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
+				mode = "allow_instant_message",
+				commentNumber = commentNumber,
+				apikey = apiKey,
+			});
+			client.Send(new TextMessage(message));
+
+			Action<Boolean> handler = null;
+			handler = isSuccess => {
+				tcs.TrySetResult(isSuccess);
+				this.OnAllowInstantMessage -= handler;
+			};
+			this.OnAllowInstantMessage += handler;
+
+			Timer timer = null;
+			timer = new Timer(_ => {
+				tcs.TrySetResult(false);
+				timer.Dispose();
+			}, null, defaultTimeout, Timeout.Infinite);
+
+			return tcs.Task;
+		}
+
+		public Task<Boolean> SendInstantMessage(String text) {
+			var tcs = new TaskCompletionSource<Boolean>();
+
+			var message = DynamicJson.Serialize(new {
+				devkey = devkey,
+				mode = "send_instant_message",
+				message = text,
+			});
+			client.Send(new TextMessage(message));
+
+			Action<Boolean> handler = null;
+			handler = isSuccess => {
+				tcs.TrySetResult(isSuccess);
+				this.OnSendInstantMessage -= handler;
+			};
+			this.OnSendInstantMessage += handler;
+
+			Timer timer = null;
+			timer = new Timer(_ => {
+				tcs.TrySetResult(false);
+				timer.Dispose();
+			}, null, defaultTimeout, Timeout.Infinite);
+
+			return tcs.Task;
+		}
+
+		/// <summary>
 		/// コメントサーバとの接続を閉じます。
 		/// </summary>
 		public void Close() {
@@ -571,7 +682,37 @@
 							this.OnHideId(idNotify);
 						}
 						break;
-					default:
+					case "allow_instant_message":
+						if (this.OnAllowInstantMessage != null) {
+							var result = json.IsDefined("result") ? json.result : false;
+							this.OnAllowInstantMessage(result);
+						}
+						break;
+					case "send_instant_message":
+						if (this.OnSendInstantMessage != null) {
+							var result = json.IsDefined("result") ? json.result : false;
+							this.OnSendInstantMessage(result);
+						}
+						break;
+					case "invite_instant_message":
+						if (this.OnInviteInstantMessage != null) {
+							this.OnInviteInstantMessage();
+						}
+						break;
+					case "receive_instant_message":
+						if (this.OnReceiveInstantMessage != null && json.isDefine("message")) {
+							this.OnReceiveInstantMessage(json.message);
+						}
+						break;
+					case "notify_invite_instant_message":
+						if (this.OnNotifyInviteInstantMessage != null) {
+							this.OnNotifyInviteInstantMessage();
+						}
+						break;
+					case "notify_send_instant_message":
+						if (this.OnNotifySendInstantMessage != null) {
+							this.OnNotifySendInstantMessage();
+						}
 						break;
 				}
 			} catch (CavetubeException e) {
@@ -592,9 +733,26 @@
 			switch (mode) {
 				case "join":
 				case "leave":
-					if (this.OnUpdateMember != null && this.OnUpdateMember != null) {
+					if (this.OnUpdateMember != null) {
 						var ipCount = (Int32)json.ipcount;
 						this.OnUpdateMember(ipCount);
+					}
+					break;
+				case "vote_start":
+					if (this.OnVoteStart != null) {
+						var vote = new Vote(json);
+						this.OnVoteStart(vote);
+					}
+					break;
+				case "vote_result":
+					if (this.OnVoteResult != null) {
+						var vote = new Vote(json);
+						this.OnVoteResult(vote);
+					}
+					break;
+				case "vote_stop":
+					if (this.OnVoteStop != null) {
+						this.OnVoteStop();
 					}
 					break;
 			}
@@ -794,16 +952,22 @@
 		}
 	}
 
+	/// <summary>
+	/// BAN失敗情報
+	/// </summary>
 	public sealed class BanFail {
 		public Int32 Number { get; internal set; }
 		public String Message { get; internal set; }
 
-		public BanFail(dynamic json) {
+		internal BanFail(dynamic json) {
 			this.Number = json.IsDefined("comment_num") ? json.comment_num : 0;
 			this.Message = json.IsDefined("message") ? json.message : String.Empty;
 		}
 	}
 
+	/// <summary>
+	/// Id通知情報
+	/// </summary>
 	public sealed class IdNotification {
 		public Int32 Number { get; internal set; }
 
@@ -812,6 +976,37 @@
 		}
 	}
 
+	/// <summary>
+	/// 投票情報
+	/// </summary>
+	public sealed class Vote {
+		public String Question { get; internal set; }
+		public IReadOnlyList<VoteChoice> Choices { get; internal set; }
+
+		internal Vote(dynamic json) {
+			this.Question = json.IsDefined("question") ? json.question : String.Empty;
+			this.Choices = ((dynamic[])json.choices).Select((choice, i) => new VoteChoice(choice, i)).ToList();
+		}
+	}
+
+	/// <summary>
+	/// 投票選択肢
+	/// </summary>
+	public sealed class VoteChoice {
+		public Int32 Number { get; internal set; }
+		public String Title { get; internal set; }
+		public String Result { get; internal set; }
+
+		internal VoteChoice(dynamic json, Int32 index) {
+			this.Number = index;
+			this.Title = json.IsDefined("text") ? json.text : String.Empty;
+			this.Result = json.IsDefined("result") ? json.result : null;
+		}
+	}
+
+	/// <summary>
+	/// 管理者メッセージ情報
+	/// </summary>
 	public sealed class AdminShout {
 		public String Message { get; internal set; }
 
