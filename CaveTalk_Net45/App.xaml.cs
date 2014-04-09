@@ -2,6 +2,7 @@
 
 	using System;
 	using System.Windows;
+	using System.Windows.Threading;
 	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Utils;
 	using CaveTube.CaveTalk.View;
@@ -36,7 +37,7 @@
 				};
 
 				window.Show();
-			} catch(Exception ex) {
+			} catch (Exception ex) {
 				logger.Error(ex);
 				throw;
 			}
@@ -53,6 +54,13 @@
 			Listener.CreateTable();
 			Model.Message.CreateTable();
 			Room.CreateTable();
+		}
+
+		private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) {
+			var comException = e.Exception as System.Runtime.InteropServices.COMException;
+
+			if (comException != null && comException.ErrorCode == -2147221040)
+				e.Handled = true;
 		}
 	}
 }

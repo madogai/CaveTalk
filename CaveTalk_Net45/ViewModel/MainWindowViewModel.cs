@@ -1,6 +1,5 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
-	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
 	using System.ComponentModel;
 	using System.Configuration;
@@ -8,9 +7,7 @@
 	using System.Linq;
 	using System.Media;
 	using System.Net;
-	using System.Runtime.InteropServices;
 	using System.Windows;
-	using System.Windows.Controls;
 	using System.Windows.Data;
 	using System.Windows.Input;
 	using System.Windows.Media;
@@ -545,7 +542,7 @@
 		private void SendBroadcasterCommandHelper(Action act) {
 			try {
 				if (this.LoginStatus == false) {
-					throw new ArgumentException("ID表示解除するにはログインが必須です。");
+					throw new ArgumentException("ログインが必要です。");
 				}
 
 				if (this.commentClient.JoinedRoomSummary == null) {
@@ -1017,6 +1014,7 @@
 		public ICommand MarkCommand { get; private set; }
 
 		public Message(Lib.Summary summary, Lib.Message message) {
+			var uiDispatcher = Dispatcher.CurrentDispatcher; ;
 			this.summary = summary;
 			this.message = message;
 
@@ -1025,13 +1023,9 @@
 					return;
 				}
 
-				for (var i = 0; i < 3; i++) {
-					try {
-						Clipboard.SetText(this.Comment);
-					} catch (ExternalException) {
-						System.Threading.Thread.Sleep(0);
-					}
-				}
+				uiDispatcher.BeginInvoke(new Action(() => {
+					Clipboard.SetText(this.Comment, TextDataFormat.UnicodeText);
+				}));
 			});
 
 			this.BanUserCommand = new RelayCommand(p => {
