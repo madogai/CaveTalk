@@ -509,7 +509,13 @@
 			});
 		}
 
-		public Task<Boolean> InviteInstantMessage(Int32 commentNumber, String apiKey) {
+		/// <summary>
+		/// インスタントメッセージを許可します。
+		/// </summary>
+		/// <param name="commentNumber">コメント番号</param>
+		/// <param name="apiKey">APIキー</param>
+		/// <returns></returns>
+		public Task<Boolean> AllowInstantMessage(Int32 commentNumber, String apiKey) {
 			var tcs = new TaskCompletionSource<Boolean>();
 
 			client.Emit("allow_instant_message", new {
@@ -534,12 +540,17 @@
 			return tcs.Task;
 		}
 
-		public Task<Boolean> SendInstantMessage(String text) {
+		/// <summary>
+		/// インスタントメッセージを送信します。
+		/// </summary>
+		/// <param name="message">メッセージ</param>
+		/// <returns></returns>
+		public Task<Boolean> SendInstantMessage(String message) {
 			var tcs = new TaskCompletionSource<Boolean>();
 
 			client.Emit("send_instant_message", new {
 				devkey = devkey,
-				message = text,
+				message = message,
 			});
 
 			Action<Boolean> handler = null;
