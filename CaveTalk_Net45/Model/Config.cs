@@ -497,7 +497,7 @@
 		}
 
 		public enum SpeakApplicationType {
-			Bouyomichan, SofTalk, UserSound,
+			Bouyomichan, SofTalk, UserSound, NoSound,
 		}
 
 		public enum CommentPopupDisplayType {

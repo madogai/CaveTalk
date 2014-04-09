@@ -9,12 +9,14 @@
 			var config = Config.GetConfig();
 
 			switch (config.SpeakApplication) {
+				case Config.SpeakApplicationType.Bouyomichan:
+					return new BouyomiClientWrapper();
 				case Config.SpeakApplicationType.SofTalk:
 					return new SofTalkClient(config.SofTalkPath);
 				case Config.SpeakApplicationType.UserSound:
 					return new UserSoundClient();
 				default:
-					return new BouyomiClientWrapper();
+					return new NoSoundClient();
 			}
 		}
 

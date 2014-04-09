@@ -27,6 +27,7 @@
                     <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=Bouyomichan}">棒読みちゃん</RadioButton>
                     <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=SofTalk}">SofTalk</RadioButton>
                     <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=UserSound}">サウンド</RadioButton>
+                    <RadioButton Margin="0,0,5,0" IsChecked="{Binding Path=SpeakApplication, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=NoSound}">なし</RadioButton>
                 </StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
