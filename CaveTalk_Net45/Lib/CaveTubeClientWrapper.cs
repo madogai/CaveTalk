@@ -148,6 +148,8 @@
 			this.OnBan = null;
 			this.OnUnBan = null;
 			this.OnError = null;
+
+			this.client.Dispose();
 		}
 
 		private void Join(String roomId) {
