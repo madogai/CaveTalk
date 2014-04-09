@@ -1,16 +1,17 @@
 ﻿namespace CaveTube.CaveTalk.ViewModel {
 	using System;
+	using System.Collections.Generic;
+	using System.Collections.ObjectModel;
 	using System.Linq;
 	using System.Net;
 	using System.Text.RegularExpressions;
+	using System.Threading.Tasks;
 	using System.Windows;
 	using System.Windows.Input;
+	using CaveTube.CaveTalk.Lib;
 	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Utils;
-	using CaveTube.CaveTalk.Lib;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.Threading.Tasks;
+	using CaveTube.CaveTubeClient;
 
 	public sealed class StartBroadcastViewModel : ViewModelBase {
 		public event Action<String> OnClose;
@@ -213,6 +214,10 @@
 			}
 
 			var streamInfo = await CaveTubeClient.CaveTubeEntry.RequestStartBroadcastAsync(this.Title, config.ApiKey, this.Description, tags, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
+			if (streamInfo == null) {
+				return String.Empty;
+			}
+
 			if (String.IsNullOrEmpty(streamInfo.WarnMessage) == false) {
 				MessageBox.Show(streamInfo.WarnMessage, "注意", MessageBoxButton.OK, MessageBoxImage.Warning);
 			}
