@@ -261,6 +261,9 @@
                                                         <DataTrigger Binding="{Binding Path=IsBan}" Value="True">
                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                         </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Path=DataContext.LoginStatus, Source={StaticResource ResourceKey=ProxyElement}}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </MenuItem.Style>
@@ -272,12 +275,35 @@
                                                         <DataTrigger Binding="{Binding Path=IsBan}" Value="False">
                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                         </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Path=DataContext.LoginStatus, Source={StaticResource ResourceKey=ProxyElement}}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </MenuItem.Style>
                                         </MenuItem>
-                                        <MenuItem Header="ID表示指定" Command="{Binding Path=ShowIdCommand}" />
-                                        <MenuItem Header="ID表示解除" Command="{Binding Path=HideIdCommand}" />
+                                        <MenuItem Header="ID表示指定" Command="{Binding Path=ShowIdCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=DataContext.LoginStatus, Source={StaticResource ResourceKey=ProxyElement}}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
+                                        <MenuItem Header="ID表示解除" Command="{Binding Path=HideIdCommand}">
+                                            <MenuItem.Style>
+                                                <Style TargetType="MenuItem">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Path=DataContext.LoginStatus, Source={StaticResource ResourceKey=ProxyElement}}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </MenuItem.Style>
+                                        </MenuItem>
                                         <MenuItem Header="コメント非表示" Command="{Binding Path=HideCommentCommand}">
                                             <MenuItem.Style>
                                                 <Style TargetType="MenuItem">
@@ -286,6 +312,9 @@
                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Path=IsBan}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Path=DataContext.LoginStatus, Source={StaticResource ResourceKey=ProxyElement}}" Value="False">
                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -300,6 +329,9 @@
                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                         </DataTrigger>
                                                         <DataTrigger Binding="{Binding Path=IsBan}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Path=DataContext.LoginStatus, Source={StaticResource ResourceKey=ProxyElement}}" Value="False">
                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
