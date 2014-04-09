@@ -288,12 +288,10 @@
 				throw new FormatException("URLのフォーマットが正常ではありません。");
 			}
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("join", new {
 				devkey = devkey,
-				mode = "join",
 				room = roomId,
 			});
-			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
@@ -305,12 +303,10 @@
 				return;
 			}
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("leave", new {
 				devkey = devkey,
-				mode = "leave",
 				room = roomId,
 			});
-			client.Send(new TextMessage(message));
 
 			if (this.OnLeave != null) {
 				this.OnLeave(roomId);
@@ -334,7 +330,7 @@
 				return;
 			}
 
-			var jsonString = DynamicJson.Serialize(new {
+			client.Emit("post", new {
 				devkey = devkey,
 				mode = "post",
 				name = name,
@@ -342,7 +338,6 @@
 				apikey = apiKey,
 				_session = "cavetalk",
 			});
-			client.Send(new TextMessage(jsonString));
 		}
 
 		/// <summary>
@@ -360,13 +355,11 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("ban", new {
 				devkey = devkey,
-				mode = "ban",
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			});
-			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
@@ -384,14 +377,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("unban", new {
 				devkey = devkey,
-				mode = "unban",
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			});
-			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
@@ -408,14 +399,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("hide_comment", new {
 				devkey = devkey,
-				mode = "hide_comment",
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			});
-			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
@@ -432,14 +421,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("show_comment", new {
 				devkey = devkey,
-				mode = "show_comment",
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			});
-			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
@@ -456,13 +443,11 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("show_id", new {
 				devkey = devkey,
-				mode = "show_id",
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			});
-			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
@@ -479,14 +464,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("hide_id", new {
 				devkey = devkey,
-				mode = "hide_id",
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			});
-			client.Send(new TextMessage(message));
 		}
 
 		/// <summary>
@@ -529,13 +512,11 @@
 		public Task<Boolean> InviteInstantMessage(Int32 commentNumber, String apiKey) {
 			var tcs = new TaskCompletionSource<Boolean>();
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("allow_instant_message", new {
 				devkey = devkey,
-				mode = "allow_instant_message",
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			});
-			client.Send(new TextMessage(message));
 
 			Action<Boolean> handler = null;
 			handler = isSuccess => {
@@ -556,12 +537,10 @@
 		public Task<Boolean> SendInstantMessage(String text) {
 			var tcs = new TaskCompletionSource<Boolean>();
 
-			var message = DynamicJson.Serialize(new {
+			client.Emit("send_instant_message", new {
 				devkey = devkey,
-				mode = "send_instant_message",
 				message = text,
 			});
-			client.Send(new TextMessage(message));
 
 			Action<Boolean> handler = null;
 			handler = isSuccess => {
