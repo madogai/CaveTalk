@@ -56,7 +56,7 @@
 
 					return new StartInfo(json);
 				}
-			} catch (WebException e) {
+			} catch (WebException) {
 				return null;
 			}
 		}
