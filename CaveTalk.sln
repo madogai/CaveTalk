@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTubeClient.Test", "Cave
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketIOClient", "SocketIO\SocketIOClient.csproj", "{352C9BC1-F74C-4741-A09D-7227BC60C057}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTalk", "CaveTalk_Net45\CaveTalk.csproj", "{C5608987-9DA5-4A04-BEE0-11077FDE07D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTalk", "CaveTalk\CaveTalk.csproj", "{C5608987-9DA5-4A04-BEE0-11077FDE07D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
