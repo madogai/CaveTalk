@@ -53,6 +53,7 @@
     <Compile Include="CavetubeClient.cs" />
     <Compile Include="CaveTubeEntry.cs" />
     <Compile Include="CavetubeException.cs" />
+    <Compile Include="TimerUtil.cs" />
     <Compile Include="DynamicJson.cs" />
     <Compile Include="DateExtends.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

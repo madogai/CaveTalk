@@ -531,11 +531,9 @@
 			};
 			this.OnAllowInstantMessage += handler;
 
-			Timer timer = null;
-			timer = new Timer(_ => {
+			TimerUtil.SetTimeout(defaultTimeout, () => {
 				tcs.TrySetResult(false);
-				timer.Dispose();
-			}, null, defaultTimeout, Timeout.Infinite);
+			});
 
 			return tcs.Task;
 		}
@@ -560,11 +558,9 @@
 			};
 			this.OnSendInstantMessage += handler;
 
-			Timer timer = null;
-			timer = new Timer(_ => {
+			TimerUtil.SetTimeout(defaultTimeout, () => {
 				tcs.TrySetResult(false);
-				timer.Dispose();
-			}, null, defaultTimeout, Timeout.Infinite);
+			});
 
 			return tcs.Task;
 		}
@@ -690,7 +686,7 @@
 						}
 						break;
 					case "receive_instant_message":
-						if (this.OnReceiveInstantMessage != null && json.isDefine("message")) {
+						if (this.OnReceiveInstantMessage != null && json.IsDefined("message")) {
 							this.OnReceiveInstantMessage(json.message);
 						}
 						break;
