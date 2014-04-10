@@ -41,6 +41,7 @@
 		public override event Action<Message> OnShowComment;
 		public override event Action<String> OnJoin;
 		public override event Action<String> OnLeave;
+		public override event Action<String> OnInstantMessage;
 		public override event Action<String> OnAdminShout;
 		public override event Action<Exception> OnError;
 		public override event Action<LiveNotification> OnNotifyLiveStart;
@@ -88,16 +89,20 @@
 			this.client.HideId(commentNumber, apiKey);
 		}
 
-		public override void HideComment(int commentNumber, string apiKey) {
+		public override void HideComment(Int32 commentNumber, string apiKey) {
 			this.client.HideComment(commentNumber, apiKey);
 		}
 
-		public override void ShowComment(int commentNumber, string apiKey) {
+		public override void ShowComment(Int32 commentNumber, string apiKey) {
 			this.client.ShowComment(commentNumber, apiKey);
 		}
 
 		public override void PostComment(String name, String message, String apiKey) {
 			this.client.PostComment(name, message, apiKey);
+		}
+
+		public override async Task<Boolean> AllowInstantMessageAsync(Int32 commentNumber, String apiKey) {
+			return await this.client.AllowInstantMessage(commentNumber, apiKey);
 		}
 
 		public CaveTubeClientWrapper()
@@ -115,6 +120,7 @@
 			this.client.OnUnBan += this.UnBan;
 			this.client.OnHideComment += this.HideComment;
 			this.client.OnShowComment += this.ShowComment;
+			this.client.OnReceiveInstantMessage += this.InstantMessage;
 			this.client.OnAdminShout += this.AdminShout;
 			this.client.OnError += this.Error;
 			this.client.OnNotifyLiveStart += this.NotifyLiveStart;
@@ -137,17 +143,11 @@
 			this.client.OnUnBan -= this.UnBan;
 			this.client.OnHideComment -= this.HideComment;
 			this.client.OnShowComment -= this.ShowComment;
+			this.client.OnReceiveInstantMessage -= this.InstantMessage;
 			this.client.OnAdminShout -= this.AdminShout;
 			this.client.OnError -= this.Error;
 			this.client.OnNotifyLiveStart -= this.NotifyLiveStart;
 			this.client.OnNotifyLiveClose -= this.NotifyLiveClose;
-			this.OnJoin = null;
-			this.OnLeave = null;
-			this.OnNewMessage = null;
-			this.OnUpdateMember = null;
-			this.OnBan = null;
-			this.OnUnBan = null;
-			this.OnError = null;
 
 			this.client.Dispose();
 		}
@@ -203,6 +203,12 @@
 		private void ShowComment(CaveTubeClient.Message message) {
 			if (this.OnShowComment != null) {
 				this.OnShowComment(Mapper.Map<Message>(message));
+			}
+		}
+
+		private void InstantMessage(String message) {
+			if (this.OnInstantMessage != null) {
+				this.OnInstantMessage(message);
 			}
 		}
 

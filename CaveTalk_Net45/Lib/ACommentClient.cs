@@ -27,19 +27,21 @@
 		public abstract Summary JoinedRoomSummary { get; }
 		public abstract Boolean IsConnect { get; }
 
-		public abstract event Action<IEnumerable<Message>> OnMessageList;
-		public abstract event Action<Message> OnNewMessage;
-		public abstract event Action<String> OnJoin;
-		public abstract event Action<String> OnLeave;
-		public abstract event Action<Int32> OnUpdateMember;
-		public abstract event Action<Message> OnBan;
-		public abstract event Action<Message> OnUnBan;
-		public abstract event Action<Message> OnHideComment;
-		public abstract event Action<Message> OnShowComment;
-		public abstract event Action<String> OnAdminShout;
-		public abstract event Action<Exception> OnError;
-		public abstract event Action<LiveNotification> OnNotifyLiveStart;
-		public abstract event Action<LiveNotification> OnNotifyLiveClose;
+#pragma warning disable 67
+		public virtual event Action<IEnumerable<Message>> OnMessageList;
+		public virtual event Action<Message> OnNewMessage;
+		public virtual event Action<Int32> OnUpdateMember;
+		public virtual event Action<String> OnJoin;
+		public virtual event Action<String> OnLeave;
+		public virtual event Action<Message> OnBan;
+		public virtual event Action<Message> OnUnBan;
+		public virtual event Action<Message> OnHideComment;
+		public virtual event Action<Message> OnShowComment;
+		public virtual event Action<String> OnInstantMessage;
+		public virtual event Action<String> OnAdminShout;
+		public virtual event Action<Exception> OnError;
+		public virtual event Action<LiveNotification> OnNotifyLiveStart;
+		public virtual event Action<LiveNotification> OnNotifyLiveClose;
 
 		public ACommentClient() {
 			this.OnNewMessage += this.NewMessage;
@@ -150,6 +152,13 @@
 		/// <param name="postMessage">本文</param>
 		/// <param name="apiKey">APIキー</param>
 		public abstract void PostComment(String postName, String postMessage, String apiKey = "");
+
+		/// <summary>
+		/// インスタントメッセージを許可します。
+		/// </summary>
+		/// <param name="commentNumber"></param>
+		/// <param name="apiKey"></param>
+		public abstract Task<Boolean> AllowInstantMessageAsync(Int32 commentNumber, String apiKey);
 
 		public abstract void Dispose();
 

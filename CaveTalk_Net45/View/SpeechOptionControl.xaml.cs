@@ -14,7 +14,7 @@ using System.Windows.Shapes;
 
 namespace CaveTube.CaveTalk.View {
 	/// <summary>
-	/// CommentOptionControl.xaml の相互作用ロジック
+	/// SpeechOptionControl.xaml の相互作用ロジック
 	/// </summary>
 	public partial class SpeechOptionControl : UserControl {
 		public SpeechOptionControl() {

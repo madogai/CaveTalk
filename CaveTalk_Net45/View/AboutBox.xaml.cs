@@ -4,7 +4,7 @@
 	using CaveTube.CaveTalk.ViewModel;
 
 	/// <summary>
-	/// Version.xaml の相互作用ロジック
+	/// AboutBox.xaml の相互作用ロジック
 	/// </summary>
 	public partial class AboutBox : Window {
 

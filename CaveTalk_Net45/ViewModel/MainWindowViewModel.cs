@@ -388,6 +388,7 @@
 				this.commentClient.OnUnBan += this.CommentStatusChange;
 				this.commentClient.OnHideComment += this.CommentStatusChange;
 				this.commentClient.OnShowComment += this.CommentStatusChange;
+				this.commentClient.OnInstantMessage += this.NotifyInstantMessage;
 				this.commentClient.OnAdminShout += this.NotifyAdminShout;
 				this.commentClient.OnNotifyLiveClose += this.NotifyLiveClose;
 				this.commentClient.OnError += this.LogError;
@@ -418,6 +419,7 @@
 					message.OnHideId += this.HideId;
 					message.OnShowComment += this.ShowComment;
 					message.OnHideComment += this.HideComment;
+					message.OnAllowInstantMessage += this.AllowInstantMessage;
 					if (this.SortDirection == ListSortDirection.Ascending) {
 						this.MessageList.Add(message);
 					} else {
@@ -536,6 +538,19 @@
 		}
 
 		/// <summary>
+		/// インスタントメッセージを許可します。
+		/// </summary>
+		/// <param name="message"></param>
+		private void AllowInstantMessage(Message message) {
+			SendBroadcasterCommandHelper(async () => {
+				var result = await this.commentClient.AllowInstantMessageAsync(message.Number, this.config.ApiKey);
+				if (result == false) {
+					MessageBox.Show("インスタントメッセージの許可に失敗しました。");
+				}
+			});
+		}
+
+		/// <summary>
 		/// 配信者用コマンドを送信するためのヘルパーです。
 		/// </summary>
 		/// <param name="act">実行するコマンド</param>
@@ -644,6 +659,7 @@
 			newMessage.OnHideId += this.HideId;
 			newMessage.OnShowComment += this.ShowComment;
 			newMessage.OnHideComment += this.HideComment;
+			newMessage.OnAllowInstantMessage += this.AllowInstantMessage;
 			if (this.SortDirection == ListSortDirection.Ascending) {
 				this.MessageList.Add(newMessage);
 			} else {
@@ -735,12 +751,26 @@
 			newMessage.OnHideId += this.HideId;
 			newMessage.OnShowComment += this.ShowComment;
 			newMessage.OnHideComment += this.HideComment;
+			newMessage.OnAllowInstantMessage += this.AllowInstantMessage;
 			var index = this.MessageList.ToList().FindIndex(m => m.Number == newMessage.Number);
 			if (index < 0) {
 				return;
 			}
 
 			this.MessageList[index] = newMessage;
+		}
+
+		/// <summary>
+		/// インスタントメッセージ受信時に実行されるイベントです。
+		/// </summary>
+		/// <param name="message"></param>
+		private void NotifyInstantMessage(String message) {
+			uiDispatcher.BeginInvoke(new Action(() => {
+				var instantMessageBox = new InstantMessageBox();
+				var viewModel = new InstantMessageBoxViewModel(message);
+				instantMessageBox.DataContext = viewModel;
+				instantMessageBox.Show();
+			}));
 		}
 
 		/// <summary>
@@ -1003,6 +1033,7 @@
 		public event Action<Message> OnHideId;
 		public event Action<Message> OnShowComment;
 		public event Action<Message> OnHideComment;
+		public event Action<Message> OnAllowInstantMessage;
 
 		public ICommand CopyCommentCommand { get; private set; }
 		public ICommand BanUserCommand { get; private set; }
@@ -1012,6 +1043,7 @@
 		public ICommand ShowCommentCommand { get; private set; }
 		public ICommand HideCommentCommand { get; private set; }
 		public ICommand MarkCommand { get; private set; }
+		public ICommand AllowInstantMessageCommand { get; private set; }
 
 		public Message(Lib.Summary summary, Lib.Message message) {
 			var uiDispatcher = Dispatcher.CurrentDispatcher; ;
@@ -1061,6 +1093,12 @@
 			this.HideCommentCommand = new RelayCommand(p => {
 				if (this.OnHideComment != null) {
 					this.OnHideComment(this);
+				}
+			});
+
+			this.AllowInstantMessageCommand = new RelayCommand(p => {
+				if (this.OnAllowInstantMessage != null) {
+					this.OnAllowInstantMessage(this);
 				}
 			});
 

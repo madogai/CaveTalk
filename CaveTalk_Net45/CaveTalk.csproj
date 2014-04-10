@@ -217,6 +217,7 @@
     <Compile Include="Model\Config.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ViewModel\CommentOptionViewModel.cs" />
+    <Compile Include="ViewModel\InstantMessageBoxViewModel.cs" />
     <Compile Include="ViewModel\OptionBaseViewModel.cs" />
     <Compile Include="ViewModel\OptionWindowViewModel.cs" />
     <Compile Include="ViewModel\GeneralOptionViewModel.cs" />
@@ -233,6 +234,9 @@
     <Compile Include="ViewModel\LoginBoxViewModel.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="Utils\ViewModelBase.cs" />
+    <Compile Include="View\InstantMessageBox.xaml.cs">
+      <DependentUpon>InstantMessageBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\OptionWindow.xaml.cs">
       <DependentUpon>OptionWindow.xaml</DependentUpon>
     </Compile>
@@ -308,6 +312,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="View\InstantMessageBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="View\OptionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
