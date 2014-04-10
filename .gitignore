@@ -12,5 +12,6 @@
 !/packages/repositories.config
 Thumbs.db
 *.suo
+*.vsmdi
 *.testsettings
 README.html
