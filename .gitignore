@@ -11,3 +11,6 @@
 /packages
 !/packages/repositories.config
 Thumbs.db
+*.suo
+*.testsettings
+README.html
