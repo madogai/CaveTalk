@@ -262,8 +262,7 @@
 					throw new CavetubeException("サマリーの取得に失敗しました。");
 				}
 
-				using (var client = new WebClient()) {
-					client.Encoding = Encoding.UTF8;
+				using (var client = WebClientUtil.CreateInstance()) {
 					client.QueryString.Add("stream_name", streamName);
 					client.QueryString.Add("devkey", devkey);
 					var url = String.Format("{0}://{1}:{2}/api/summary", this.webUri.Scheme, this.webUri.Host, this.webUri.Port);
@@ -288,8 +287,7 @@
 			try {
 				var streamName = await this.ParseStreamUrlAsync(liveUrl);
 
-				using (var client = new WebClient()) {
-					client.Encoding = Encoding.UTF8;
+				using (var client = WebClientUtil.CreateInstance()) {
 					client.QueryString.Add("devkey", devkey);
 					var url = String.Format("{0}://{1}:{2}/comment/{3}", this.socketIOUri.Scheme, this.socketIOUri.Host, this.socketIOUri.Port, streamName);
 
@@ -829,7 +827,7 @@
 			pattern = String.Format(@"^(?:{0}/live/(.*))", baseUrl);
 			match = Regex.Match(url, pattern);
 			if (match.Success) {
-				using (var client = new WebClient()) {
+				using (var client = WebClientUtil.CreateInstance()) {
 					var userName = match.Groups[1].Value;
 					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/live_url/{1}", baseUrl, userName));
 					dynamic json = JObject.Parse(jsonString);

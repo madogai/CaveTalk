@@ -71,6 +71,7 @@
     <Compile Include="TimerUtil.cs" />
     <Compile Include="DateExtends.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WebClientUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

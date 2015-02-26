@@ -612,6 +612,7 @@
 		private async void UpdateCheck() {
 			using (var client = new WebClient()) {
 				try {
+					client.Headers.Add(HttpRequestHeader.UserAgent, "CaveChat");
 					var result = await client.DownloadStringTaskAsync(new Uri(ConfigurationManager.AppSettings["version_check_url"]));
 					if (String.IsNullOrEmpty(result)) {
 						return;

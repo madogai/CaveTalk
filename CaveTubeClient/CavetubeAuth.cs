@@ -29,7 +29,7 @@
 				throw new ArgumentException("Passwordが指定されていません。");
 			}
 
-			using (var client = new WebClient()) {
+			using (var client = WebClientUtil.CreateInstance()) {
 				var data = new NameValueCollection {
 					{"devkey", devkey},
 					{"mode", "login"},
@@ -72,7 +72,7 @@
 				throw new ArgumentException(message);
 			}
 
-			using (var client = new WebClient()) {
+			using (var client = WebClientUtil.CreateInstance()) {
 				var data = new NameValueCollection {
 					{"devkey", devkey},
 					{"mode", "logout"},
@@ -92,8 +92,7 @@
 		/// <returns></returns>
 		public static async Task<String> GetAccessKeyAsync(String accessKey = null) {
 			try {
-				using (var client = new WebClient()) {
-					client.Encoding = Encoding.UTF8;
+				using (var client = WebClientUtil.CreateInstance()) {
 					client.QueryString.Add("key", accessKey);
 					var url = String.Format("{0}/accesskey", socketIOUrl);
 					var jsonString = await client.DownloadStringTaskAsync(url);

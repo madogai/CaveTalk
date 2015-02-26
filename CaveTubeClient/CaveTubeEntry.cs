@@ -31,7 +31,7 @@
 		/// <returns></returns>
 		public static async Task<StartInfo> RequestStartBroadcastAsync(String title, String apiKey, String description, IEnumerable<String> tags, Int32 thumbnailSlot, Boolean idVisible, Boolean anonymousOnly, Boolean loginOnly, Boolean testMode, String socketId) {
 			try {
-				using (var client = new WebClient()) {
+				using (var client = WebClientUtil.CreateInstance()) {
 					var data = new NameValueCollection {
 						{"devkey", devkey},
 						{"apikey", apiKey},
@@ -68,9 +68,7 @@
 		/// <returns></returns>
 		public static async Task<UserData> RequestUserDataAsync(String apiKey) {
 			try {
-				using (var client = new WebClient()) {
-					client.Encoding = Encoding.UTF8;
-
+				using (var client = WebClientUtil.CreateInstance()) {
 					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/user_data?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
 					dynamic json = JObject.Parse(jsonString);
 					return new UserData(json);
@@ -89,9 +87,7 @@
 		/// <returns></returns>
 		public static async Task<IEnumerable<Genre>> RequestGenre(String apiKey) {
 			try {
-				using (var client = new WebClient()) {
-					client.Encoding = Encoding.UTF8;
-
+				using (var client = WebClientUtil.CreateInstance()) {
 					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/genre?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
 					dynamic json = JObject.Parse(jsonString);
 
