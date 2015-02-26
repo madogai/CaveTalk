@@ -174,7 +174,12 @@
 				}
 
 				if (this.JoinedRoom != null && String.IsNullOrWhiteSpace(this.JoinedRoom.RoomId) == false) {
-					await this.JoinRoomAsync(this.JoinedRoom.RoomId);
+					try {
+						await this.JoinRoomAsync(this.JoinedRoom.RoomId);
+					} catch (FormatException) {
+					} catch (CavetubeException) {
+
+					}
 				}
 			});
 
