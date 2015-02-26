@@ -657,7 +657,11 @@
 		}
 
 		#region SocketIOのイベントハンドラ
-		private void HandleReady(dynamic json) {
+		private async void HandleReady(dynamic json) {
+			this.JoinedRoom = await this.GetSummaryAsync(json.roomId.ToObject<String>());
+			if (this.OnJoin != null) {
+				this.OnJoin(this.JoinedRoom.RoomId);
+			}
 			if (this.OnJoin != null) {
 				this.OnJoin(json.roomId.ToObject<String>());
 			}

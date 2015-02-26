@@ -92,7 +92,6 @@
 			};
 			Model.Room.UpdateRoom(dbRoom);
 
-			// コメントをDBに保存します。
 			this.NewMessage(room.Summary, room.Messages);
 
 			return room;
