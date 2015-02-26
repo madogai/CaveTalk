@@ -5,10 +5,11 @@
 	using System.Net;
 	using System.Text;
 	using System.Threading.Tasks;
-	using Codeplex.Data;
+	using Newtonsoft.Json.Linq;
 
 	public static class CavetubeAuth {
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
+		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.cavelis.net:3000";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
 		/// <summary>
@@ -40,8 +41,8 @@
 					var response = await client.UploadValuesTaskAsync(String.Format("{0}/api/auth", webUrl), "POST", data);
 					var jsonString = Encoding.UTF8.GetString(response);
 
-					var json = DynamicJson.Parse(jsonString);
-					if (json.IsDefined("apikey") == false) {
+					dynamic json = JObject.Parse(jsonString);
+					if (json.apikey == null) {
 						return String.Empty;
 					}
 
@@ -81,6 +82,30 @@
 
 				var response = await client.UploadValuesTaskAsync(String.Format("{0}/api/auth", webUrl), "POST", data);
 				return true;
+			}
+		}
+
+		/// <summary>
+		/// コメントサーバのアクセスキーを取得します。
+		/// </summary>
+		/// <param name="accessKey"></param>
+		/// <returns></returns>
+		public static async Task<String> GetAccessKeyAsync(String accessKey = null) {
+			try {
+				using (var client = new WebClient()) {
+					client.Encoding = Encoding.UTF8;
+					client.QueryString.Add("key", accessKey);
+					var url = String.Format("{0}/accesskey", socketIOUrl);
+					var jsonString = await client.DownloadStringTaskAsync(url);
+					if (String.IsNullOrEmpty(jsonString)) {
+						throw new CavetubeException("アクセスキーの取得に失敗しました。");
+					}
+
+					dynamic json = JObject.Parse(jsonString);
+					return json.accessKey;
+				}
+			} catch (WebException e) {
+				throw new CavetubeException("アクセスキーの取得に失敗しました。", e);
 			}
 		}
 	}

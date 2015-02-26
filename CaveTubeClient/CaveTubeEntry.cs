@@ -9,7 +9,7 @@
 	using System.Text;
 	using System.Threading.Tasks;
 	using System.Xml;
-	using Codeplex.Data;
+	using Newtonsoft.Json.Linq;
 
 	public static class CaveTubeEntry {
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
@@ -49,8 +49,8 @@
 					var response = await client.UploadValuesTaskAsync(String.Format("{0}/api/start", webUrl), "POST", data);
 					var jsonString = Encoding.UTF8.GetString(response);
 
-					var json = DynamicJson.Parse(jsonString);
-					if (json.IsDefined("stream_name") == false) {
+					dynamic json = JObject.Parse(jsonString);
+					if (json.stream_name == null) {
 						return null;
 					}
 
@@ -72,7 +72,7 @@
 					client.Encoding = Encoding.UTF8;
 
 					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/user_data?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
-					var json = DynamicJson.Parse(jsonString);
+					dynamic json = JObject.Parse(jsonString);
 					return new UserData(json);
 				}
 			} catch (WebException) {
@@ -93,8 +93,9 @@
 					client.Encoding = Encoding.UTF8;
 
 					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/genre?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
-					var json = DynamicJson.Parse(jsonString);
-					return ((dynamic[])json.genres).Select(genre => new Genre(genre));
+					dynamic json = JObject.Parse(jsonString);
+
+					return ((JArray)json.genres).Select(genre => new Genre(genre));
 				}
 			} catch (WebException) {
 				return Enumerable.Empty<Genre>();
@@ -111,7 +112,7 @@
 			}
 
 			internal UserData(dynamic json) {
-				this.Thumbnails = ((dynamic[])json.thumbnails).Select(t => new Thumbnail(t));
+				this.Thumbnails = ((JArray)json.thumbnails).Select(t => new Thumbnail(t));
 			}
 		}
 
@@ -121,7 +122,7 @@
 
 			internal Genre(dynamic json) {
 				this.Title = json.title;
-				this.Tags = ((dynamic[])json.tags).Select(t => (String)t);
+				this.Tags = json.tags.ToObject<IEnumerable<String>>();
 			}
 		}
 
@@ -141,7 +142,7 @@
 
 			internal StartInfo(dynamic json) {
 				this.StreamName = json.stream_name;
-				this.WarnMessage = json.IsDefined("warn_message") ? json.warn_message : String.Empty;
+				this.WarnMessage = json.warn_message ?? String.Empty;
 			}
 		}
 	}

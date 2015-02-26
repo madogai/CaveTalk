@@ -34,6 +34,24 @@
 			configDictionary = new Dictionary<String, String>();
 		}
 
+		// アクセスキー
+		private const String accessKey = "AccessKey";
+		public String AccessKey {
+			get {
+				if (this.configDictionary.ContainsKey(accessKey) == false) {
+					return String.Empty;
+				}
+				return this.configDictionary[accessKey];
+			}
+			set {
+				if (String.IsNullOrWhiteSpace(value)) {
+					this.configDictionary[accessKey] = String.Empty;
+				}
+
+				this.configDictionary[accessKey] = value;
+			}
+		}
+
 		// APIキー
 		private const String apiKey = "ApiKey";
 		public String ApiKey {

@@ -10,10 +10,9 @@
 	using System.Threading;
 	using System.Threading.Tasks;
 	using System.Xml;
-	using Codeplex.Data;
 	using Microsoft.CSharp.RuntimeBinder;
-	using SocketIOClient;
-	using SocketIOClient.Messages;
+	using Newtonsoft.Json.Linq;
+	using Quobject.SocketIoClientDotNet.Client;
 
 	public sealed class CavetubeClient : IDisposable {
 		private const Int32 defaultTimeout = 3000;
@@ -102,9 +101,21 @@
 		/// 投票がキャンセルされた時に通知されるイベントです。
 		/// </summary>
 		public event Action OnVoteStop;
+		/// <summary>
+		/// インスタントメッセージ招待を受けたときに通知されるイベントです。
+		/// </summary>
 		public event Action OnInviteInstantMessage;
+		/// <summary>
+		/// インスタントメッセージの送信を受け取った時に通知されるイベントです。
+		/// </summary>
 		public event Action<String> OnReceiveInstantMessage;
+		/// <summary>
+		/// 所属している部屋にインスタントメッセージ招待が行われた場合に通知されるイベントです。
+		/// </summary>
 		public event Action OnNotifyInviteInstantMessage;
+		/// <summary>
+		/// 所属している部屋でインスタントメッセージの送信が行われた場合に通知されるイベントです。
+		/// </summary>
 		public event Action OnNotifySendInstantMessage;
 
 		/// <summary>
@@ -116,25 +127,22 @@
 		/// </summary>
 		public event Action<CavetubeException> OnError;
 
-		private event Action<dynamic> OnMessage;
-		private event Action<Boolean> OnAllowInstantMessage;
-		private event Action<Boolean> OnSendInstantMessage;
-
 		/// <summary>
 		/// ソケットID
 		/// </summary>
 		public String SocketId {
 			get {
-				if (this.IsConnect == false) {
-					return String.Empty;
-				}
-				return this.client.HandShake.SID;
+				return this.client.Io().EngineSocket.Id;
 			}
 		}
 		/// <summary>
 		/// コメントサーバとの接続状態
 		/// </summary>
-		public Boolean IsConnect { get { return this.client.IsConnected; } }
+		public Boolean IsConnect {
+			get {
+				return this.client.Io().ReadyState == Manager.ReadyStateEnum.OPEN;
+			}
+		}
 		/// <summary>
 		/// 入室している部屋のサマリー
 		/// </summary>
@@ -142,66 +150,85 @@
 
 		private Uri webUri;
 		private Uri socketIOUri;
-		private Client client;
+		private Socket client;
 		private ManualResetEvent connectionOpenEvent;
 
 		/// <summary>
 		/// コンストラクタ
 		/// </summary>
 		/// <param name="client"></param>
-		public CavetubeClient() {
+		public CavetubeClient(String accessKey) {
 			this.webUri = new Uri(webUrl);
 			this.socketIOUri = new Uri(socketIOUrl);
 			this.connectionOpenEvent = new ManualResetEvent(false);
-			this.client = new Client(socketIOUrl);
-			this.client.RetryConnectionAttempts = 15;
-			this.client.Opened += (sender, e) => {
-				this.connectionOpenEvent.Set();
-			};
-
-			// 配信情報関係
-			this.client.On("message", message => {
-				var json = DynamicJson.Parse(message.MessageText);
-				if (json.IsDefined("ret") && json.ret == false) {
-					return;
-				}
-
-				if (json.IsDefined("mode") == false) {
-					return;
-				}
-
-				if (this.OnMessage != null) {
-					this.OnMessage(json);
-				}
+			this.client = IO.Socket(socketIOUri, new IO.Options() {
+				ReconnectionAttempts = 15,
+				AutoConnect = false,
+				Query = new Dictionary<String, String> {
+					{"accessKey", accessKey},
+				},
 			});
-
-			this.client.Opened += (sender, e) => {
+			this.client.On(Socket.EVENT_CONNECT, async () => {
 				if (this.OnConnect != null) {
 					this.OnConnect();
 				}
 
 				if (this.JoinedRoom != null && String.IsNullOrWhiteSpace(this.JoinedRoom.RoomId) == false) {
-					this.JoinRoom(this.JoinedRoom.RoomId);
+					await this.JoinRoomAsync(this.JoinedRoom.RoomId);
 				}
-			};
+			});
 
-			this.client.Error += (sender, e) => {
-				if (this.OnError != null) {
-					this.OnError(new CavetubeException(e.Message, e.Exception));
-				}
-			};
-
-			this.client.SocketConnectionClosed += (sender, args) => {
+			this.client.On(Socket.EVENT_DISCONNECT, () => {
 				if (this.OnDisconnect != null) {
 					this.OnDisconnect();
 				}
-			};
+			});
 
-			this.OnMessage += this.HandleCommentInformation;
-			this.OnMessage += this.HandleRoomInformation;
-			this.OnMessage += this.HandleLiveInfomation;
-			this.OnMessage += this.HandleOtherInformation;
+			this.client.On(Socket.EVENT_ERROR, e => {
+				if (this.OnError != null) {
+					this.OnError(new CavetubeException("エラーが発生しました。"));
+				}
+			});
+
+			#region コメント関係のハンドリング
+			this.client.On("ready", this.HandleReady);
+			this.client.On("get", this.HandleGetComment);
+			this.client.On("post", this.HandlePostComment);
+			this.client.On("post_result", this.HandlePostResult);
+			this.client.On("ban_user", this.HandleBanUser);
+			this.client.On("unban_user", this.HandleUnBanUser);
+			this.client.On("ban_fail", this.HandleBanFail);
+			this.client.On("hide_comment", this.HandleHideComment);
+			this.client.On("show_comment", this.HandleShowComment);
+			this.client.On("show_id", this.HandleShowId);
+			this.client.On("hide_id", this.HandleHideId);
+
+			this.client.On("invite_instant_message", this.HandleInviteInstantMessage);
+			this.client.On("receive_instant_message", this.HandleReceiveInstantMessage);
+			this.client.On("notify_invite_instant_message", this.HandleNotifyInviteInstantMessage);
+			this.client.On("notify_send_instant_message", this.HandleNotifySendInstantMessage);
+			#endregion
+
+			# region Room関連のハンドリング
+			this.client.On("join", this.HandleJoinAndLeave);
+			this.client.On("leave", this.HandleJoinAndLeave);
+			# endregion
+
+			# region 投票関連のハンドリング
+			this.client.On("vote_start", this.HandleVoteStart);
+			this.client.On("vote_result", this.HandleVoteResult);
+			this.client.On("vote_stop", this.HandleVoteStop);
+			#endregion
+
+			# region 通知関連のハンドリング
+			this.client.On("start_entry", this.HandleStartEntry);
+			this.client.On("close_entry", this.HandleCloseEntry);
+			#endregion
+
+			# region その他のハンドリング
+			this.client.On("admin_yell", this.HandleYell);
 		}
+			#endregion
 
 		~CavetubeClient() {
 			this.Dispose();
@@ -213,8 +240,11 @@
 		/// <exception cref="System.Net.WebException" />
 		public void Connect() {
 			this.connectionOpenEvent.Reset();
-			this.client.Connect();
-			var isConnect = this.connectionOpenEvent.WaitOne(4000);
+			this.client.Once(Socket.EVENT_CONNECT, () => {
+				this.connectionOpenEvent.Set();
+			});
+			this.client.Open();
+			var isConnect = this.connectionOpenEvent.WaitOne(3000);
 			if (isConnect == false) {
 				throw new CavetubeException("CaveTubeとの接続に失敗しました。");
 			}
@@ -242,8 +272,8 @@
 						throw new CavetubeException("サマリーの取得に失敗しました。");
 					}
 
-					var json = DynamicJson.Parse(jsonString);
-					return new Summary(jsonString);
+					dynamic json = JObject.Parse(jsonString);
+					return new Summary(json);
 				}
 			} catch (WebException e) {
 				throw new CavetubeException("サマリーの取得に失敗しました", e);
@@ -268,7 +298,7 @@
 						throw new CavetubeException("コメントの取得に失敗しました。");
 					}
 
-					var json = DynamicJson.Parse(jsonString);
+					dynamic json = JObject.Parse(jsonString);
 					var comments = this.ParseMessage(json);
 					return comments;
 				}
@@ -282,31 +312,42 @@
 		/// </summary>
 		/// <param name="roomId">視聴ページのURL、またはルームID</param>
 		/// <exception cref="System.FormatException">引数のフォーマットが正しくありません。</exception>
-		public async void JoinRoom(String liveUrl) {
+		/// <exception cref="CaveTubeException">入室に失敗しました。</exception>
+		public async Task JoinRoomAsync(String liveUrl) {
 			var roomId = await this.ParseStreamUrlAsync(liveUrl);
 			if (String.IsNullOrWhiteSpace(roomId)) {
 				throw new FormatException("URLのフォーマットが正常ではありません。");
 			}
 
-			client.Emit("join", new {
-				devkey = devkey,
-				room = roomId,
+			this.connectionOpenEvent.Reset();
+			this.client.Once("ready", () => {
+				this.connectionOpenEvent.Set();
 			});
+
+			client.Emit("join", JObject.FromObject(new {
+				devkey = devkey,
+				roomId = roomId,
+			}));
+
+			var isJoin = this.connectionOpenEvent.WaitOne(3000);
+			if (isJoin == false) {
+				throw new CavetubeException("部屋への入室に失敗しました。");
+			}
 		}
 
 		/// <summary>
 		/// コメントルームから退出します。
 		/// </summary>
 		public void LeaveRoom() {
-			var roomId = this.JoinedRoom.RoomId;
-			if (String.IsNullOrWhiteSpace(roomId)) {
+			if (this.JoinedRoom == null) {
 				return;
 			}
 
-			client.Emit("leave", new {
+			var roomId = this.JoinedRoom.RoomId;
+			client.Emit("leave", JObject.FromObject(new {
 				devkey = devkey,
-				room = roomId,
-			});
+				roomId = roomId,
+			}));
 
 			if (this.OnLeave != null) {
 				this.OnLeave(roomId);
@@ -330,14 +371,13 @@
 				return;
 			}
 
-			client.Emit("post", new {
+			client.Emit("post", JObject.FromObject(new {
 				devkey = devkey,
-				mode = "post",
+				roomId = this.JoinedRoom.RoomId,
 				name = name,
 				message = message,
-				apikey = apiKey,
-				_session = "cavetalk",
-			});
+				apikey = apiKey
+			}));
 		}
 
 		/// <summary>
@@ -355,11 +395,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			client.Emit("ban", new {
+			client.Emit("ban", JObject.FromObject(new {
 				devkey = devkey,
+				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
-			});
+			}));
 		}
 
 		/// <summary>
@@ -377,12 +418,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			client.Emit("unban", new {
+			client.Emit("unban", JObject.FromObject(new {
 				devkey = devkey,
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
-			});
+			}));
 		}
 
 		/// <summary>
@@ -399,12 +440,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			client.Emit("hide_comment", new {
+			client.Emit("hide_comment", JObject.FromObject(new {
 				devkey = devkey,
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
-			});
+			}));
 		}
 
 		/// <summary>
@@ -421,12 +462,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			client.Emit("show_comment", new {
+			client.Emit("show_comment", JObject.FromObject(new {
 				devkey = devkey,
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
-			});
+			}));
 		}
 
 		/// <summary>
@@ -443,11 +484,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			client.Emit("show_id", new {
+			client.Emit("show_id", JObject.FromObject(new {
 				devkey = devkey,
+				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
-			});
+			}));
 		}
 
 		/// <summary>
@@ -464,12 +506,12 @@
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
-			client.Emit("hide_id", new {
+			client.Emit("hide_id", JObject.FromObject(new {
 				devkey = devkey,
 				roomId = this.JoinedRoom.RoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
-			});
+			}));
 		}
 
 		/// <summary>
@@ -479,12 +521,21 @@
 		/// <param name="choices">回答リスト</param>
 		/// <param name="apiKey">APIキー</param>
 		public void VoteStart(String question, IList<String> choices, String apiKey) {
-			client.Emit("vote_start", new {
+			if (String.IsNullOrWhiteSpace(apiKey)) {
+				throw new ArgumentException("APIキーは必須です。");
+			}
+
+			if (this.JoinedRoom == null) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
+			client.Emit("vote_start", JObject.FromObject(new {
 				devkey = devkey,
+				roomId = this.JoinedRoom.RoomId,
 				question = question,
 				choices = choices,
 				apikey = apiKey,
-			});
+			}));
 		}
 
 		/// <summary>
@@ -492,10 +543,19 @@
 		/// </summary>
 		/// <param name="apiKey">APIキー</param>
 		public void VoteResult(String apiKey) {
-			client.Emit("vote_result", new {
+			if (String.IsNullOrWhiteSpace(apiKey)) {
+				throw new ArgumentException("APIキーは必須です。");
+			}
+
+			if (this.JoinedRoom == null) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
+			client.Emit("vote_result", JObject.FromObject(new {
 				devkey = devkey,
+				roomId = this.JoinedRoom.RoomId,
 				apiKey = apiKey,
-			});
+			}));
 		}
 
 		/// <summary>
@@ -503,10 +563,19 @@
 		/// </summary>
 		/// <param name="apiKey">APIキー</param>
 		public void VoteStop(String apiKey) {
-			client.Emit("vote_stop", new {
+			if (String.IsNullOrWhiteSpace(apiKey)) {
+				throw new ArgumentException("APIキーは必須です。");
+			}
+
+			if (this.JoinedRoom == null) {
+				throw new CavetubeException("部屋に所属していません。");
+			}
+
+			client.Emit("vote_stop", JObject.FromObject(new {
 				devkey = devkey,
+				roomId = this.JoinedRoom.RoomId,
 				apiKey = apiKey,
-			});
+			}));
 		}
 
 		/// <summary>
@@ -518,18 +587,18 @@
 		public Task<Boolean> AllowInstantMessage(Int32 commentNumber, String apiKey) {
 			var tcs = new TaskCompletionSource<Boolean>();
 
-			client.Emit("allow_instant_message", new {
-				devkey = devkey,
-				commentNumber = commentNumber,
-				apikey = apiKey,
+			this.client.On("allow_instant_message", (dynamic json) => {
+				Boolean isSuccess = json.result ?? false;
+				tcs.TrySetResult(isSuccess);
+				this.client.Off("allow_instant_message");
 			});
 
-			Action<Boolean> handler = null;
-			handler = isSuccess => {
-				tcs.TrySetResult(isSuccess);
-				this.OnAllowInstantMessage -= handler;
-			};
-			this.OnAllowInstantMessage += handler;
+			client.Emit("allow_instant_message", JObject.FromObject(new {
+				devkey = devkey,
+				roomId = this.JoinedRoom.RoomId,
+				commentNumber = commentNumber,
+				apikey = apiKey,
+			}));
 
 			TimerUtil.SetTimeout(defaultTimeout, () => {
 				tcs.TrySetResult(false);
@@ -546,17 +615,17 @@
 		public Task<Boolean> SendInstantMessage(String message) {
 			var tcs = new TaskCompletionSource<Boolean>();
 
-			client.Emit("send_instant_message", new {
-				devkey = devkey,
-				message = message,
+			this.client.On("send_instant_message", (dynamic json) => {
+				Boolean isSuccess = json.result ?? false;
+				tcs.TrySetResult(isSuccess);
+				this.client.Off("allow_instant_message");
 			});
 
-			Action<Boolean> handler = null;
-			handler = isSuccess => {
-				tcs.TrySetResult(isSuccess);
-				this.OnSendInstantMessage -= handler;
-			};
-			this.OnSendInstantMessage += handler;
+			client.Emit("send_instant_message", JObject.FromObject(new {
+				devkey = devkey,
+				roomId = this.JoinedRoom.RoomId,
+				message = message,
+			}));
 
 			TimerUtil.SetTimeout(defaultTimeout, () => {
 				tcs.TrySetResult(false);
@@ -579,211 +648,170 @@
 		/// オブジェクトを破棄します。
 		/// </summary>
 		public void Dispose() {
-			this.OnMessage -= this.HandleCommentInformation;
-			this.OnMessage -= this.HandleRoomInformation;
-			this.OnMessage -= this.HandleLiveInfomation;
-			this.OnMessage -= this.HandleOtherInformation;
-
 			if (this.client == null) {
 				return;
 			}
-			this.client.Dispose();
+
+			this.client.Close();
 			this.client = null;
 
 			this.connectionOpenEvent.Dispose();
 		}
 
-		/// <summary>
-		/// コメントの情報を処理します。
-		/// </summary>
-		/// <param name="json"></param>
-		private async void HandleCommentInformation(dynamic json) {
-			try {
-				String mode = json.mode;
-				switch (mode) {
-					case "ready":
-						this.JoinedRoom = await this.GetSummaryAsync((String)json.room);
-						if (this.OnJoin != null) {
-							this.OnJoin(this.JoinedRoom.RoomId);
-						}
-						break;
-					case "get":
-						if (this.OnMessageList != null) {
-							var messages = this.ParseMessage(json);
-							this.OnMessageList(messages);
-						}
-						break;
-					case "post":
-						if (this.OnNewMessage != null) {
-							var post = new Message(json);
-							this.OnNewMessage(post);
-						}
-						break;
-					case "post_result":
-						if (this.OnPostResult != null) {
-							var result = json.IsDefined("result") ? json.result : false;
-							this.OnPostResult(result);
-						}
-						break;
-					case "ban_user":
-						if (this.OnBan != null) {
-							var message = new Message(json);
-							message.IsBan = true;
-							this.OnBan(message);
-						}
-						break;
-					case "unban_user":
-						if (this.OnUnBan != null) {
-							var message = new Message(json);
-							this.OnUnBan(message);
-						}
-						break;
-					case "ban_fail":
-						if (this.OnBanFail != null) {
-							var banFail = new BanFail(json);
-							this.OnBanFail(banFail);
-						}
-						break;
-					case "hide_comment":
-						if (this.OnHideComment != null) {
-							var message = new Message(json);
-							this.OnHideComment(message);
-						}
-						break;
-					case "show_comment":
-						if (this.OnShowComment != null) {
-							var message = new Message(json);
-							this.OnShowComment(message);
-						}
-						break;
-					case "show_id":
-						if (this.OnShowId != null) {
-							var idNotify = new IdNotification(json);
-							this.OnShowId(idNotify);
-						}
-						break;
-					case "hide_id":
-						if (this.OnHideId != null) {
-							var idNotify = new IdNotification(json);
-							this.OnHideId(idNotify);
-						}
-						break;
-					case "allow_instant_message":
-						if (this.OnAllowInstantMessage != null) {
-							var result = json.IsDefined("result") ? json.result : false;
-							this.OnAllowInstantMessage(result);
-						}
-						break;
-					case "send_instant_message":
-						if (this.OnSendInstantMessage != null) {
-							var result = json.IsDefined("result") ? json.result : false;
-							this.OnSendInstantMessage(result);
-						}
-						break;
-					case "invite_instant_message":
-						if (this.OnInviteInstantMessage != null) {
-							this.OnInviteInstantMessage();
-						}
-						break;
-					case "receive_instant_message":
-						if (this.OnReceiveInstantMessage != null && json.IsDefined("message")) {
-							this.OnReceiveInstantMessage(json.message);
-						}
-						break;
-					case "notify_invite_instant_message":
-						if (this.OnNotifyInviteInstantMessage != null) {
-							this.OnNotifyInviteInstantMessage();
-						}
-						break;
-					case "notify_send_instant_message":
-						if (this.OnNotifySendInstantMessage != null) {
-							this.OnNotifySendInstantMessage();
-						}
-						break;
-				}
-			} catch (CavetubeException e) {
-				Debug.WriteLine(e.Message);
-			} catch (XmlException) {
-				Debug.WriteLine("メッセージのParseに失敗しました。");
-			} catch (RuntimeBinderException) {
-				Debug.WriteLine("Json内にプロパティが見つかりませんでした。");
+		#region SocketIOのイベントハンドラ
+		private async void HandleReady(dynamic json) {
+			this.JoinedRoom = await this.GetSummaryAsync(json.roomId.ToObject<String>());
+			if (this.OnJoin != null) {
+				this.OnJoin(this.JoinedRoom.RoomId);
 			}
 		}
 
-		/// <summary>
-		/// 部屋に関する情報を処理します。
-		/// </summary>
-		/// <param name="json"></param>
-		private void HandleRoomInformation(dynamic json) {
-			String mode = json.mode;
-			switch (mode) {
-				case "join":
-				case "leave":
-					if (this.OnUpdateMember != null) {
-						var ipCount = (Int32)json.ipcount;
-						this.OnUpdateMember(ipCount);
-					}
-					break;
-				case "vote_start":
-					if (this.OnVoteStart != null) {
-						var vote = new Vote(json);
-						this.OnVoteStart(vote);
-					}
-					break;
-				case "vote_result":
-					if (this.OnVoteResult != null) {
-						var vote = new Vote(json);
-						this.OnVoteResult(vote);
-					}
-					break;
-				case "vote_stop":
-					if (this.OnVoteStop != null) {
-						this.OnVoteStop();
-					}
-					break;
+		private void HandleGetComment(dynamic json) {
+			if (this.OnMessageList != null) {
+				var messages = this.ParseMessage(json);
+				this.OnMessageList(messages);
 			}
 		}
 
-		/// <summary>
-		/// 配信の開始/終了情報を処理します。
-		/// </summary>
-		/// <param name="json"></param>
-		private void HandleLiveInfomation(dynamic json) {
-			String mode = json.mode;
-			switch (mode) {
-				case "start_entry":
-					if (this.OnNotifyLiveStart != null) {
-						var liveInfo = new LiveNotification(json);
-						this.OnNotifyLiveStart(liveInfo);
-					}
-					break;
-				case "close_entry":
-					if (this.OnNotifyLiveClose != null) {
-						var liveInfo = new LiveNotification(json);
-						this.OnNotifyLiveClose(liveInfo);
-					}
-					break;
+		private void HandlePostComment(dynamic json) {
+			if (this.OnNewMessage != null) {
+				var post = new Message(json);
+				this.OnNewMessage(post);
 			}
 		}
 
-		/// <summary>
-		/// その他の特殊な情報を処理します。
-		/// </summary>
-		/// <param name="json"></param>
-		private void HandleOtherInformation(dynamic json) {
-			String mode = json.mode;
-			switch (mode) {
-				case "admin_yell":
-					if (this.OnAdminShout != null) {
-						var adminShout = new AdminShout(json);
-						this.OnAdminShout(adminShout);
-					}
-					break;
+		private void HandlePostResult(dynamic json) {
+			if (this.OnPostResult != null) {
+				var result = json.result ?? false;
+				this.OnPostResult(result);
 			}
 		}
+
+		private void HandleBanUser(dynamic json) {
+			if (this.OnBan != null) {
+				var message = new Message(json);
+				message.IsBan = true;
+				this.OnBan(message);
+			}
+		}
+
+		private void HandleUnBanUser(dynamic json) {
+			if (this.OnUnBan != null) {
+				var message = new Message(json);
+				this.OnUnBan(message);
+			}
+		}
+
+		private void HandleBanFail(dynamic json) {
+			if (this.OnBanFail != null) {
+				var banFail = new BanFail(json);
+				this.OnBanFail(banFail);
+			}
+		}
+
+		private void HandleHideComment(dynamic json) {
+			if (this.OnHideComment != null) {
+				var message = new Message(json);
+				this.OnHideComment(message);
+			}
+		}
+
+		private void HandleShowComment(dynamic json) {
+			if (this.OnShowComment != null) {
+				var message = new Message(json);
+				this.OnShowComment(message);
+			}
+		}
+
+		private void HandleShowId(dynamic json) {
+			if (this.OnShowId != null) {
+				var idNotify = new IdNotification(json);
+				this.OnShowId(idNotify);
+			}
+		}
+
+		private void HandleHideId(dynamic json) {
+			if (this.OnHideId != null) {
+				var idNotify = new IdNotification(json);
+				this.OnHideId(idNotify);
+			}
+		}
+
+		private void HandleInviteInstantMessage(dynamic json) {
+			if (this.OnInviteInstantMessage != null) {
+				this.OnInviteInstantMessage();
+			}
+		}
+
+		private void HandleReceiveInstantMessage(dynamic json) {
+			if (this.OnReceiveInstantMessage != null && json.message != null) {
+				String message = json.message ?? String.Empty;
+				this.OnReceiveInstantMessage(message);
+			}
+		}
+
+		private void HandleNotifyInviteInstantMessage(dynamic json) {
+			if (this.OnNotifyInviteInstantMessage != null) {
+				this.OnNotifyInviteInstantMessage();
+			}
+		}
+
+		private void HandleNotifySendInstantMessage(dynamic json) {
+			if (this.OnNotifySendInstantMessage != null) {
+				this.OnNotifySendInstantMessage();
+			}
+		}
+
+		private void HandleJoinAndLeave(dynamic json) {
+			if (this.OnUpdateMember != null && json.ipcount != null) {
+				this.OnUpdateMember(json.ipcount.ToObject<Int32>());
+			}
+		}
+
+		private void HandleVoteStart(dynamic json) {
+			if (this.OnVoteStart != null) {
+				var vote = new Vote(json);
+				this.OnVoteStart(vote);
+			}
+		}
+
+		private void HandleVoteResult(dynamic json) {
+			if (this.OnVoteResult != null) {
+				var vote = new Vote(json);
+				this.OnVoteResult(vote);
+			}
+		}
+
+		private void HandleVoteStop(dynamic json) {
+			if (this.OnVoteStop != null) {
+				this.OnVoteStop();
+			}
+		}
+
+		private void HandleStartEntry(dynamic json) {
+			if (this.OnNotifyLiveStart != null) {
+				var liveInfo = new LiveNotification(json);
+				this.OnNotifyLiveStart(liveInfo);
+			}
+		}
+
+		private void HandleCloseEntry(dynamic json) {
+			if (this.OnNotifyLiveClose != null) {
+				var liveInfo = new LiveNotification(json);
+				this.OnNotifyLiveClose(liveInfo);
+			}
+		}
+
+		private void HandleYell(dynamic json) {
+			if (this.OnAdminShout != null) {
+				var adminShout = new AdminShout(json);
+				this.OnAdminShout(adminShout);
+			}
+		}
+		#endregion
 
 		private IEnumerable<Message> ParseMessage(dynamic json) {
-			var messages = ((dynamic[])json.comments).Select(comment => new Message(comment));
+			var messages = ((JArray)json.comments).Select(comment => new Message(comment));
 			return messages;
 		}
 
@@ -804,9 +832,9 @@
 			if (match.Success) {
 				using (var client = new WebClient()) {
 					var userName = match.Groups[1].Value;
-					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/live_url?user={1}", baseUrl, userName));
-					var json = DynamicJson.Parse(jsonString);
-					var streamName = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
+					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/live_url/{1}", baseUrl, userName));
+					dynamic json = JObject.Parse(jsonString);
+					var streamName = json.stream_name ?? String.Empty;
 					return streamName;
 				}
 			}
@@ -833,18 +861,17 @@
 		internal Summary() {
 		}
 
-		internal Summary(String jsonString) {
-			var json = DynamicJson.Parse(jsonString);
-			this.RoomId = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
-			this.Title = json.IsDefined("title") ? json.title : String.Empty;
-			this.Description = json.IsDefined("desc") ? json.desc : String.Empty;
-			this.Tags = json.IsDefined("tags") ? json.tags.Deserialize<String[]>() : new String[0];
-			this.IdVidible = json.IsDefined("id_visible") ? json.id_visible : false;
-			this.AnonymousOnly = json.IsDefined("anonymous_only") ? json.anonymous_only : false;
-			this.Author = json.IsDefined("author") ? json.author : String.Empty;
-			this.Listener = json.IsDefined("listener") ? (Int32)json.listener : 0;
-			this.PageView = json.IsDefined("viewer") ? (Int32)json.viewer : 0;
-			this.StartTime = json.IsDefined("start_time") ? DateExtends.ToDateTime(json.start_time) : new DateTime();
+		internal Summary(dynamic json) {
+			this.RoomId = json.stream_name ?? String.Empty;
+			this.Title = json.title ?? String.Empty;
+			this.Description = json.desc ?? String.Empty;
+			this.Tags = json.tags != null ? json.tags.ToObject<String[]>() : new String[0];
+			this.IdVidible = json.id_visible ?? false;
+			this.AnonymousOnly = json.anonymous_only ?? false;
+			this.Author = json.author ?? String.Empty;
+			this.Listener = json.listener ?? 0;
+			this.PageView = json.viewer ?? 0;
+			this.StartTime = json.start_time != null ? DateExtends.ToDateTime(json.start_time.ToObject<Double>()) : new DateTime();
 		}
 
 		public override bool Equals(object obj) {
@@ -878,14 +905,14 @@
 		public Boolean IsHide { get; internal set; }
 
 		internal Message(dynamic json) {
-			this.Number = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
-			this.ListenerId = json.IsDefined("user_id") ? (String)json.user_id : String.Empty;
-			this.Name = json.IsDefined("name") ? json.name : String.Empty;
-			this.Comment = json.IsDefined("message") ? WebUtility.HtmlDecode(json.message) : String.Empty;
-			this.IsAuth = json.IsDefined("auth") ? json.auth : false;
-			this.IsBan = json.IsDefined("is_ban") ? json.is_ban : false;
-			this.IsHide = json.IsDefined("is_hide") ? json.is_hide : false;
-			this.PostTime = json.IsDefined("time") ? DateExtends.ToDateTime(json.time) : new DateTime();
+			this.Number = json.comment_num ?? 0;
+			this.ListenerId = json.user_id ?? String.Empty;
+			this.Name = json.name ?? String.Empty;
+			this.Comment = json.message != null ? WebUtility.HtmlDecode(json.message.ToObject<String>()) : String.Empty;
+			this.IsAuth = json.auth ?? false;
+			this.IsBan = json.is_ban ?? false;
+			this.IsHide = json.is_hide ?? false;
+			this.PostTime = json.time != null ? DateExtends.ToDateTime(json.time.ToObject<Double>()) : new DateTime();
 		}
 
 		public override bool Equals(object obj) {
@@ -910,15 +937,13 @@
 	/// </summary>
 	public sealed class LiveNotification {
 		public String Author { get; internal set; }
-
 		public String Title { get; internal set; }
-
 		public String RoomId { get; internal set; }
 
 		internal LiveNotification(dynamic json) {
-			this.Author = json.IsDefined("author") ? json.author : String.Empty;
-			this.Title = json.IsDefined("title") ? json.title : String.Empty;
-			this.RoomId = json.IsDefined("stream_name") ? json.stream_name : String.Empty;
+			this.Author = json.author ?? String.Empty;
+			this.Title = json.title ?? String.Empty;
+			this.RoomId = json.stream_name ?? String.Empty;
 		}
 
 		public override Boolean Equals(object obj) {
@@ -946,8 +971,8 @@
 		public String Message { get; internal set; }
 
 		internal BanFail(dynamic json) {
-			this.Number = json.IsDefined("comment_num") ? json.comment_num : 0;
-			this.Message = json.IsDefined("message") ? json.message : String.Empty;
+			this.Number = json.comment_num ?? 0;
+			this.Message = json.message ?? String.Empty;
 		}
 	}
 
@@ -958,7 +983,7 @@
 		public Int32 Number { get; internal set; }
 
 		internal IdNotification(dynamic json) {
-			this.Number = json.IsDefined("comment_num") ? (Int32)json.comment_num : 0;
+			this.Number = json.comment_num ?? 0;
 		}
 	}
 
@@ -970,8 +995,8 @@
 		public IReadOnlyList<VoteChoice> Choices { get; internal set; }
 
 		internal Vote(dynamic json) {
-			this.Question = json.IsDefined("question") ? json.question : String.Empty;
-			this.Choices = ((dynamic[])json.choices).Select((choice, i) => new VoteChoice(choice, i)).ToList();
+			this.Question = json.question ?? String.Empty;
+			this.Choices = ((JArray)json.choices).Select((choice, i) => new VoteChoice(choice, i)).ToList();
 		}
 	}
 
@@ -985,8 +1010,8 @@
 
 		internal VoteChoice(dynamic json, Int32 index) {
 			this.Number = index;
-			this.Title = json.IsDefined("text") ? json.text : String.Empty;
-			this.Result = json.IsDefined("result") ? json.result : null;
+			this.Title = json.text ?? String.Empty;
+			this.Result = json.result;
 		}
 	}
 
@@ -997,7 +1022,7 @@
 		public String Message { get; internal set; }
 
 		internal AdminShout(dynamic json) {
-			this.Message = json.IsDefined("message") ? json.message : String.Empty;
+			this.Message = json.message ?? String.Empty;
 		}
 	}
 }

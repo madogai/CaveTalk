@@ -14,7 +14,7 @@
 	using CaveTube.CaveTubeClient;
 
 	public sealed class StartBroadcastViewModel : ViewModelBase {
-		public event Action<String> OnClose;
+		public event Action<String> OnStreamStart;
 
 		private String title;
 		public String Title {
@@ -151,7 +151,10 @@
 				this.LoadPreviousSetting();
 			});
 
-			this.client = new CaveTubeClientWrapper();
+			var accessKey = await CavetubeAuth.GetAccessKeyAsync(config.AccessKey);
+			config.AccessKey = accessKey;
+			config.Save();
+			this.client = new CaveTubeClientWrapper(accessKey);
 			this.client.Connect();
 
 			this.genres = await this.RequestGenreAsync(this.config.ApiKey);
@@ -232,9 +235,8 @@
 					return;
 				}
 
-				client.Dispose();
-				if (this.OnClose != null) {
-					this.OnClose(streamName);
+				if (this.OnStreamStart != null) {
+					this.OnStreamStart(streamName);
 				}
 			};
 		}
@@ -265,6 +267,12 @@
 			}
 
 			return result;
+		}
+
+		protected override void OnDispose() {
+			base.OnDispose();
+
+			this.client.Dispose();
 		}
 
 		public enum BooleanType {

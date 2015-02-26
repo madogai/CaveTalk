@@ -5,16 +5,25 @@
 	using System.Linq;
 	using System.Text.RegularExpressions;
 	using System.Threading.Tasks;
+	using CaveTube.CaveTalk.Model;
+	using CaveTube.CaveTubeClient;
 
 	public abstract class ACommentClient : IDisposable {
-		public static ACommentClient CreateInstance(String url) {
+		public async static Task<ACommentClient> CreateInstance(String url) {
 			var webServer = ConfigurationManager.AppSettings["web_server"];
+			var config = Config.GetConfig();
 			if (Regex.IsMatch(url, String.Format(@"^(?:{0}(?:\:\d{{1,5}})?/[a-z]+/)?(?:[0-9A-Z]{{32}})", webServer))) {
-				return new CaveTubeClientWrapper();
+				var accessKey = await CavetubeAuth.GetAccessKeyAsync(config.AccessKey);
+				config.AccessKey = accessKey;
+				config.Save();
+				return new CaveTubeClientWrapper(accessKey);
 			}
 
 			if (Regex.IsMatch(url, String.Format(@"^{0}(?:\:\d{{1,5}})?/live/(?:.*)", webServer))) {
-				return new CaveTubeClientWrapper();
+				var accessKey = await CavetubeAuth.GetAccessKeyAsync(config.AccessKey);
+				config.AccessKey = accessKey;
+				config.Save();
+				return new CaveTubeClientWrapper(accessKey);
 			}
 
 			if (Regex.IsMatch(url, String.Format(@"^http://jbbs.livedoor.jp/bbs/read.cgi/[a-z0-9]+/\d+$"))) {
@@ -94,7 +103,7 @@
 		/// 部屋に入室します。
 		/// </summary>
 		/// <param name="url">配信Url</param>
-		public abstract void JoinRoom(String url);
+		public abstract Task JoinRoomGenAsync(String url);
 
 		/// <summary>
 		/// 部屋から退出します。

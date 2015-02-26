@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder", "SolutionFolder", "{E46822AE-C279-4439-AB62-1FFF1B915508}"
 	ProjectSection(SolutionItems) = preProject
@@ -18,8 +18,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTubeClient", "CaveTubeClient\CaveTubeClient.csproj", "{9E3E1E57-073E-4181-BB36-3536E195577E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTubeClient.Test", "CaveTubeClient.Test\CaveTubeClient.Test.csproj", "{0DA20096-E106-4EC7-8471-5196CC1A52FD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketIOClient", "SocketIO\SocketIOClient.csproj", "{352C9BC1-F74C-4741-A09D-7227BC60C057}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaveTalk", "CaveTalk\CaveTalk.csproj", "{C5608987-9DA5-4A04-BEE0-11077FDE07D7}"
 EndProject
@@ -91,30 +89,6 @@ Global
 		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.ReleaseILMerge|Mixed Platforms.Build.0 = Release|Any CPU
 		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.ReleaseILMerge|x64.ActiveCfg = Release|Any CPU
 		{0DA20096-E106-4EC7-8471-5196CC1A52FD}.ReleaseILMerge|x86.ActiveCfg = Release|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.DebugILMerge|Any CPU.ActiveCfg = DebugILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.DebugILMerge|Any CPU.Build.0 = DebugILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.DebugILMerge|Mixed Platforms.ActiveCfg = DebugILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.DebugILMerge|Mixed Platforms.Build.0 = DebugILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.DebugILMerge|x64.ActiveCfg = DebugILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.DebugILMerge|x86.ActiveCfg = DebugILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Release|Any CPU.Build.0 = Release|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Release|x64.ActiveCfg = Release|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.Release|x86.ActiveCfg = Release|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.ReleaseILMerge|Any CPU.ActiveCfg = ReleaseILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.ReleaseILMerge|Any CPU.Build.0 = ReleaseILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.ReleaseILMerge|Mixed Platforms.ActiveCfg = ReleaseILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.ReleaseILMerge|Mixed Platforms.Build.0 = ReleaseILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.ReleaseILMerge|x64.ActiveCfg = ReleaseILMerge|Any CPU
-		{352C9BC1-F74C-4741-A09D-7227BC60C057}.ReleaseILMerge|x86.ActiveCfg = ReleaseILMerge|Any CPU
 		{C5608987-9DA5-4A04-BEE0-11077FDE07D7}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{C5608987-9DA5-4A04-BEE0-11077FDE07D7}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{C5608987-9DA5-4A04-BEE0-11077FDE07D7}.Debug|Mixed Platforms.Build.0 = Debug|x86

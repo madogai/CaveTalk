@@ -65,8 +65,14 @@
 			}
 		}
 
-		public override void JoinRoom(String url) {
-			this.client.JoinRoom(url);
+		public override async Task JoinRoomGenAsync(String url) {
+			try {
+				await this.client.JoinRoomAsync(url);
+			} catch (FormatException ex) {
+				throw new CommentException(ex.Message, ex);
+			} catch (CavetubeException ex) {
+				throw new CommentException(ex.Message, ex);
+			}
 		}
 
 		public override void LeaveRoom() {
@@ -105,8 +111,8 @@
 			return await this.client.AllowInstantMessage(commentNumber, apiKey);
 		}
 
-		public CaveTubeClientWrapper()
-			: this(new CavetubeClient()) {
+		public CaveTubeClientWrapper(String accessKey)
+			: this(new CavetubeClient(accessKey)) {
 		}
 
 		private CaveTubeClientWrapper(CaveTubeClient.CavetubeClient client) {

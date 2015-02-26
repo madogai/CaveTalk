@@ -371,7 +371,7 @@
 				this.commentClient.Dispose();
 			}
 
-			this.commentClient = ACommentClient.CreateInstance(liveUrl);
+			this.commentClient = await ACommentClient.CreateInstance(liveUrl);
 			if (this.commentClient == null) {
 				Mouse.OverrideCursor = null;
 				MessageBox.Show("不正なURLです。");
@@ -427,7 +427,7 @@
 					}
 				});
 
-				this.commentClient.JoinRoom(roomId);
+				await this.commentClient.JoinRoomGenAsync(roomId);
 			} catch (CommentException e) {
 				Mouse.OverrideCursor = null;
 				MessageBox.Show(e.Message);
@@ -894,7 +894,7 @@
 			try {
 				var window = new StartBroadcast();
 				var viewModel = await StartBroadcastViewModel.CreateInstance();
-				viewModel.OnClose += roomId => {
+				viewModel.OnStreamStart += roomId => {
 					uiDispatcher.BeginInvoke(new Action(() => {
 						window.Close();
 						if (String.IsNullOrWhiteSpace(roomId)) {
@@ -903,9 +903,13 @@
 						this.JoinRoom(roomId);
 					}));
 				};
+				window.Closed += (sender, e) => {
+					viewModel.Dispose();
+				};
 				window.DataContext = viewModel;
 				window.ShowDialog();
-			} catch (CommentException) {
+			} catch (CommentException e) {
+				logger.Error(e);
 				return;
 			}
 		}
