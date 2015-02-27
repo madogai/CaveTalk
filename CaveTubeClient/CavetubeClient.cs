@@ -146,7 +146,7 @@
 		/// <summary>
 		/// 入室している部屋のサマリー
 		/// </summary>
-		public Summary JoinedRoom { get; private set; }
+		public String JoinedRoomId { get; private set; }
 
 		private Uri webUri;
 		private Uri socketIOUri;
@@ -173,12 +173,11 @@
 					this.OnConnect();
 				}
 
-				if (this.JoinedRoom != null && String.IsNullOrWhiteSpace(this.JoinedRoom.RoomId) == false) {
+				if (String.IsNullOrWhiteSpace(this.JoinedRoomId) == false) {
 					try {
-						await this.JoinRoomAsync(this.JoinedRoom.RoomId);
+						await this.JoinRoomAsync(this.JoinedRoomId);
 					} catch (FormatException) {
 					} catch (CavetubeException) {
-
 					}
 				}
 			});
@@ -342,11 +341,11 @@
 		/// コメントルームから退出します。
 		/// </summary>
 		public void LeaveRoom() {
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				return;
 			}
 
-			var roomId = this.JoinedRoom.RoomId;
+			var roomId = this.JoinedRoomId;
 			client.Emit("leave", JObject.FromObject(new {
 				devkey = devkey,
 				roomId = roomId,
@@ -356,7 +355,7 @@
 				this.OnLeave(roomId);
 			}
 
-			this.JoinedRoom = null;
+			this.JoinedRoomId = null;
 		}
 
 		/// <summary>
@@ -366,7 +365,7 @@
 		/// <param name="message">メッセージ</param>
 		/// <param name="apiKey">APIキー</param>
 		public void PostComment(String name, String message, String apiKey = "") {
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
@@ -376,7 +375,7 @@
 
 			client.Emit("post", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				name = name,
 				message = message,
 				apikey = apiKey
@@ -394,13 +393,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			client.Emit("ban", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			}));
@@ -417,13 +416,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			client.Emit("unban", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			}));
@@ -439,13 +438,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			client.Emit("hide_comment", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			}));
@@ -461,13 +460,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			client.Emit("show_comment", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			}));
@@ -483,13 +482,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			client.Emit("show_id", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			}));
@@ -505,13 +504,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			client.Emit("hide_id", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			}));
@@ -528,13 +527,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			client.Emit("vote_start", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				question = question,
 				choices = choices,
 				apikey = apiKey,
@@ -550,13 +549,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			client.Emit("vote_result", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				apiKey = apiKey,
 			}));
 		}
@@ -570,13 +569,13 @@
 				throw new ArgumentException("APIキーは必須です。");
 			}
 
-			if (this.JoinedRoom == null) {
+			if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
 				throw new CavetubeException("部屋に所属していません。");
 			}
 
 			client.Emit("vote_stop", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				apiKey = apiKey,
 			}));
 		}
@@ -598,7 +597,7 @@
 
 			client.Emit("allow_instant_message", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				commentNumber = commentNumber,
 				apikey = apiKey,
 			}));
@@ -626,7 +625,7 @@
 
 			client.Emit("send_instant_message", JObject.FromObject(new {
 				devkey = devkey,
-				roomId = this.JoinedRoom.RoomId,
+				roomId = this.JoinedRoomId,
 				message = message,
 			}));
 
@@ -662,13 +661,11 @@
 		}
 
 		#region SocketIOのイベントハンドラ
-		private async void HandleReady(dynamic json) {
-			this.JoinedRoom = await this.GetSummaryAsync(json.roomId.ToObject<String>());
+		private void HandleReady(dynamic json) {
+			String roomId = json.roomId;
+			this.JoinedRoomId = roomId;
 			if (this.OnJoin != null) {
-				this.OnJoin(this.JoinedRoom.RoomId);
-			}
-			if (this.OnJoin != null) {
-				this.OnJoin(json.roomId.ToObject<String>());
+				this.OnJoin(roomId);
 			}
 		}
 

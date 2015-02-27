@@ -13,12 +13,13 @@
 			Mapper.CreateMap<CaveTubeClient.LiveNotification, LiveNotification>();
 		}
 
+		private Summary joinedRoomSummary;
 		public override Summary JoinedRoomSummary {
 			get {
-				if (this.client.JoinedRoom == null) {
+				if (String.IsNullOrWhiteSpace(this.client.JoinedRoomId)) {
 					return null;
 				}
-				return Mapper.Map<Summary>(this.client.JoinedRoom);
+				return this.joinedRoomSummary;
 			}
 		}
 
@@ -68,6 +69,7 @@
 		public override async Task JoinRoomGenAsync(String url) {
 			try {
 				await this.client.JoinRoomAsync(url);
+				this.joinedRoomSummary = Mapper.Map<Summary>(await this.client.GetSummaryAsync(url));
 			} catch (FormatException ex) {
 				throw new CommentException(ex.Message, ex);
 			} catch (CavetubeException ex) {
