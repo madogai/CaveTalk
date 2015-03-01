@@ -68,8 +68,8 @@
 
 		public override async Task JoinRoomGenAsync(String url) {
 			try {
-				await this.client.JoinRoomAsync(url);
 				this.joinedRoomSummary = Mapper.Map<Summary>(await this.client.GetSummaryAsync(url));
+				await this.client.JoinRoomAsync(url);
 			} catch (FormatException ex) {
 				throw new CommentException(ex.Message, ex);
 			} catch (CavetubeException ex) {
@@ -78,6 +78,7 @@
 		}
 
 		public override void LeaveRoom() {
+			this.joinedRoomSummary = null;
 			this.client.LeaveRoom();
 		}
 
