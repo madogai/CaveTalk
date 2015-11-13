@@ -1,6 +1,5 @@
 ﻿namespace CaveTube.CaveTubeClient {
 	using System;
-	using System.Collections.Generic;
 
 	internal static class DateExtends {
 		private readonly static DateTime UnixBaseTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);

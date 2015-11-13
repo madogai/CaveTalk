@@ -2,15 +2,11 @@
 	using System;
 	using System.Collections.Generic;
 	using System.Configuration;
-	using System.Diagnostics;
 	using System.Linq;
 	using System.Net;
-	using System.Text;
 	using System.Text.RegularExpressions;
 	using System.Threading;
 	using System.Threading.Tasks;
-	using System.Xml;
-	using Microsoft.CSharp.RuntimeBinder;
 	using Newtonsoft.Json.Linq;
 	using Quobject.SocketIoClientDotNet.Client;
 

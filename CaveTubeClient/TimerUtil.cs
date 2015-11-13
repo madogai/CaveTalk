@@ -1,6 +1,5 @@
 ﻿namespace CaveTube.CaveTubeClient {
 	using System;
-	using System.Collections.Generic;
 	using System.Threading;
 
 	internal static class TimerUtil {
