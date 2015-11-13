@@ -3,7 +3,7 @@ CaveTalk(壁トーーク)
 
 Download
 ----------------
-<http://1drv.ms/1ej511e>
+<https://github.com/madguy/CaveTalk/releases>
 
 License
 -------

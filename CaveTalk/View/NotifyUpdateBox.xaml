@@ -14,7 +14,7 @@
             <Run>新しい更新があります。</Run><LineBreak />
             <Run>以下のURLにアクセスして</Run><LineBreak />
             <Run>最新のCaveTalkをダウンロードしてください。</Run><LineBreak />
-            <Hyperlink NavigateUri="http://sdrv.ms/X1wy8M" RequestNavigate="OpenUrl">http://1drv.ms/1ej511e</Hyperlink>
+            <Hyperlink NavigateUri="https://github.com/madguy/CaveTalk/releases" RequestNavigate="OpenUrl">http://1drv.ms/1ej511e</Hyperlink>
         </TextBlock>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
             <Button Width="100" Command="Close">確認</Button>
