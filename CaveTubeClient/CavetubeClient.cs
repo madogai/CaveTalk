@@ -14,7 +14,7 @@
 		private const Int32 defaultTimeout = 3000;
 
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "https://www.cavelis.net";
-		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "https://ws.cavelis.net:3000";
+		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.cavelis.net:3000";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
 		/// <summary>
@@ -126,16 +126,20 @@
 		/// <summary>
 		/// ソケットID
 		/// </summary>
-		public String SocketId {
-			get {
+		public String SocketId
+		{
+			get
+			{
 				return this.client.Io().EngineSocket.Id;
 			}
 		}
 		/// <summary>
 		/// コメントサーバとの接続状態
 		/// </summary>
-		public Boolean IsConnect {
-			get {
+		public Boolean IsConnect
+		{
+			get
+			{
 				return this.client.Io().ReadyState == Manager.ReadyStateEnum.OPEN;
 			}
 		}
@@ -209,26 +213,26 @@
 			this.client.On("notify_send_instant_message", this.HandleNotifySendInstantMessage);
 			#endregion
 
-			# region Room関連のハンドリング
+			#region Room関連のハンドリング
 			this.client.On("join", this.HandleJoinAndLeave);
 			this.client.On("leave", this.HandleJoinAndLeave);
-			# endregion
+			#endregion
 
-			# region 投票関連のハンドリング
+			#region 投票関連のハンドリング
 			this.client.On("vote_start", this.HandleVoteStart);
 			this.client.On("vote_result", this.HandleVoteResult);
 			this.client.On("vote_stop", this.HandleVoteStop);
 			#endregion
 
-			# region 通知関連のハンドリング
+			#region 通知関連のハンドリング
 			this.client.On("start_entry", this.HandleStartEntry);
 			this.client.On("close_entry", this.HandleCloseEntry);
 			#endregion
 
-			# region その他のハンドリング
+			#region その他のハンドリング
 			this.client.On("admin_yell", this.HandleYell);
 		}
-			#endregion
+		#endregion
 
 		~CavetubeClient() {
 			this.Dispose();
@@ -816,18 +820,13 @@
 
 		private async Task<String> ParseStreamUrlAsync(String url) {
 			var baseUrl = $"{this.webUri.Scheme}://{this.webUri.Host}";
-			if (this.webUri.Port != 80) {
-				baseUrl += $":{this.webUri.Port}";
-			}
 
-			var pattern = $@"^(?:{baseUrl}/[a-z]+/)?([0-9A-Z]{{32}})";
-			var match = Regex.Match(url, pattern);
+			var match = Regex.Match(url, $@"([0-9A-Z]{{32}})");
 			if (match.Success) {
 				return match.Groups[1].Value;
 			}
 
-			pattern = $@"^(?:{baseUrl}/live/(.*))";
-			match = Regex.Match(url, pattern);
+			match = Regex.Match(url, $@"/live/(.*)");
 			if (match.Success) {
 				using (var client = WebClientUtil.CreateInstance()) {
 					var userName = match.Groups[1].Value;

@@ -26,7 +26,7 @@ namespace CaveTube.CaveTalk.Control {
 				return;
 			}
 
-			Process.Start($"http://gae.cavelis.net/view/{roomId}");
+			Process.Start($"https://www.cavelis.net/view/{roomId}");
 		}
 	}
 }

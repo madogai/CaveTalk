@@ -44,7 +44,7 @@ MIT-style License.
 概要
 ----
 
-[CaveTube](http://gae.cavelis.net/)用のコメント読み上げソフトです。  
+[CaveTube](https://www.cavelis.net/)用のコメント読み上げソフトです。  
 
 システム要件
 ------------

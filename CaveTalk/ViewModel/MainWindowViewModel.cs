@@ -371,10 +371,15 @@
 				this.commentClient.Dispose();
 			}
 
-			this.commentClient = await ACommentClient.CreateInstance(liveUrl);
-			if (this.commentClient == null) {
+			try {
+				this.commentClient = await ACommentClient.CreateInstance(liveUrl);
+			} catch(ArgumentException) {
 				Mouse.OverrideCursor = null;
-				MessageBox.Show("不正なURLです。");
+				MessageBox.Show("URLが正しくありません。");
+				return;
+			} catch(InvalidOperationException) {
+				Mouse.OverrideCursor = null;
+				MessageBox.Show("接続に失敗しました。");
 				return;
 			}
 

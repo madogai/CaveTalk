@@ -10,27 +10,34 @@
 
 	public abstract class ACommentClient : IDisposable {
 		public async static Task<ACommentClient> CreateInstance(String url) {
-			var webServer = ConfigurationManager.AppSettings["web_server"];
-			var config = Config.GetConfig();
-			if (Regex.IsMatch(url, $@"^(?:{webServer}(?:\:\d{{1,5}})?/[a-z]+/)?(?:[0-9A-Z]{{32}})")) {
-				var accessKey = await CavetubeAuth.GetAccessKeyAsync(config.AccessKey);
-				config.AccessKey = accessKey;
-				config.Save();
-				return new CaveTubeClientWrapper(accessKey);
+			if (IsCaveTube(url)) {
+				try {
+					var config = Config.GetConfig();
+					var accessKey = await CavetubeAuth.GetAccessKeyAsync(config.AccessKey);
+					config.AccessKey = accessKey;
+					config.Save();
+					return new CaveTubeClientWrapper(accessKey);
+				} catch (CavetubeException) {
+					throw new InvalidOperationException();
+				}
 			}
 
-			if (Regex.IsMatch(url, $@"^{webServer}(?:\:\d{{1,5}})?/live/(?:.*)")) {
-				var accessKey = await CavetubeAuth.GetAccessKeyAsync(config.AccessKey);
-				config.AccessKey = accessKey;
-				config.Save();
-				return new CaveTubeClientWrapper(accessKey);
-			}
+			throw new ArgumentException("指定されたURLはサポートされていません。");
+		}
 
-			if (Regex.IsMatch(url, @"^http://jbbs.livedoor.jp/bbs/read.cgi/[a-z0-9]+/\d+$")) {
-				return null;
-			}
+		private static bool IsCaveTube(String url) {
+			var hosts = ConfigurationManager.AppSettings["cavetube_hosts"]?.Split(',') ?? new String[] { "www.cavelis.net", "gae.cavelis.net" };
+			return hosts.Any(host => {
+				if (Regex.IsMatch(url, $@"^(?:https?://{host}(?:\:\d{{1,5}})?/[a-z]+/)?(?:[0-9A-Z]{{32}})")) {
+					return true;
+				}
 
-			return null;
+				if (Regex.IsMatch(url, $@"^https?://{host}(?:\:\d{{1,5}})?/live/(?:.*)")) {
+					return true;
+				}
+
+				return false;
+			});
 		}
 
 		public abstract Summary JoinedRoomSummary { get; }

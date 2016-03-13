@@ -105,9 +105,9 @@
                 <CheckBox x:Name="IsAgree">
                     <TextBlock>
                         <Run>cavelis.net</Run>
-                        <Hyperlink NavigateUri="http://gae.cavelis.net/rule" RequestNavigate="OpenUrl">利用規約</Hyperlink>
+                        <Hyperlink NavigateUri="https://www.cavelis.net/rule" RequestNavigate="OpenUrl">利用規約</Hyperlink>
                         <Run>及び</Run>
-                        <Hyperlink NavigateUri="http://gae.cavelis.net/howto/#guideline" RequestNavigate="OpenUrl">ガイドライン</Hyperlink>
+                        <Hyperlink NavigateUri="https://www.cavelis.net/howto/#guideline" RequestNavigate="OpenUrl">ガイドライン</Hyperlink>
                         <Run>に同意します。</Run>
                     </TextBlock>
                 </CheckBox>

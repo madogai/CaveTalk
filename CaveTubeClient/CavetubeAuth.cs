@@ -8,7 +8,7 @@
 	using Newtonsoft.Json.Linq;
 
 	public static class CavetubeAuth {
-		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
+		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "https://www.cavelis.net";
 		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.cavelis.net:3000";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
