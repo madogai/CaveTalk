@@ -15,3 +15,4 @@ Thumbs.db
 *.vsmdi
 *.testsettings
 README.html
+App.Debug.config
