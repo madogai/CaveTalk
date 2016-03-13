@@ -12,21 +12,21 @@
 		public async static Task<ACommentClient> CreateInstance(String url) {
 			var webServer = ConfigurationManager.AppSettings["web_server"];
 			var config = Config.GetConfig();
-			if (Regex.IsMatch(url, String.Format(@"^(?:{0}(?:\:\d{{1,5}})?/[a-z]+/)?(?:[0-9A-Z]{{32}})", webServer))) {
+			if (Regex.IsMatch(url, $@"^(?:{webServer}(?:\:\d{{1,5}})?/[a-z]+/)?(?:[0-9A-Z]{{32}})")) {
 				var accessKey = await CavetubeAuth.GetAccessKeyAsync(config.AccessKey);
 				config.AccessKey = accessKey;
 				config.Save();
 				return new CaveTubeClientWrapper(accessKey);
 			}
 
-			if (Regex.IsMatch(url, String.Format(@"^{0}(?:\:\d{{1,5}})?/live/(?:.*)", webServer))) {
+			if (Regex.IsMatch(url, $@"^{webServer}(?:\:\d{{1,5}})?/live/(?:.*)")) {
 				var accessKey = await CavetubeAuth.GetAccessKeyAsync(config.AccessKey);
 				config.AccessKey = accessKey;
 				config.Save();
 				return new CaveTubeClientWrapper(accessKey);
 			}
 
-			if (Regex.IsMatch(url, String.Format(@"^http://jbbs.livedoor.jp/bbs/read.cgi/[a-z0-9]+/\d+$"))) {
+			if (Regex.IsMatch(url, @"^http://jbbs.livedoor.jp/bbs/read.cgi/[a-z0-9]+/\d+$")) {
 				return null;
 			}
 

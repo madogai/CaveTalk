@@ -5,11 +5,9 @@
 	using System.ComponentModel;
 	using System.Configuration;
 	using System.Diagnostics;
-	using System.Linq;
 	using System.Windows;
 	using System.Windows.Controls;
 	using System.Windows.Controls.Primitives;
-	using System.Windows.Controls.Ribbon;
 	using System.Windows.Data;
 	using System.Windows.Documents;
 	using System.Windows.Input;
@@ -103,7 +101,7 @@
 				return;
 			}
 
-			var uri = String.Format("{0}/?url={1}", previewServer, hyperlink.NavigateUri.AbsoluteUri);
+			var uri = $"{previewServer}/?url={hyperlink.NavigateUri.AbsoluteUri}";
 			var image = new Image();
 			image.Source = new BitmapImage(new Uri(uri));
 			hyperlink.ToolTip = image;

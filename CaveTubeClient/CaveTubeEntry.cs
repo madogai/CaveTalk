@@ -11,7 +11,7 @@
 	using Newtonsoft.Json.Linq;
 
 	public static class CaveTubeEntry {
-		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
+		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "https://www.cavelis.net";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
 		/// <summary>
@@ -45,7 +45,7 @@
 						{"socket_id", socketId},
 					};
 
-					var response = await client.UploadValuesTaskAsync(String.Format("{0}/api/start", webUrl), "POST", data);
+					var response = await client.UploadValuesTaskAsync($"{webUrl}/api/start", "POST", data);
 					var jsonString = Encoding.UTF8.GetString(response);
 
 					dynamic json = JObject.Parse(jsonString);
@@ -68,7 +68,7 @@
 		public static async Task<UserData> RequestUserDataAsync(String apiKey) {
 			try {
 				using (var client = WebClientUtil.CreateInstance()) {
-					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/user_data?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
+					var jsonString = await client.DownloadStringTaskAsync($"{webUrl}/api/user_data?devkey={devkey}&apikey={apiKey}");
 					dynamic json = JObject.Parse(jsonString);
 					return new UserData(json);
 				}
@@ -87,7 +87,7 @@
 		public static async Task<IEnumerable<Genre>> RequestGenre(String apiKey) {
 			try {
 				using (var client = WebClientUtil.CreateInstance()) {
-					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/genre?devkey={1}&apikey={2}", webUrl, devkey, apiKey));
+					var jsonString = await client.DownloadStringTaskAsync($"{webUrl}/api/genre?devkey={devkey}&apikey={apiKey}");
 					dynamic json = JObject.Parse(jsonString);
 
 					return ((JArray)json.genres).Select(genre => new Genre(genre));

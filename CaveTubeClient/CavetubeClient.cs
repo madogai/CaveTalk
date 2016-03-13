@@ -13,8 +13,8 @@
 	public sealed class CavetubeClient : IDisposable {
 		private const Int32 defaultTimeout = 3000;
 
-		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "http://gae.cavelis.net";
-		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.cavelis.net:3000";
+		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "https://www.cavelis.net";
+		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "https://ws.cavelis.net:3000";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
 		/// <summary>
@@ -265,7 +265,7 @@
 				using (var client = WebClientUtil.CreateInstance()) {
 					client.QueryString.Add("stream_name", streamName);
 					client.QueryString.Add("devkey", devkey);
-					var url = String.Format("{0}://{1}:{2}/api/summary", this.webUri.Scheme, this.webUri.Host, this.webUri.Port);
+					var url = $"{this.webUri.Scheme}://{this.webUri.Host}:{this.webUri.Port}/api/summary";
 					var jsonString = await client.DownloadStringTaskAsync(url);
 					if (String.IsNullOrEmpty(jsonString)) {
 						throw new CavetubeException("サマリーの取得に失敗しました。");
@@ -289,7 +289,7 @@
 
 				using (var client = WebClientUtil.CreateInstance()) {
 					client.QueryString.Add("devkey", devkey);
-					var url = String.Format("{0}://{1}:{2}/comment/{3}", this.socketIOUri.Scheme, this.socketIOUri.Host, this.socketIOUri.Port, streamName);
+					var url = $"{this.socketIOUri.Scheme}://{this.socketIOUri.Host}:{this.socketIOUri.Port}/comment/{streamName}";
 
 					var jsonString = await client.DownloadStringTaskAsync(url);
 					if (String.IsNullOrEmpty(jsonString)) {
@@ -815,23 +815,23 @@
 		}
 
 		private async Task<String> ParseStreamUrlAsync(String url) {
-			var baseUrl = String.Format("{0}://{1}", this.webUri.Scheme, this.webUri.Host);
+			var baseUrl = $"{this.webUri.Scheme}://{this.webUri.Host}";
 			if (this.webUri.Port != 80) {
-				baseUrl += String.Format(":{0}", this.webUri.Port);
+				baseUrl += $":{this.webUri.Port}";
 			}
 
-			var pattern = String.Format(@"^(?:{0}/[a-z]+/)?([0-9A-Z]{{32}})", baseUrl);
+			var pattern = $@"^(?:{baseUrl}/[a-z]+/)?([0-9A-Z]{{32}})";
 			var match = Regex.Match(url, pattern);
 			if (match.Success) {
 				return match.Groups[1].Value;
 			}
 
-			pattern = String.Format(@"^(?:{0}/live/(.*))", baseUrl);
+			pattern = $@"^(?:{baseUrl}/live/(.*))";
 			match = Regex.Match(url, pattern);
 			if (match.Success) {
 				using (var client = WebClientUtil.CreateInstance()) {
 					var userName = match.Groups[1].Value;
-					var jsonString = await client.DownloadStringTaskAsync(String.Format("{0}/api/live_url/{1}", baseUrl, userName));
+					var jsonString = await client.DownloadStringTaskAsync($"{baseUrl}/api/live_url/{userName}");
 					dynamic json = JObject.Parse(jsonString);
 					var streamName = json.stream_name ?? String.Empty;
 					return streamName;

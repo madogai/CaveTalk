@@ -1,6 +1,5 @@
 ﻿namespace CaveTube.CaveTalk.Lib {
 	using System;
-	using System.Linq;
 	using System.Text.RegularExpressions;
 	using CaveTube.CaveTalk.Model;
 
@@ -57,11 +56,11 @@
 			comment = comment.Replace("\n", " ");
 
 			if (config.ReadCommentName && String.IsNullOrWhiteSpace(message.Name) == false) {
-				comment = String.Format("{0}さん {1}", message.Name, comment);
+				comment = $"{message.Name}さん {comment}";
 			}
 
 			if (config.ReadCommentNumber) {
-				comment = String.Format("コメント{0} {1}", message.Number, comment);
+				comment = $"コメント{message.Number} {comment}";
 			}
 
 			return this.Speak(comment);

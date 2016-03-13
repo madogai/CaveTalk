@@ -11,7 +11,10 @@
 			}
 
 			var timeSpan = (TimeSpan)value;
-			return String.Format("{0}:{1:d2}:{2:d2}", (timeSpan.Days * 24 + timeSpan.Hours), timeSpan.Minutes, timeSpan.Seconds);
+			var hour = timeSpan.Days * 24 + timeSpan.Hours;
+			var minutes = timeSpan.Minutes;
+			var secounds = timeSpan.Seconds;
+			return $"{hour}:{minutes:d2}:{secounds:d2}";
 		}
 
 		public Object ConvertBack(Object value, Type targetType, Object parameter, System.Globalization.CultureInfo culture) {

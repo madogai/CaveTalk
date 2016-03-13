@@ -49,7 +49,7 @@
 		public String LiveUrl {
 			get {
 				if (this.LoginStatus == true && String.IsNullOrWhiteSpace(this.liveUrl)) {
-					return String.Format("{0}/live/{1}", ConfigurationManager.AppSettings["web_server"], this.config.UserId);
+					return $"{ConfigurationManager.AppSettings["web_server"]}/live/{this.config.UserId}";
 				} else {
 					return this.liveUrl;
 				}

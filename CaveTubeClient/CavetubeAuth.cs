@@ -38,7 +38,7 @@
 				};
 
 				try {
-					var response = await client.UploadValuesTaskAsync(String.Format("{0}/api/auth", webUrl), "POST", data);
+					var response = await client.UploadValuesTaskAsync($"{webUrl}/api/auth", "POST", data);
 					var jsonString = Encoding.UTF8.GetString(response);
 
 					dynamic json = JObject.Parse(jsonString);
@@ -80,7 +80,7 @@
 					{"pass", password},
 				};
 
-				var response = await client.UploadValuesTaskAsync(String.Format("{0}/api/auth", webUrl), "POST", data);
+				var response = await client.UploadValuesTaskAsync($"{webUrl}/api/auth", "POST", data);
 				return true;
 			}
 		}
@@ -94,7 +94,7 @@
 			try {
 				using (var client = WebClientUtil.CreateInstance()) {
 					client.QueryString.Add("key", accessKey);
-					var url = String.Format("{0}/accesskey", socketIOUrl);
+					var url = $"{socketIOUrl}/accesskey";
 					var jsonString = await client.DownloadStringTaskAsync(url);
 					if (String.IsNullOrEmpty(jsonString)) {
 						throw new CavetubeException("アクセスキーの取得に失敗しました。");

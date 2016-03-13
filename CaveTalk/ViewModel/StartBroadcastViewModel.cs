@@ -3,7 +3,6 @@
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
 	using System.Linq;
-	using System.Net;
 	using System.Text.RegularExpressions;
 	using System.Threading.Tasks;
 	using System.Windows;
@@ -168,7 +167,7 @@
 			var rooms = Model.Room.GetRooms(config.UserId);
 			var room = rooms.ElementAtOrDefault(this.previousCount);
 			if (room == null) {
-				MessageBox.Show(String.Format("{0}回前の配信は存在しません。", this.previousCount + 1));
+				MessageBox.Show($"{this.previousCount + 1}回前の配信は存在しません。");
 				this.previousCount = 0;
 				return;
 			}

@@ -54,7 +54,7 @@
 			var process = new Process {
 				StartInfo = new ProcessStartInfo {
 					FileName = this.exePath,
-					Arguments = String.Format("/W:{0}", text),
+					Arguments = $"/W:{text}",
 				},
 				EnableRaisingEvents = true,
 			};
