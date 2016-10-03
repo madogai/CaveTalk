@@ -18,7 +18,7 @@
 			try {
 				var escapedText = text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;").Replace("{", "{}{");
 				var lineBreakText = escapedText.Replace("\n", "<LineBreak />");
-				var autolinkedText = Regex.Replace(lineBreakText, @"(?:http|https|ftp):\/\/[\w\!\?=&,.\/\+:;#~%\-\{\}@]+(?![\w\s\!\?&,.\/\+:;#~%""=\-\{\}@]*>)", m => {
+				var autolinkedText = Regex.Replace(lineBreakText, @"(?:http|https|ftp):\/\/[\w\!\?\(\)=&,.\/\+:;#~%\-\{\}@]+(?![\w\s\!\?\(\)&,.\/\+:;#~%""=\-\{\}@]*>)", m => {
 					var abbreviated = m.Value.Length > MAX_LENGTH ? (m.Value.Substring(0, MAX_LENGTH) + "...") : m.Value;
 					return $@"<Hyperlink NavigateUri=""{m.Value}""><Run>{abbreviated}</Run><Hyperlink.ToolTip>Loading ...</Hyperlink.ToolTip></Hyperlink>";
 				}, RegexOptions.Multiline);
