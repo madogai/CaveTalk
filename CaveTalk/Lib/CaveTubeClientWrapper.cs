@@ -162,87 +162,59 @@
 		}
 
 		private void Join(String roomId) {
-			if (this.OnJoin != null) {
-				this.OnJoin(roomId);
-			}
+			this.OnJoin?.Invoke(roomId);
 		}
 
 		private void Leave(String roomId) {
-			if (this.OnLeave != null) {
-				this.OnLeave(roomId);
-			}
+			this.OnLeave?.Invoke(roomId);
 		}
 
 		public void MessageList(IEnumerable<CaveTubeClient.Message> messageList) {
-			if (this.OnMessageList != null) {
-				this.OnMessageList(messageList.Select(message => Mapper.Map<Message>(message)));
-			}
+			this.OnMessageList?.Invoke(messageList.Select(message => Mapper.Map<Message>(message)));
 		}
 
 		private void NewMessage(CaveTubeClient.Message message) {
-			if (this.OnNewMessage != null) {
-				this.OnNewMessage(Mapper.Map<Message>(message));
-			}
+			this.OnNewMessage?.Invoke(Mapper.Map<Message>(message));
 		}
 
 		private void UpdateMember(Int32 count) {
-			if (this.OnUpdateMember != null) {
-				this.OnUpdateMember(count);
-			}
+			this.OnUpdateMember?.Invoke(count);
 		}
 
 		private void Ban(CaveTubeClient.Message message) {
-			if (this.OnBan != null) {
-				this.OnBan(Mapper.Map<Message>(message));
-			}
+			this.OnBan?.Invoke(Mapper.Map<Message>(message));
 		}
 
 		private void UnBan(CaveTubeClient.Message message) {
-			if (this.OnUnBan != null) {
-				this.OnUnBan(Mapper.Map<Message>(message));
-			}
+			this.OnUnBan?.Invoke(Mapper.Map<Message>(message));
 		}
 
 		private void HideComment(CaveTubeClient.Message message) {
-			if (this.OnHideComment != null) {
-				this.OnHideComment(Mapper.Map<Message>(message));
-			}
+			this.OnHideComment?.Invoke(Mapper.Map<Message>(message));
 		}
 
 		private void ShowComment(CaveTubeClient.Message message) {
-			if (this.OnShowComment != null) {
-				this.OnShowComment(Mapper.Map<Message>(message));
-			}
+			this.OnShowComment?.Invoke(Mapper.Map<Message>(message));
 		}
 
 		private void InstantMessage(String message) {
-			if (this.OnInstantMessage != null) {
-				this.OnInstantMessage(message);
-			}
+			this.OnInstantMessage?.Invoke(message);
 		}
 
 		private void AdminShout(CaveTubeClient.AdminShout shout) {
-			if (this.OnAdminShout != null) {
-				this.OnAdminShout(shout.Message);
-			}
+			this.OnAdminShout?.Invoke(shout.Message);
 		}
 
 		private void Error(CaveTubeClient.CavetubeException e) {
-			if (this.OnError != null) {
-				this.OnError(e);
-			}
+			this.OnError?.Invoke(e);
 		}
 
 		private void NotifyLiveStart(CaveTubeClient.LiveNotification e) {
-			if (this.OnNotifyLiveStart != null) {
-				this.OnNotifyLiveStart(Mapper.Map<LiveNotification>(e));
-			}
+			this.OnNotifyLiveStart?.Invoke(Mapper.Map<LiveNotification>(e));
 		}
 
 		private void NotifyLiveClose(CaveTubeClient.LiveNotification e) {
-			if (this.OnNotifyLiveClose != null) {
-				this.OnNotifyLiveClose(Mapper.Map<LiveNotification>(e));
-			}
+			this.OnNotifyLiveClose?.Invoke(Mapper.Map<LiveNotification>(e));
 		}
 	}
 

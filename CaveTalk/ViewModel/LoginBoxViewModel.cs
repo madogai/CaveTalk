@@ -91,9 +91,7 @@
 				this.Cursor = null;
 			}
 
-			if (this.OnClose != null) {
-				this.OnClose();
-			}
+			this.OnClose?.Invoke();
 		}
 	}
 }

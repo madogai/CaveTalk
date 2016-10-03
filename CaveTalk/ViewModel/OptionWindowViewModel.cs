@@ -45,14 +45,10 @@
 			this.SaveCommand = new RelayCommand(p => {
 				this.generalOption.Save();
 				this.commentOption.Save();
-				if (this.OnClose != null) {
-					this.OnClose();
-				} 
+				this.OnClose?.Invoke();
 			});
 			this.CancelCommand = new RelayCommand(p => {
-				if (this.OnClose != null) {
-					this.OnClose();
-				}
+				this.OnClose?.Invoke();
 			});
 		}
 	}

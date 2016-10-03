@@ -212,7 +212,7 @@
 			this.genre.Tags.ForEach(t => tags.Add(t));
 
 			if (String.IsNullOrWhiteSpace(this.Tags) == false) {
-				Regex.Split(this.Tags, "\\s+").ForEach(t => tags.Add(t));
+				Regex.Split(this.Tags, @"\s+").ForEach(t => tags.Add(t));
 			}
 
 			var streamInfo = await CaveTubeClient.CaveTubeEntry.RequestStartBroadcastAsync(this.Title, config.ApiKey, this.Description, tags, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
@@ -234,9 +234,7 @@
 					return;
 				}
 
-				if (this.OnStreamStart != null) {
-					this.OnStreamStart(streamName);
-				}
+				this.OnStreamStart?.Invoke(streamName);
 			};
 		}
 

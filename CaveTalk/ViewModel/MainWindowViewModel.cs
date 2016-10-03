@@ -1071,45 +1071,31 @@
 			});
 
 			this.BanUserCommand = new RelayCommand(p => {
-				if (this.OnBanUser != null) {
-					this.OnBanUser(this);
-				}
+				this.OnBanUser?.Invoke(this);
 			});
 
 			this.UnBanUserCommand = new RelayCommand(p => {
-				if (this.OnUnBanUser != null) {
-					this.OnUnBanUser(this);
-				}
+				this.OnUnBanUser?.Invoke(this);
 			});
 
 			this.ShowIdCommand = new RelayCommand(p => {
-				if (this.OnShowId != null) {
-					this.OnShowId(this);
-				}
+				this.OnShowId?.Invoke(this);
 			});
 
 			this.HideIdCommand = new RelayCommand(p => {
-				if (this.OnHideId != null) {
-					this.OnHideId(this);
-				}
+				this.OnHideId?.Invoke(this);
 			});
 
 			this.ShowCommentCommand = new RelayCommand(p => {
-				if (this.OnShowComment != null) {
-					this.OnShowComment(this);
-				}
+				this.OnShowComment?.Invoke(this);
 			});
 
 			this.HideCommentCommand = new RelayCommand(p => {
-				if (this.OnHideComment != null) {
-					this.OnHideComment(this);
-				}
+				this.OnHideComment?.Invoke(this);
 			});
 
 			this.AllowInstantMessageCommand = new RelayCommand(p => {
-				if (this.OnAllowInstantMessage != null) {
-					this.OnAllowInstantMessage(this);
-				}
+				this.OnAllowInstantMessage?.Invoke(this);
 			});
 
 			this.MarkCommand = new RelayCommand(p => {
@@ -1130,9 +1116,7 @@
 					this.Color = new SolidColorBrush(System.Windows.Media.Color.FromRgb(red, green, blue));
 				}
 
-				if (this.OnMarkListener != null) {
-					this.OnMarkListener(this);
-				}
+				this.OnMarkListener?.Invoke(this);
 			});
 		}
 

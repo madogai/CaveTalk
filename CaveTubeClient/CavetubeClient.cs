@@ -14,7 +14,7 @@
 		private const Int32 defaultTimeout = 3000;
 
 		private static String webUrl = ConfigurationManager.AppSettings["web_server"] ?? "https://www.cavelis.net";
-		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "http://ws.cavelis.net:3000";
+		private static String socketIOUrl = ConfigurationManager.AppSettings["comment_server"] ?? "https://ws.cavelis.net";
 		private static String devkey = ConfigurationManager.AppSettings["dev_key"] ?? String.Empty;
 
 		/// <summary>
@@ -144,7 +144,7 @@
 			}
 		}
 		/// <summary>
-		/// 入室している部屋のサマリー
+		/// 入室している部屋の番号
 		/// </summary>
 		public String JoinedRoomId { get; private set; }
 
@@ -169,29 +169,25 @@
 				},
 			});
 			this.client.On(Socket.EVENT_CONNECT, async () => {
-				if (this.OnConnect != null) {
-					this.OnConnect();
+				this.OnConnect?.Invoke();
+
+				if (String.IsNullOrWhiteSpace(this.JoinedRoomId)) {
+					return;
 				}
 
-				if (String.IsNullOrWhiteSpace(this.JoinedRoomId) == false) {
-					try {
-						await this.JoinRoomAsync(this.JoinedRoomId);
-					} catch (FormatException) {
-					} catch (CavetubeException) {
-					}
+				try {
+					await this.JoinRoomAsync(this.JoinedRoomId);
+				} catch (FormatException) {
+				} catch (CavetubeException) {
 				}
 			});
 
 			this.client.On(Socket.EVENT_DISCONNECT, () => {
-				if (this.OnDisconnect != null) {
-					this.OnDisconnect();
-				}
+				this.OnDisconnect?.Invoke();
 			});
 
 			this.client.On(Socket.EVENT_ERROR, e => {
-				if (this.OnError != null) {
-					this.OnError(new CavetubeException("エラーが発生しました。"));
-				}
+				this.OnError?.Invoke(new CavetubeException("エラーが発生しました。"));
 			});
 
 			#region コメント関係のハンドリング
@@ -286,7 +282,7 @@
 		/// <summary>
 		/// コメントの取得リクエストを送信します。
 		/// </summary>
-		/// <param name="url">配信URL</param>
+		/// <param name="liveUrl">配信URL</param>
 		public async Task<IEnumerable<Message>> GetCommentAsync(String liveUrl) {
 			try {
 				var streamName = await this.ParseStreamUrlAsync(liveUrl);
@@ -301,8 +297,8 @@
 					}
 
 					dynamic json = JObject.Parse(jsonString);
-					var comments = this.ParseMessage(json);
-					return comments;
+					var messages = this.ParseMessage(json);
+					return messages;
 				}
 			} catch (WebException) {
 				return new List<Message>();
@@ -351,9 +347,7 @@
 				roomId = roomId,
 			}));
 
-			if (this.OnLeave != null) {
-				this.OnLeave(roomId);
-			}
+			this.OnLeave?.Invoke(roomId);
 
 			this.JoinedRoomId = null;
 		}
@@ -664,86 +658,63 @@
 		private void HandleReady(dynamic json) {
 			String roomId = json.roomId;
 			this.JoinedRoomId = roomId;
-			if (this.OnJoin != null) {
-				this.OnJoin(roomId);
-			}
+			this.OnJoin?.Invoke(roomId);
 		}
 
 		private void HandleGetComment(dynamic json) {
-			if (this.OnMessageList != null) {
-				var messages = this.ParseMessage(json);
-				this.OnMessageList(messages);
-			}
+			var messages = this.ParseMessage(json);
+			this.OnMessageList?.Invoke(messages);
 		}
 
 		private void HandlePostComment(dynamic json) {
-			if (this.OnNewMessage != null) {
-				var post = new Message(json);
-				this.OnNewMessage(post);
-			}
+			var post = new Message(json);
+			this.OnNewMessage?.Invoke(post);
 		}
 
 		private void HandlePostResult(dynamic json) {
-			if (this.OnPostResult != null) {
-				var result = json.result ?? false;
-				this.OnPostResult(result);
-			}
+			var result = json.result ?? false;
+			this.OnPostResult?.Invoke(result);
 		}
 
 		private void HandleBanUser(dynamic json) {
-			if (this.OnBan != null) {
-				var message = new Message(json);
-				message.IsBan = true;
-				this.OnBan(message);
-			}
+			var message = new Message(json);
+			message.IsBan = true;
+			this.OnBan?.Invoke(message);
 		}
 
 		private void HandleUnBanUser(dynamic json) {
-			if (this.OnUnBan != null) {
-				var message = new Message(json);
-				this.OnUnBan(message);
-			}
+			var message = new Message(json);
+			this.OnUnBan?.Invoke(message);
 		}
 
 		private void HandleBanFail(dynamic json) {
-			if (this.OnBanFail != null) {
-				var banFail = new BanFail(json);
-				this.OnBanFail(banFail);
-			}
+			var banFail = new BanFail(json);
+
+			this.OnBanFail?.Invoke(banFail);
 		}
 
 		private void HandleHideComment(dynamic json) {
-			if (this.OnHideComment != null) {
-				var message = new Message(json);
-				this.OnHideComment(message);
-			}
+			var message = new Message(json);
+			this.OnHideComment?.Invoke(message);
 		}
 
 		private void HandleShowComment(dynamic json) {
-			if (this.OnShowComment != null) {
-				var message = new Message(json);
-				this.OnShowComment(message);
-			}
+			var message = new Message(json);
+			this.OnShowComment?.Invoke(message);
 		}
 
 		private void HandleShowId(dynamic json) {
-			if (this.OnShowId != null) {
-				var idNotify = new IdNotification(json);
-				this.OnShowId(idNotify);
-			}
+			var idNotify = new IdNotification(json);
+			this.OnShowId?.Invoke(idNotify);
 		}
 
 		private void HandleHideId(dynamic json) {
-			if (this.OnHideId != null) {
-				var idNotify = new IdNotification(json);
-				this.OnHideId(idNotify);
-			}
+			var idNotify = new IdNotification(json);
+			this.OnHideId?.Invoke(idNotify);
 		}
 
 		private void HandleInviteInstantMessage(dynamic json) {
-			if (this.OnInviteInstantMessage != null) {
-				this.OnInviteInstantMessage();
-			}
+			this.OnInviteInstantMessage?.Invoke();
 		}
 
 		private void HandleReceiveInstantMessage(dynamic json) {
@@ -754,15 +725,11 @@
 		}
 
 		private void HandleNotifyInviteInstantMessage(dynamic json) {
-			if (this.OnNotifyInviteInstantMessage != null) {
-				this.OnNotifyInviteInstantMessage();
-			}
+			this.OnNotifyInviteInstantMessage?.Invoke();
 		}
 
 		private void HandleNotifySendInstantMessage(dynamic json) {
-			if (this.OnNotifySendInstantMessage != null) {
-				this.OnNotifySendInstantMessage();
-			}
+			this.OnNotifySendInstantMessage?.Invoke();
 		}
 
 		private void HandleJoinAndLeave(dynamic json) {
@@ -772,44 +739,32 @@
 		}
 
 		private void HandleVoteStart(dynamic json) {
-			if (this.OnVoteStart != null) {
-				var vote = new Vote(json);
-				this.OnVoteStart(vote);
-			}
+			var vote = new Vote(json);
+			this.OnVoteStart?.Invoke(vote);
 		}
 
 		private void HandleVoteResult(dynamic json) {
-			if (this.OnVoteResult != null) {
-				var vote = new Vote(json);
-				this.OnVoteResult(vote);
-			}
+			var vote = new Vote(json);
+			this.OnVoteResult?.Invoke(vote);
 		}
 
 		private void HandleVoteStop(dynamic json) {
-			if (this.OnVoteStop != null) {
-				this.OnVoteStop();
-			}
+			this.OnVoteStop?.Invoke();
 		}
 
 		private void HandleStartEntry(dynamic json) {
-			if (this.OnNotifyLiveStart != null) {
-				var liveInfo = new LiveNotification(json);
-				this.OnNotifyLiveStart(liveInfo);
-			}
+			var liveInfo = new LiveNotification(json);
+			this.OnNotifyLiveStart?.Invoke(liveInfo);
 		}
 
 		private void HandleCloseEntry(dynamic json) {
-			if (this.OnNotifyLiveClose != null) {
-				var liveInfo = new LiveNotification(json);
-				this.OnNotifyLiveClose(liveInfo);
-			}
+			var liveInfo = new LiveNotification(json);
+			this.OnNotifyLiveClose?.Invoke(liveInfo);
 		}
 
 		private void HandleYell(dynamic json) {
-			if (this.OnAdminShout != null) {
-				var adminShout = new AdminShout(json);
-				this.OnAdminShout(adminShout);
-			}
+			var adminShout = new AdminShout(json);
+			this.OnAdminShout?.Invoke(adminShout);
 		}
 		#endregion
 
@@ -827,17 +782,17 @@
 			}
 
 			match = Regex.Match(url, $@"/live/(.*)");
-			if (match.Success) {
-				using (var client = WebClientUtil.CreateInstance()) {
-					var userName = match.Groups[1].Value;
-					var jsonString = await client.DownloadStringTaskAsync($"{baseUrl}/api/live_url/{userName}");
-					dynamic json = JObject.Parse(jsonString);
-					var streamName = json.stream_name ?? String.Empty;
-					return streamName;
-				}
+			if (match.Success == false) {
+				return String.Empty;
 			}
 
-			return String.Empty;
+			using (var client = WebClientUtil.CreateInstance()) {
+				var userName = match.Groups[1].Value;
+				var jsonString = await client.DownloadStringTaskAsync($"{baseUrl}/api/live_url/{userName}");
+				dynamic json = JObject.Parse(jsonString);
+				var streamName = json.stream_name ?? String.Empty;
+				return streamName;
+			}
 		}
 	}
 

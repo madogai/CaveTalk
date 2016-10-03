@@ -15,9 +15,7 @@ namespace CaveTube.CaveTalk.Control {
 		}
 
 		private void CloseExecuted(object sender, ExecutedRoutedEventArgs e) {
-			if (this.OnClose != null) {
-				this.OnClose();
-			}
+			this.OnClose?.Invoke();
 		}
 
 		private void OpenExecuted(object sender, ExecutedRoutedEventArgs e) {

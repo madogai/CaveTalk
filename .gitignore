@@ -16,3 +16,5 @@ Thumbs.db
 *.testsettings
 README.html
 App.Debug.config
+applicationhost.config
+*.stackdump
