@@ -8,7 +8,7 @@ Download
 License
 -------
 
-Copyright 2011-2016, まどがい  
+Copyright 2011-2017, まどがい  
 MIT-style License.  
 <http://www.opensource.org/licenses/mit-license.php>
 
@@ -65,10 +65,3 @@ MIT-style License.
 CaveTalkを起動する前に棒読みちゃんを起動しておくと便利です。
 
 CaveTubeの新規配信やコメントをポップアップ表示する機能などもオプションで設定できます。
-
-既知の不都合
-------------
-一部のウィルス対策ソフトが入っていると動作しません。(AVG2012など)  
-これはウィルス対策ソフトが、CaveTubeが使用しているWebSocketという通信方法を塞いでしまうためです。
-
-
