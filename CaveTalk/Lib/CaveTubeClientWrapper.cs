@@ -7,11 +7,7 @@
 	using CaveTube.CaveTubeClient;
 
 	public sealed class CaveTubeClientWrapper : ACommentClient {
-		static CaveTubeClientWrapper() {
-			Mapper.CreateMap<CaveTubeClient.Summary, Summary>();
-			Mapper.CreateMap<CaveTubeClient.Message, Message>();
-			Mapper.CreateMap<CaveTubeClient.LiveNotification, LiveNotification>();
-		}
+		private IMapper mapper;
 
 		private Summary joinedRoomSummary;
 		public override Summary JoinedRoomSummary {
@@ -58,8 +54,8 @@
 
 		protected override async Task<Room> GetRoomInfoAsync(String url) {
 			try {
-				var summary = Mapper.Map<Summary>(await this.client.GetSummaryAsync(url));
-				var messages = (await this.client.GetCommentAsync(url)).Select(m => Mapper.Map<Message>(m));
+				var summary = this.mapper.Map<Summary>(await this.client.GetSummaryAsync(url));
+				var messages = (await this.client.GetCommentAsync(url)).Select(m => this.mapper.Map<Message>(m));
 				return new Room(summary, messages);
 			} catch (CavetubeException) {
 				return new Room(null, null);
@@ -68,7 +64,7 @@
 
 		public override async Task JoinRoomGenAsync(String url) {
 			try {
-				this.joinedRoomSummary = Mapper.Map<Summary>(await this.client.GetSummaryAsync(url));
+				this.joinedRoomSummary = this.mapper.Map<Summary>(await this.client.GetSummaryAsync(url));
 				await this.client.JoinRoomAsync(url);
 			} catch (FormatException ex) {
 				throw new CommentException(ex.Message, ex);
@@ -98,11 +94,11 @@
 			this.client.HideId(commentNumber, apiKey);
 		}
 
-		public override void HideComment(Int32 commentNumber, string apiKey) {
+		public override void HideComment(Int32 commentNumber, String apiKey) {
 			this.client.HideComment(commentNumber, apiKey);
 		}
 
-		public override void ShowComment(Int32 commentNumber, string apiKey) {
+		public override void ShowComment(Int32 commentNumber, String apiKey) {
 			this.client.ShowComment(commentNumber, apiKey);
 		}
 
@@ -116,7 +112,13 @@
 
 		public CaveTubeClientWrapper(String accessKey)
 			: this(new CavetubeClient(accessKey)) {
-		}
+			var config = new MapperConfiguration(cfg => {
+				cfg.CreateMap<CaveTubeClient.Summary, Summary>();
+				cfg.CreateMap<CaveTubeClient.Message, Message>();
+				cfg.CreateMap<CaveTubeClient.LiveNotification, LiveNotification>();
+			});
+			this.mapper = config.CreateMapper();
+			}
 
 		private CaveTubeClientWrapper(CaveTubeClient.CavetubeClient client) {
 			this.client = client;
@@ -170,11 +172,11 @@
 		}
 
 		public void MessageList(IEnumerable<CaveTubeClient.Message> messageList) {
-			this.OnMessageList?.Invoke(messageList.Select(message => Mapper.Map<Message>(message)));
+			this.OnMessageList?.Invoke(messageList.Select(message => this.mapper.Map<Message>(message)));
 		}
 
 		private void NewMessage(CaveTubeClient.Message message) {
-			this.OnNewMessage?.Invoke(Mapper.Map<Message>(message));
+			this.OnNewMessage?.Invoke(this.mapper.Map<Message>(message));
 		}
 
 		private void UpdateMember(Int32 count) {
@@ -182,19 +184,19 @@
 		}
 
 		private void Ban(CaveTubeClient.Message message) {
-			this.OnBan?.Invoke(Mapper.Map<Message>(message));
+			this.OnBan?.Invoke(this.mapper.Map<Message>(message));
 		}
 
 		private void UnBan(CaveTubeClient.Message message) {
-			this.OnUnBan?.Invoke(Mapper.Map<Message>(message));
+			this.OnUnBan?.Invoke(this.mapper.Map<Message>(message));
 		}
 
 		private void HideComment(CaveTubeClient.Message message) {
-			this.OnHideComment?.Invoke(Mapper.Map<Message>(message));
+			this.OnHideComment?.Invoke(this.mapper.Map<Message>(message));
 		}
 
 		private void ShowComment(CaveTubeClient.Message message) {
-			this.OnShowComment?.Invoke(Mapper.Map<Message>(message));
+			this.OnShowComment?.Invoke(this.mapper.Map<Message>(message));
 		}
 
 		private void InstantMessage(String message) {
@@ -210,11 +212,11 @@
 		}
 
 		private void NotifyLiveStart(CaveTubeClient.LiveNotification e) {
-			this.OnNotifyLiveStart?.Invoke(Mapper.Map<LiveNotification>(e));
+			this.OnNotifyLiveStart?.Invoke(this.mapper.Map<LiveNotification>(e));
 		}
 
 		private void NotifyLiveClose(CaveTubeClient.LiveNotification e) {
-			this.OnNotifyLiveClose?.Invoke(Mapper.Map<LiveNotification>(e));
+			this.OnNotifyLiveClose?.Invoke(this.mapper.Map<LiveNotification>(e));
 		}
 	}
 
