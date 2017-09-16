@@ -16,8 +16,6 @@
 		private Logger logger = LogManager.GetCurrentClassLogger();
 
 		protected override void OnStartup(StartupEventArgs e) {
-			logger.Debug("Application Start");
-			logger.Error("Error");
 			try {
 				base.OnStartup(e);
 
