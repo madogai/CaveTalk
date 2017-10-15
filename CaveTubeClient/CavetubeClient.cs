@@ -166,6 +166,7 @@
 				AutoConnect = false,
 				Query = new Dictionary<String, String> {
 					{"accessKey", accessKey},
+					{"client", "cavetalk"},
 				},
 			});
 			this.client.On(Socket.EVENT_CONNECT, async () => {
