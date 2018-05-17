@@ -198,6 +198,15 @@
 			}
 		}
 
+		public Boolean DisplayIconColumn {
+			get { return this.config.DisplayIconColumn; }
+			set {
+				this.config.DisplayIconColumn = value;
+				base.OnPropertyChanged("DisplayIconColumn");
+			}
+		}
+
+
 		public Boolean DisplayPostTimeColumn {
 			get { return this.config.DisplayPostTimeColumn; }
 			set {
@@ -941,6 +950,10 @@
 
 		public String Name {
 			get { return this.message.Name; }
+		}
+
+		public String Icon {
+			get { return this.message.Icon;  }
 		}
 
 		public String Comment {

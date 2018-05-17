@@ -283,6 +283,7 @@
 		public Int32 Number { get; protected set; }
 		public String ListenerId { get; protected set; }
 		public String Name { get; protected set; }
+		public String Icon { get; protected set; }
 		public String Comment { get; protected set; }
 		public DateTime PostTime { get; protected set; }
 		public Boolean IsAuth { get; protected set; }

@@ -448,6 +448,21 @@
 			}
 		}
 
+		// Iconカラムの表示
+		private const String displayIconColumn = "DisplayIconColumn";
+		public Boolean DisplayIconColumn {
+			get {
+				Boolean val;
+				if (this.configDictionary.ContainsKey(displayIconColumn) && Boolean.TryParse(this.configDictionary[displayIconColumn], out val)) {
+					return val;
+				}
+				return false;
+			}
+			set {
+				this.configDictionary[displayIconColumn] = value.ToString();
+			}
+		}
+
 		// 投稿時間カラムの表示
 		private const String displayPostTimeColumn = "DisplayPostTimeColumn";
 		public Boolean DisplayPostTimeColumn {

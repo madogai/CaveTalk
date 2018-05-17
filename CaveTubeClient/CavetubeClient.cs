@@ -851,6 +851,7 @@
 	public class Message {
 		public Int32 Number { get; internal set; }
 		public String Name { get; internal set; }
+		public String Icon { get; internal set; }
 		public String Comment { get; internal set; }
 		public DateTime PostTime { get; internal set; }
 		public String ListenerId { get; internal set; }
@@ -862,6 +863,7 @@
 			this.Number = json.comment_num ?? 0;
 			this.ListenerId = json.user_id ?? String.Empty;
 			this.Name = json.name ?? String.Empty;
+			this.Icon = json.user_icon != null ? $"https:{json.user_icon}" : String.Empty;
 			this.Comment = json.message != null ? WebUtility.HtmlDecode(json.message.ToObject<String>()) : String.Empty;
 			this.IsAuth = json.auth ?? false;
 			this.IsBan = json.is_ban ?? false;
