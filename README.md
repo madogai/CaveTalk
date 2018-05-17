@@ -8,7 +8,7 @@ Download
 License
 -------
 
-Copyright 2011-2017, まどがい  
+Copyright 2011-2018, まどがい  
 MIT-style License.  
 <http://www.opensource.org/licenses/mit-license.php>
 
@@ -35,7 +35,7 @@ Apache License, Version 2.0
 <http://www.apache.org/licenses/>
 
 
-SocketIoClientDotNet
+SocketIoClientDotNet  
 <https://github.com/Quobject/SocketIoClientDotNet>
 
 MIT-style License.  
