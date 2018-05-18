@@ -224,7 +224,7 @@
         </Border>
         <!-- DataGrid用のプロキシ -->
         <ContentControl Visibility="Collapsed" Content="{StaticResource ProxyElement}"/>
-        <DataGrid x:Name="CommentGrid" AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True" SelectedIndex="{Binding Path=MessageIndex}" HorizontalScrollBarVisibility="Disabled" FontSize="{Binding Path=FontSize}">
+        <DataGrid x:Name="CommentGrid" AutoGenerateColumns="False" ItemsSource="{Binding Path=MessageList}" HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" HeadersVisibility="Column" IsReadOnly="True" SelectedIndex="{Binding Path=MessageIndex}" HorizontalScrollBarVisibility="Disabled" FontSize="{Binding Path=FontSize}" VerticalScrollBarVisibility="Visible">
             <i:Interaction.Behaviors>
                 <b:ExecCommandDoubleClickBehavior Command="MarkCommand" />
             </i:Interaction.Behaviors>
