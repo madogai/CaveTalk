@@ -361,7 +361,7 @@
 		public static IEnumerable<AStreamService> GetStreamServices() {
 			return new List<AStreamService> {
 				new CaveTubeStreamService(),
-				new YouTubeLiveStreamService(),
+				//new YouTubeLiveStreamService(),
 				new MixerStreamService(),
 			};
 		}
@@ -383,21 +383,10 @@
 		public override String Name => "YouTubeLive";
 
 		public override StreamService ToStreamService() {
-			var streamKey = this.config.YouTubeStreamKey;
-			var channelId = this.config.YouTubeChannelId;
-
-			if (String.IsNullOrEmpty(streamKey)) {
-
-			}
-
-			if (String.IsNullOrWhiteSpace(channelId)) {
-
-			}
-
 			return new StreamService {
 				ServiceName = "youtubelive",
-				StreamKey = streamKey,
-				Channel = channelId,
+				StreamKey = this.config.YouTubeStreamKey,
+				Channel = this.config.YouTubeChannelId,
 			};
 		}
 	}
@@ -406,21 +395,10 @@
 		public override String Name => "Mixer";
 
 		public override StreamService ToStreamService() {
-			var streamKey = this.config.MixerStreamKey;
-			var userId = this.config.MixerUserId;
-
-			if (String.IsNullOrEmpty(streamKey)) {
-
-			}
-
-			if (String.IsNullOrEmpty(userId)) {
-
-			}
-
 			return new StreamService {
 				ServiceName = "mixer",
-				StreamKey = streamKey,
-				Channel = userId,
+				StreamKey = this.config.MixerStreamKey,
+				Channel = this.config.MixerUserId,
 			};
 		}
 	}

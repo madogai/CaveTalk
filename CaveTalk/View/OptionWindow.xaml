@@ -64,13 +64,13 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </TreeViewItem>
-            <TreeViewItem Header="YouTube">
+            <!--<TreeViewItem Header="YouTube">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="Selected">
                         <i:InvokeCommandAction Command="{Binding Path=YouTubeOptionOpenCommand}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
-            </TreeViewItem>
+            </TreeViewItem>-->
             <TreeViewItem Header="Mixer">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="Selected">
