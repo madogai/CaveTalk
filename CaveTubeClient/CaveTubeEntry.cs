@@ -3,6 +3,7 @@
 	using System.Collections.Generic;
 	using System.Collections.Specialized;
 	using System.Configuration;
+	using System.IO;
 	using System.Linq;
 	using System.Net;
 	using System.Text;
@@ -59,8 +60,17 @@
 
 					return new StartInfo(json);
 				}
-			} catch (WebException) {
-				return null;
+			} catch (WebException ex) {
+				if (ex.Response == null) {
+					return null;
+				}
+
+				var message = new StreamReader(ex.Response.GetResponseStream()).ReadToEnd();
+				if (String.IsNullOrWhiteSpace(message)) {
+					return null;
+				}
+
+				throw new CavetubeException(message, ex);
 			}
 		}
 

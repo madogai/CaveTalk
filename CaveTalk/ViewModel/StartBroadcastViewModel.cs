@@ -242,16 +242,22 @@
 			}
 
 			var streamService = this.streamService.ToStreamService();
-			var streamInfo = await CaveTubeClient.CaveTubeEntry.RequestStartBroadcastAsync(this.Title, this.config.ApiKey, this.Description, tags, streamService, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
-			if (streamInfo == null) {
+
+			try {
+				var streamInfo = await CaveTubeClient.CaveTubeEntry.RequestStartBroadcastAsync(this.Title, this.config.ApiKey, this.Description, tags, streamService, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
+				if (streamInfo == null) {
+					return String.Empty;
+				}
+
+				if (String.IsNullOrEmpty(streamInfo.WarnMessage) == false) {
+					MessageBox.Show(streamInfo.WarnMessage, "注意", MessageBoxButton.OK, MessageBoxImage.Warning);
+				}
+
+				return streamInfo.StreamName;
+			} catch (CavetubeException ex) {
+				MessageBox.Show(ex.Message, "注意", MessageBoxButton.OK, MessageBoxImage.Warning);
 				return String.Empty;
 			}
-
-			if (String.IsNullOrEmpty(streamInfo.WarnMessage) == false) {
-				MessageBox.Show(streamInfo.WarnMessage, "注意", MessageBoxButton.OK, MessageBoxImage.Warning);
-			}
-
-			return streamInfo.StreamName;
 		}
 
 		private void WaitStream(String streamName) {
@@ -377,10 +383,21 @@
 		public override String Name => "YouTubeLive";
 
 		public override StreamService ToStreamService() {
+			var streamKey = this.config.YouTubeStreamKey;
+			var channelId = this.config.YouTubeChannelId;
+
+			if (String.IsNullOrEmpty(streamKey)) {
+
+			}
+
+			if (String.IsNullOrWhiteSpace(channelId)) {
+
+			}
+
 			return new StreamService {
 				ServiceName = "youtubelive",
-				StreamKey = this.config.YouTubeStreamKey,
-				Channel = this.config.YouTubeChannelId,
+				StreamKey = streamKey,
+				Channel = channelId,
 			};
 		}
 	}
@@ -389,10 +406,21 @@
 		public override String Name => "Mixer";
 
 		public override StreamService ToStreamService() {
+			var streamKey = this.config.MixerStreamKey;
+			var userId = this.config.MixerUserId;
+
+			if (String.IsNullOrEmpty(streamKey)) {
+
+			}
+
+			if (String.IsNullOrEmpty(userId)) {
+
+			}
+
 			return new StreamService {
 				ServiceName = "mixer",
-				StreamKey = this.config.MixerStreamKey,
-				Channel = this.config.MixerUserId,
+				StreamKey = streamKey,
+				Channel = userId,
 			};
 		}
 	}
