@@ -44,7 +44,24 @@
 			}
 		}
 
+		public Boolean EnableHtml5CommentGenerator {
+			get { return this.config.EnableHtml5CommentGenerator; }
+			set {
+				this.config.EnableHtml5CommentGenerator = value;
+				base.OnPropertyChanged("EnableHtml5CommentGenerator");
+			}
+		}
+
+		public String Html5CommentGeneratorCommentFilePath {
+			get { return this.config.Html5CommentGeneratorCommentFilePath; }
+			set {
+				this.config.Html5CommentGeneratorCommentFilePath = value;
+				base.OnPropertyChanged("Html5CommentGeneratorCommentFilePath");
+			}
+		}
+
 		public ICommand FindFlashCommentGeneratorDatCommand { get; private set; }
+		public ICommand FindHtml5CommentGeneratorCommentFileCommand { get; private set; }
 
 		public CommentOptionViewModel() {
 			this.config = Config.GetConfig();
@@ -61,6 +78,20 @@
 					return;
 				}
 				this.FlashCommentGeneratorDatFilePath = dialog.FileName;
+			});
+			this.FindHtml5CommentGeneratorCommentFileCommand = new RelayCommand(p => {
+				var dialog = new OpenFileDialog {
+					Filter = "コメントファイル|*.xml",
+					CheckFileExists = false,
+					CheckPathExists = false,
+					Title = "コメントファイルの選択",
+				};
+				var result = dialog.ShowDialog();
+				result.GetValueOrDefault();
+				if (result.GetValueOrDefault() == false) {
+					return;
+				}
+				this.Html5CommentGeneratorCommentFilePath = dialog.FileName;
 			});
 		}
 

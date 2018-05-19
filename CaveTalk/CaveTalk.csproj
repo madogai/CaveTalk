@@ -24,6 +24,8 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -38,8 +40,6 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>cavetalk.ico</ApplicationIcon>
@@ -205,6 +205,7 @@
     <Compile Include="Lib\Exception.cs" />
     <Compile Include="Lib\ACommentClient.cs" />
     <Compile Include="Lib\ASpeechClient.cs" />
+    <Compile Include="Lib\Html5CommentGeneratorNotifier.cs" />
     <Compile Include="Lib\FlashCommentGeneratorNotifier.cs" />
     <Compile Include="Lib\SofTalkClient.cs" />
     <Compile Include="Lib\NoSoundClient.cs" />

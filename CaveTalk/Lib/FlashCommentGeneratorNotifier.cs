@@ -1,11 +1,7 @@
 ﻿namespace CaveTube.CaveTalk.Lib {
 	using System;
-	using System.Collections.Generic;
 	using System.IO;
-	using System.Linq;
 	using System.Text;
-	using System.Threading.Tasks;
-	using CaveTube.CaveTalk.Model;
 
 	public class FlashCommentGeneratorNotifier {
 		/// <summary>

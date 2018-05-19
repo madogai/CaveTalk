@@ -328,6 +328,35 @@
 			}
 		}
 
+		// Html5コメントジェネレーターの有効化
+		private const String enableHtml5CommentGenerator = "EnableHtml5CommentGenerator";
+		public Boolean EnableHtml5CommentGenerator {
+			get {
+				Boolean val;
+				if (this.configDictionary.ContainsKey(enableHtml5CommentGenerator) && Boolean.TryParse(this.configDictionary[enableHtml5CommentGenerator], out val)) {
+					return val;
+				}
+				return false;
+			}
+			set {
+				this.configDictionary[enableHtml5CommentGenerator] = value.ToString();
+			}
+		}
+
+		// Html5コメントジェネレーターDatファイルのパス
+		private const String html5CommentGeneratorCommentFilePath = "Html5CommentGeneratorCommentFilePath";
+		public String Html5CommentGeneratorCommentFilePath {
+			get {
+				if (this.configDictionary.ContainsKey(html5CommentGeneratorCommentFilePath) == false) {
+					return String.Empty;
+				}
+				return this.configDictionary[html5CommentGeneratorCommentFilePath];
+			}
+			set {
+				this.configDictionary[html5CommentGeneratorCommentFilePath] = value;
+			}
+		}
+
 		// 配信終了時の通知
 		private const String noticeLiveClose = "NoticeLiveClose";
 		public Boolean NoticeLiveClose {

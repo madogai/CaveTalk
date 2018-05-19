@@ -105,5 +105,43 @@
                 <Button Grid.Row="1" Grid.Column="2" Content="..." Command="{Binding Path=FindFlashCommentGeneratorDatCommand}" />
             </Grid>
         </GroupBox>
+        <GroupBox Header="HTML5コメントジェネレーター連携">
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Style.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Grid.Column" Value="0" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Grid.Column" Value="1" />
+                                <Setter Property="Orientation" Value="Horizontal" />
+                                <Setter Property="Margin" Value="3" />
+                            </Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Margin" Value="3" />
+                            </Style>
+                        </Style.Resources>
+                    </Style>
+                </Grid.Style>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="20" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0">機能の有効化</TextBlock>
+                <StackPanel Grid.Row="0" Grid.Column="1">
+                    <CheckBox IsChecked="{Binding Path=EnableHtml5CommentGenerator}"></CheckBox>
+                </StackPanel>
+                <TextBlock Grid.Row="1" Text="comment.xmlファイルパス" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Path=Html5CommentGeneratorCommentFilePath}" />
+                <Button Grid.Row="1" Grid.Column="2" Content="..." Command="{Binding Path=FindHtml5CommentGeneratorCommentFileCommand}" />
+            </Grid>
+        </GroupBox>
     </StackPanel>
 </UserControl>

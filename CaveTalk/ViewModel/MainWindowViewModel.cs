@@ -397,6 +397,7 @@
 				this.commentClient.OnNewMessage += this.AddComment;
 				this.commentClient.OnNewMessage += this.SpeakMessage;
 				this.commentClient.OnNewMessage += this.NotifyMessageToFlashCommentGenerator;
+				this.commentClient.OnNewMessage += this.NotifyMessageToHtml5CommentGenerator;
 				this.commentClient.OnUpdateMember += this.UpdateMember;
 				this.commentClient.OnBan += this.CommentStatusChange;
 				this.commentClient.OnUnBan += this.CommentStatusChange;
@@ -722,11 +723,11 @@
 				return;
 			}
 
-			if (config.EnableFlashCommentGenerator == false) {
+			if (this.config.EnableFlashCommentGenerator == false) {
 				return;
 			}
 
-			var filePath = config.FlashCommentGeneratorDatFilePath;
+			var filePath = this.config.FlashCommentGeneratorDatFilePath;
 			if (Path.IsPathRooted(filePath) == false) {
 				return;
 			}
@@ -737,6 +738,36 @@
 
 			try {
 				FlashCommentGeneratorNotifier.write(filePath, message);
+			} catch (IOException e) {
+				logger.Error(e);
+			}
+		}
+
+		/// <summary>
+		/// コメント受信時にHtml5コメントジェネレーターへの通知を行います。
+		/// </summary>
+		/// <param name="summary"></param>
+		/// <param name="message"></param>
+		private void NotifyMessageToHtml5CommentGenerator(Lib.Message message) {
+			if (this.commentClient.JoinedRoomSummary == null) {
+				return;
+			}
+
+			if (this.config.EnableHtml5CommentGenerator == false) {
+				return;
+			}
+
+			var filePath = this.config.Html5CommentGeneratorCommentFilePath;
+			if (Path.IsPathRooted(filePath) == false) {
+				return;
+			}
+
+			if (String.IsNullOrEmpty(Path.GetFileName(filePath))) {
+				return;
+			}
+
+			try {
+				Html5CommentGeneratorNotifier.write(filePath, message);
 			} catch (IOException e) {
 				logger.Error(e);
 			}
