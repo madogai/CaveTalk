@@ -5,20 +5,21 @@
         xmlns:b="clr-namespace:CaveTube.CaveTalk.Behavior"
         xmlns:cv="clr-namespace:CaveTube.CaveTalk.Converter"
         xmlns:vm="clr-namespace:CaveTube.CaveTalk.ViewModel"
-        Title="配信開始" Height="480" Width="400" x:Name="Root" WindowStyle="ToolWindow" Topmost="True">
+        Title="配信開始" Height="520" Width="400" x:Name="Root" WindowStyle="ToolWindow" Topmost="True">
     <Window.Resources>
         <cv:EnumBooleanConverter x:Key="enumBooleanConverter" />
     </Window.Resources>
     <Grid>
-        <Grid Grid.Row="0" Panel.ZIndex="1" Opacity="0.7" Background="WhiteSmoke" Visibility="{Binding Path=FrontLayerVisibility}" />
+        <!--<Grid Grid.Row="0" Panel.ZIndex="1" Opacity="0.7" Background="WhiteSmoke" Visibility="{Binding Path=FrontLayerVisibility}" />
         <Border Grid.Row="0" Panel.ZIndex="2" HorizontalAlignment="Center" VerticalAlignment="Center" Background="White" Padding="10,1" BorderThickness="1" Visibility="{Binding Path=FrontLayerVisibility}" BorderBrush="LightSteelBlue">
             <TextBlock Text="エンコーダーから配信を開始してください。" />
-        </Border>
+        </Border>-->
         <Grid Grid.Row="0" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="25" />
                 <RowDefinition Height="40" />
                 <RowDefinition />
+                <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
                 <RowDefinition Height="77" />
@@ -43,7 +44,8 @@
                     <b:TextBoxPlaceholderBehavior Placeholder="タグ(オプション)" />
                 </i:Interaction.Behaviors>
             </TextBox>
-            <ListBox Grid.Row="5" ItemsSource="{Binding Path=Thumbnails}" SelectedItem="{Binding Path=Thumbnail}" ScrollViewer.VerticalScrollBarVisibility="Hidden" Padding="0" BorderThickness="0" Margin="0">
+            <ComboBox x:Name="StreamServiceComboBox" Grid.Row="5" Margin="5" ItemsSource="{Binding Path=StreamServices}" DisplayMemberPath="Name" SelectedValuePath="Name" SelectedItem="{Binding Path=StreamService}" VerticalContentAlignment="Center" />
+            <ListBox Grid.Row="6" ItemsSource="{Binding Path=Thumbnails}" SelectedItem="{Binding Path=Thumbnail}" ScrollViewer.VerticalScrollBarVisibility="Hidden" Padding="0" BorderThickness="0" Margin="0">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" />
@@ -75,7 +77,7 @@
                     </Style>
                 </ListBox.ItemContainerStyle>
             </ListBox>
-            <Grid Grid.Row="6">
+            <Grid Grid.Row="7">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="160" />
                     <ColumnDefinition />
@@ -101,7 +103,7 @@
                     <RadioButton Content="ログインのみ" IsChecked="{Binding Path=LoginOnly, Converter={StaticResource ResourceKey=enumBooleanConverter}, ConverterParameter=True, UpdateSourceTrigger=LostFocus}" />
                 </StackPanel>
             </Grid>
-            <Grid Grid.Row="7" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid Grid.Row="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <CheckBox x:Name="IsAgree">
                     <TextBlock>
                         <Run>cavelis.net</Run>
@@ -112,7 +114,7 @@
                     </TextBlock>
                 </CheckBox>
             </Grid>
-            <Grid Grid.Row="8">
+            <Grid Grid.Row="9">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition Width="100" />

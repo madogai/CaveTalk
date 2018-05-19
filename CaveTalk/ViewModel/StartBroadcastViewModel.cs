@@ -11,6 +11,7 @@
 	using CaveTube.CaveTalk.Model;
 	using CaveTube.CaveTalk.Utils;
 	using CaveTube.CaveTubeClient;
+	using static CaveTube.CaveTubeClient.CaveTubeEntry;
 
 	public sealed class StartBroadcastViewModel : ViewModelBase {
 		public event Action<String> OnStreamStart;
@@ -48,6 +49,21 @@
 			set {
 				this.tags = value;
 				base.OnPropertyChanged("Tags");
+			}
+		}
+
+		private AStreamService streamService;
+		public AStreamService StreamService {
+			get { return this.streamService; }
+			set {
+				this.streamService = value;
+				base.OnPropertyChanged("StreamService");
+
+				if (this.config == null || value == null) {
+					return;
+				}
+
+				this.config.StreamService = AStreamService.Serialize(value);
 			}
 		}
 
@@ -103,6 +119,13 @@
 			}
 		}
 
+		private IEnumerable<AStreamService> streamServices;
+		public IEnumerable<AStreamService> StreamServices {
+			get {
+				return this.streamServices;
+			}
+		}
+
 		private IEnumerable<Thumbnail> thumbnails;
 		public IEnumerable<Thumbnail> Thumbnails {
 			get {
@@ -150,21 +173,24 @@
 				this.LoadPreviousSetting();
 			});
 
-			var accessKey = await CavetubeAuth.GetAccessKeyAsync(config.AccessKey);
-			config.AccessKey = accessKey;
-			config.Save();
+			var accessKey = await CavetubeAuth.GetAccessKeyAsync(this.config.AccessKey);
+			this.config.AccessKey = accessKey;
+			this.config.Save();
 			this.client = new CaveTubeClientWrapper(accessKey);
 			this.client.Connect();
 
 			this.genres = await this.RequestGenreAsync(this.config.ApiKey);
 			this.Genre = this.genres.First();
 
+			this.streamServices = AStreamService.GetStreamServices();
+			this.StreamService = AStreamService.Deserialize(this.config.StreamService);
+
 			this.thumbnails = await this.RequestThumbnailsAsync(this.config.ApiKey);
 			this.Thumbnail = this.thumbnails.First();
 		}
 
 		private void LoadPreviousSetting() {
-			var rooms = Model.Room.GetRooms(config.UserId);
+			var rooms = Model.Room.GetRooms(this.config.UserId);
 			var room = rooms.ElementAtOrDefault(this.previousCount);
 			if (room == null) {
 				MessageBox.Show($"{this.previousCount + 1}回前の配信は存在しません。");
@@ -200,7 +226,7 @@
 		}
 
 		private async Task<String> RequestStartBroadcast(Boolean isTestMode = false, String socketId = "") {
-			var apiKey = config.ApiKey;
+			var apiKey = this.config.ApiKey;
 			if (String.IsNullOrWhiteSpace(apiKey)) {
 				return String.Empty;
 			}
@@ -215,7 +241,8 @@
 				Regex.Split(this.Tags, @"\s+").ForEach(t => tags.Add(t));
 			}
 
-			var streamInfo = await CaveTubeClient.CaveTubeEntry.RequestStartBroadcastAsync(this.Title, config.ApiKey, this.Description, tags, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
+			var streamService = this.streamService.ToStreamService();
+			var streamInfo = await CaveTubeClient.CaveTubeEntry.RequestStartBroadcastAsync(this.Title, this.config.ApiKey, this.Description, tags, streamService, this.Thumbnail.Slot, this.IdVisible == BooleanType.True, this.AnonymousOnly == BooleanType.True, this.LoginOnly == BooleanType.True, isTestMode, socketId);
 			if (streamInfo == null) {
 				return String.Empty;
 			}
@@ -285,5 +312,88 @@
 	public class Thumbnail {
 		public String Url { get; set; }
 		public Int32 Slot { get; set; }
+	}
+
+	public abstract class AStreamService {
+		protected Config config { get; private set; }
+		public abstract String Name { get; }
+
+		public abstract StreamService ToStreamService();
+
+		public AStreamService() {
+			this.config = Model.Config.GetConfig();
+		}
+
+		public override Boolean Equals(Object obj) {
+			var other = obj as AStreamService;
+			if (other == null) {
+				return false;
+			}
+
+			return this.Name == other.Name;
+		}
+
+		public override Int32 GetHashCode() {
+			return this.Name.GetHashCode();
+		}
+
+		public static AStreamService Deserialize(String name) {
+			switch (name) {
+				case "YouTubeLive":
+					return new YouTubeLiveStreamService();
+				case "Mixer":
+					return new MixerStreamService();
+				default:
+					return new CaveTubeStreamService();
+			}
+		}
+
+		public static String Serialize(AStreamService streamService) {
+			return streamService.Name;
+		}
+
+		public static IEnumerable<AStreamService> GetStreamServices() {
+			return new List<AStreamService> {
+				new CaveTubeStreamService(),
+				new YouTubeLiveStreamService(),
+				new MixerStreamService(),
+			};
+		}
+	}
+
+	public class CaveTubeStreamService : AStreamService {
+		public override String Name => "CaveTube";
+
+		public override StreamService ToStreamService() {
+			return new StreamService {
+				ServiceName = "cavetube",
+				StreamKey = null,
+				Channel = null,
+			};
+		}
+	}
+
+	public class YouTubeLiveStreamService : AStreamService {
+		public override String Name => "YouTubeLive";
+
+		public override StreamService ToStreamService() {
+			return new StreamService {
+				ServiceName = "youtubelive",
+				StreamKey = this.config.YouTubeStreamKey,
+				Channel = this.config.YouTubeChannelId,
+			};
+		}
+	}
+
+	public class MixerStreamService : AStreamService {
+		public override String Name => "Mixer";
+
+		public override StreamService ToStreamService() {
+			return new StreamService {
+				ServiceName = "mixer",
+				StreamKey = this.config.MixerStreamKey,
+				Channel = this.config.MixerUserId,
+			};
+		}
 	}
 }

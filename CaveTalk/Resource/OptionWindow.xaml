@@ -15,4 +15,12 @@
     <DataTemplate DataType="{x:Type vm:SpeechOptionViewModel}">
         <vw:SpeechOptionControl />
     </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:YouTubeOptionViewModel}">
+        <vw:YouTubeOptoinControl />
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:MixerOptionViewModel}">
+        <vw:MixerOptoinControl />
+    </DataTemplate>
 </ResourceDictionary>

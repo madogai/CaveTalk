@@ -358,6 +358,76 @@
 			}
 		}
 
+		// YouTube ストリームキー
+		private const String youtubeStreamKey = "YouTubeStreamKey";
+		public String YouTubeStreamKey {
+			get {
+				if (this.configDictionary.ContainsKey(youtubeStreamKey)) {
+					return this.configDictionary[youtubeStreamKey];
+				}
+				return String.Empty;
+			}
+			set {
+				this.configDictionary[youtubeStreamKey] = value;
+			}
+		}
+
+		// YouTube ChannelId
+		private const String youtubeChannelId = "YouTubeChannelId";
+		public String YouTubeChannelId {
+			get {
+				if (this.configDictionary.ContainsKey(youtubeChannelId)) {
+					return this.configDictionary[youtubeChannelId];
+				}
+				return String.Empty;
+			}
+			set {
+				this.configDictionary[youtubeChannelId] = value;
+			}
+		}
+
+		// Mixer ストリームキー
+		private const String mixerStreamKey = "MixerStreamKey";
+		public String MixerStreamKey {
+			get {
+				if (this.configDictionary.ContainsKey(mixerStreamKey)) {
+					return this.configDictionary[mixerStreamKey];
+				}
+				return String.Empty;
+			}
+			set {
+				this.configDictionary[mixerStreamKey] = value;
+			}
+		}
+
+		// Mixer ユーザーID
+		private const String mixerUserId = "MixerUserId";
+		public String MixerUserId {
+			get {
+				if (this.configDictionary.ContainsKey(mixerUserId)) {
+					return this.configDictionary[mixerUserId];
+				}
+				return String.Empty;
+			}
+			set {
+				this.configDictionary[mixerUserId] = value;
+			}
+		}
+
+		// StreamService
+		private const String streamService = "StreamService";
+		public String StreamService {
+			get {
+				if (this.configDictionary.ContainsKey(streamService)) {
+					return this.configDictionary[streamService];
+				}
+				return String.Empty;
+			}
+			set {
+				this.configDictionary[streamService] = value;
+			}
+		}
+
 		// ウィンドウトップ固定
 		private const String topMost = "TopMost";
 		public Boolean TopMost {
@@ -520,9 +590,9 @@
 							@ConfigKey, @Value
 						);
 					", new {
-						 ConfigKey = item.Key,
-						 Value = item.Value
-					 }, transaction);
+						ConfigKey = item.Key,
+						Value = item.Value
+					}, transaction);
 				}
 
 				transaction.Commit();

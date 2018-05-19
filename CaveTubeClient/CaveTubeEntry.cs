@@ -21,6 +21,7 @@
 		/// <param name="apiKey">APIキー</param>
 		/// <param name="description">配信詳細</param>
 		/// <param name="tags">タグ</param>
+		/// <param name="streamService">ストリームサービス</param>
 		/// <param name="thumbnailSlot">サムネイルスロット</param>
 		/// <param name="idVisible">ID表示の有無</param>
 		/// <param name="anonymousOnly">ハンドルネーム制限</param>
@@ -28,7 +29,7 @@
 		/// <param name="testMode">テストモード</param>
 		/// <param name="socketId">SocketIOの接続ID</param>
 		/// <returns></returns>
-		public static async Task<StartInfo> RequestStartBroadcastAsync(String title, String apiKey, String description, IEnumerable<String> tags, Int32 thumbnailSlot, Boolean idVisible, Boolean anonymousOnly, Boolean loginOnly, Boolean testMode, String socketId) {
+		public static async Task<StartInfo> RequestStartBroadcastAsync(String title, String apiKey, String description, IEnumerable<String> tags, StreamService streamService, Int32 thumbnailSlot, Boolean idVisible, Boolean anonymousOnly, Boolean loginOnly, Boolean testMode, String socketId) {
 			try {
 				using (var client = WebClientUtil.CreateInstance()) {
 					var data = new NameValueCollection {
@@ -37,6 +38,9 @@
 						{"title", title},
 						{"description", description},
 						{"tag", String.Join(" ", tags)},
+						{"stream_service", streamService.ServiceName},
+						{"stream_key", streamService.StreamKey },
+						{"channel", streamService.Channel },
 						{"thumbnail_slot", thumbnailSlot.ToString()},
 						{"id_visible", idVisible ? "true" : "false"},
 						{"anonymous_only", anonymousOnly ? "true" : "false"},
@@ -139,6 +143,12 @@
 				this.StreamName = json.stream_name;
 				this.WarnMessage = json.warn_message ?? String.Empty;
 			}
+		}
+
+		public sealed class StreamService {
+			public String ServiceName { get; set; }
+			public String StreamKey { get; set; }
+			public String Channel { get; set; }
 		}
 	}
 }
