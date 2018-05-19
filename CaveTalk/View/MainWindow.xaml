@@ -235,7 +235,7 @@
                             <Setter.Value>
                                 <ContextMenu>
                                     <MenuItem Header="Id" IsCheckable="True" IsChecked="{Binding Path=DataContext.DisplayIdColumn, Source={StaticResource ResourceKey=ProxyElement}, Mode=TwoWay}" />
-                                    <MenuItem Header="画像" IsCheckable="True" IsChecked="{Binding Path=DataContext.DisplayIconColumn, Source={StaticResource ResourceKey=ProxyElement}, Mode=TwoWay}" />
+                                    <MenuItem Header="アイコン" IsCheckable="True" IsChecked="{Binding Path=DataContext.DisplayIconColumn, Source={StaticResource ResourceKey=ProxyElement}, Mode=TwoWay}" />
                                     <MenuItem Header="投稿時間" IsCheckable="True" IsChecked="{Binding Path=DataContext.DisplayPostTimeColumn, Source={StaticResource ResourceKey=ProxyElement}, Mode=TwoWay}" />
                                     <MenuItem Header="経過時間" IsCheckable="True" IsChecked="{Binding Path=DataContext.DisplayElapsedPostTimeColumn, Source={StaticResource ResourceKey=ProxyElement}, Mode=TwoWay}" />
                                 </ContextMenu>
@@ -371,7 +371,7 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Icon" Width="80" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayIconColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" CanUserSort="False">
+                <DataGridTemplateColumn Header="アイコン" Width="60" CellStyle="{StaticResource ResourceKey=DefaultCellStyle}" Visibility="{Binding Path=DataContext.DisplayIconColumn, Mode=OneWay, Source={StaticResource ResourceKey=ProxyElement}, Converter={StaticResource ResourceKey=BooleanToVisibilityConverter}}" CanUserSort="False">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Image Source="{Binding Path=Icon}"></Image>
