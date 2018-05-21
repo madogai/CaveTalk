@@ -361,7 +361,7 @@
 		public static IEnumerable<AStreamService> GetStreamServices() {
 			return new List<AStreamService> {
 				new CaveTubeStreamService(),
-				//new YouTubeLiveStreamService(),
+				new YouTubeLiveStreamService(),
 				new MixerStreamService(),
 			};
 		}
