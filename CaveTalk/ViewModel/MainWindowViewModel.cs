@@ -625,6 +625,7 @@
 		/// アプリケーションのアップデートをチェックします。
 		/// </summary>
 		private async void UpdateCheck() {
+			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 			using (var client = new WebClient()) {
 				try {
 					client.Headers.Add(HttpRequestHeader.UserAgent, "CaveChat");
