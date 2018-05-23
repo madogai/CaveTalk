@@ -64,17 +64,10 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </TreeViewItem>
-            <TreeViewItem Header="YouTube">
+            <TreeViewItem Header="配信サービス">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="Selected">
-                        <i:InvokeCommandAction Command="{Binding Path=YouTubeOptionOpenCommand}" />
-                    </i:EventTrigger>
-                </i:Interaction.Triggers>
-            </TreeViewItem>
-            <TreeViewItem Header="Mixer">
-                <i:Interaction.Triggers>
-                    <i:EventTrigger EventName="Selected">
-                        <i:InvokeCommandAction Command="{Binding Path=MixerOptionOpenCommand}" />
+                        <i:InvokeCommandAction Command="{Binding Path=StreamOptionOpenCommand}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </TreeViewItem>

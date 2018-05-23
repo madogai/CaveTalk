@@ -16,11 +16,7 @@
         <vw:SpeechOptionControl />
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type vm:YouTubeOptionViewModel}">
-        <vw:YouTubeOptoinControl />
-    </DataTemplate>
-
-    <DataTemplate DataType="{x:Type vm:MixerOptionViewModel}">
-        <vw:MixerOptoinControl />
+    <DataTemplate DataType="{x:Type vm:StreamOptionViewModel}">
+        <vw:StreamOptoinControl />
     </DataTemplate>
 </ResourceDictionary>

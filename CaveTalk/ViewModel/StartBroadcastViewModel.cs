@@ -349,6 +349,8 @@
 					return new YouTubeLiveStreamService();
 				case "Mixer":
 					return new MixerStreamService();
+				case "Twitch":
+					return new TwitchStreamService();
 				default:
 					return new CaveTubeStreamService();
 			}
@@ -363,6 +365,7 @@
 				new CaveTubeStreamService(),
 				new YouTubeLiveStreamService(),
 				new MixerStreamService(),
+				new TwitchStreamService(),
 			};
 		}
 	}
@@ -399,6 +402,18 @@
 				ServiceName = "mixer",
 				StreamKey = this.config.MixerStreamKey,
 				Channel = this.config.MixerUserId,
+			};
+		}
+	}
+
+	public class TwitchStreamService : AStreamService {
+		public override String Name => "Twitch";
+
+		public override StreamService ToStreamService() {
+			return new StreamService {
+				ServiceName = "twitch",
+				StreamKey = this.config.TwitchStreamKey,
+				Channel = this.config.TwitchUserId,
 			};
 		}
 	}

@@ -18,14 +18,12 @@
 		private OptionBaseViewModel generalOption;
 		private OptionBaseViewModel commentOption;
 		private OptionBaseViewModel speechOption;
-		private OptionBaseViewModel youtubeOption;
-		private OptionBaseViewModel mixerOption;
+		private OptionBaseViewModel streamOption;
 
 		public ICommand GeneralOptionOpenCommand { get; private set; }
 		public ICommand CommentOptionOpenCommand { get; private set; }
 		public ICommand SpeechOptionOpenCommand { get; private set; }
-		public ICommand YouTubeOptionOpenCommand { get; private set; }
-		public ICommand MixerOptionOpenCommand { get; private set; }
+		public ICommand StreamOptionOpenCommand { get; private set; }
 		public ICommand SaveCommand { get; private set; }
 		public ICommand CancelCommand { get; private set; }
 
@@ -33,8 +31,7 @@
 			this.generalOption = new GeneralOptionViewModel();
 			this.commentOption = new CommentOptionViewModel();
 			this.speechOption = new SpeechOptionViewModel();
-			this.youtubeOption = new YouTubeOptionViewModel();
-			this.mixerOption = new MixerOptionViewModel();
+			this.streamOption = new StreamOptionViewModel();
 
 			this.OptionWindow = this.speechOption;
 
@@ -47,11 +44,8 @@
 			this.SpeechOptionOpenCommand = new RelayCommand(p => {
 				this.OptionWindow = this.speechOption;
 			});
-			this.YouTubeOptionOpenCommand = new RelayCommand(p => {
-				this.OptionWindow = this.youtubeOption;
-			});
-			this.MixerOptionOpenCommand = new RelayCommand(p => {
-				this.OptionWindow = this.mixerOption;
+			this.StreamOptionOpenCommand = new RelayCommand(p => {
+				this.OptionWindow = this.streamOption;
 			});
 			this.SaveCommand = new RelayCommand(p => {
 				this.generalOption.Save();

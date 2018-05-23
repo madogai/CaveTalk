@@ -443,6 +443,34 @@
 			}
 		}
 
+		// Twitch ストリームキー
+		private const String twitchStreamKey = "TwitchStreamKey";
+		public String TwitchStreamKey {
+			get {
+				if (this.configDictionary.ContainsKey(twitchStreamKey)) {
+					return this.configDictionary[twitchStreamKey];
+				}
+				return String.Empty;
+			}
+			set {
+				this.configDictionary[twitchStreamKey] = value;
+			}
+		}
+
+		// Twitch ユーザーID
+		private const String twitchUserId = "TwitchUserId";
+		public String TwitchUserId {
+			get {
+				if (this.configDictionary.ContainsKey(twitchUserId)) {
+					return this.configDictionary[twitchUserId];
+				}
+				return String.Empty;
+			}
+			set {
+				this.configDictionary[twitchUserId] = value;
+			}
+		}
+
 		// StreamService
 		private const String streamService = "StreamService";
 		public String StreamService {

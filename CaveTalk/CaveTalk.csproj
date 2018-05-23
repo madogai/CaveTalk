@@ -218,8 +218,7 @@
     <Compile Include="Model\Config.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ViewModel\CommentOptionViewModel.cs" />
-    <Compile Include="ViewModel\MixerOptionViewModel.cs" />
-    <Compile Include="ViewModel\YouTubeOptionViewModel.cs" />
+    <Compile Include="ViewModel\StreamOptionViewModel.cs" />
     <Compile Include="ViewModel\InstantMessageBoxViewModel.cs" />
     <Compile Include="ViewModel\OptionBaseViewModel.cs" />
     <Compile Include="ViewModel\OptionWindowViewModel.cs" />
@@ -230,11 +229,8 @@
     <Compile Include="View\CommentOptionControl.xaml.cs">
       <DependentUpon>CommentOptionControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\YouTubeOptoinControl.xaml.cs">
-      <DependentUpon>YouTubeOptoinControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View\MixerOptoinControl.xaml.cs">
-      <DependentUpon>MixerOptoinControl.xaml</DependentUpon>
+    <Compile Include="View\StreamOptoinControl.xaml.cs">
+      <DependentUpon>StreamOptoinControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\LoginBox.xaml.cs">
       <DependentUpon>LoginBox.xaml</DependentUpon>
@@ -297,11 +293,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="View\YouTubeOptoinControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\MixerOptoinControl.xaml">
+    <Page Include="View\StreamOptoinControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
